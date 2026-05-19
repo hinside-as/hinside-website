@@ -3,6 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 const VIEWBOX_WIDTH = 112;
 const VIEWBOX_HEIGHT = 13;
 const SCRAMBLE_INTERVAL_MS = 220;
+const IDLE_LOOP_SPEED = 0.00048;
+const SCRAMBLE_GLYPHS = "█▓▒░";
+const IDLE_GRADIENT_GLYPHS = "▏▎▍▌▋▊▉█▉▊▋▌▍▎▏";
 
 const SLATS = [
   { x: 101, y: 12, w: 11 }, { x: 101, y: 10, w: 4 }, { x: 101, y: 8, w: 4 }, { x: 101, y: 6, w: 8 },
@@ -26,9 +29,27 @@ const SLATS = [
 
 export default function InteractiveLogo() {
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const rectRefs = useRef<Array<SVGRectElement | null>>([]);
+  const textRefs = useRef<Array<SVGTextElement | null>>([]);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const [isActive, setIsActive] = useState(false);
+  const lastRenderedStripsRef = useRef<string[]>(Array(SLATS.length).fill(""));
+
+  const asciiLengths = useMemo(
+    () => SLATS.map((slat, index) => {
+      const length = Math.max(2, Math.round(slat.w * 1.18));
+      return length;
+    }),
+    []
+  );
+
+  const getIdleStrip = (index: number, loopOffset: number) => {
+    const slat = SLATS[index];
+    const stripLength = asciiLengths[index];
+    const normalizedRow = slat.y / Math.max(VIEWBOX_HEIGHT - 1, 1);
+    const scaled = ((normalizedRow - loopOffset + 1) % 1) * (IDLE_GRADIENT_GLYPHS.length - 1);
+    const glyphIndex = Math.max(0, Math.min(IDLE_GRADIENT_GLYPHS.length - 1, Math.round(scaled)));
+    return IDLE_GRADIENT_GLYPHS[glyphIndex].repeat(stripLength);
+  };
 
   const rowGroups = useMemo(() => {
     const groups = new Map<number, number[]>();
@@ -66,6 +87,16 @@ export default function InteractiveLogo() {
     let scrambleStrength = 0;
     let lastScrambleAt = 0;
     let lastActiveState = false;
+    let glyphCycle = 0;
+
+    for (let i = 0; i < SLATS.length; i += 1) {
+      const text = textRefs.current[i];
+      if (text) {
+        const initialStrip = getIdleStrip(i, 0);
+        text.textContent = initialStrip;
+        lastRenderedStripsRef.current[i] = initialStrip;
+      }
+    }
 
     const onPointerMove = (event: PointerEvent) => {
       if (!svg) {
@@ -125,10 +156,55 @@ export default function InteractiveLogo() {
 
       if (now - lastScrambleAt > SCRAMBLE_INTERVAL_MS) {
         const range = 1.8 + 33 * scrambleStrength;
+          const loopOffset = (now * IDLE_LOOP_SPEED) % 1;
         for (let i = 0; i < SLATS.length; i += 1) {
           scrambleTargets[i] = (Math.random() * 2 - 1) * range;
+
+          const text = textRefs.current[i];
+          if (!text) {
+            continue;
+          }
+
+          if (scrambleStrength < 0.08) {
+            const idleStrip = getIdleStrip(i, loopOffset);
+            if (idleStrip !== lastRenderedStripsRef.current[i]) {
+              text.textContent = idleStrip;
+              lastRenderedStripsRef.current[i] = idleStrip;
+            }
+            continue;
+          }
+
+          const base = getIdleStrip(i, loopOffset);
+          const chars = base.split("");
+          const mutateCount = Math.max(1, Math.round(chars.length * Math.min(scrambleStrength * 0.9, 0.65)));
+          for (let m = 0; m < mutateCount; m += 1) {
+            const pick = (glyphCycle + m * 7 + i * 3) % chars.length;
+            const glyphIndex = (glyphCycle * 5 + i * 11 + m * 13) % SCRAMBLE_GLYPHS.length;
+            chars[pick] = SCRAMBLE_GLYPHS[glyphIndex];
+          }
+          const scrambledStrip = chars.join("");
+          if (scrambledStrip !== lastRenderedStripsRef.current[i]) {
+            text.textContent = scrambledStrip;
+            lastRenderedStripsRef.current[i] = scrambledStrip;
+          }
         }
+        glyphCycle += 1;
         lastScrambleAt = now;
+      }
+
+      if (scrambleStrength < 0.08) {
+        const loopOffset = (now * IDLE_LOOP_SPEED) % 1;
+        for (let i = 0; i < SLATS.length; i += 1) {
+          const text = textRefs.current[i];
+          if (!text) {
+            continue;
+          }
+          const idleStrip = getIdleStrip(i, loopOffset);
+          if (idleStrip !== lastRenderedStripsRef.current[i]) {
+            text.textContent = idleStrip;
+            lastRenderedStripsRef.current[i] = idleStrip;
+          }
+        }
       }
 
       for (let i = 0; i < SLATS.length; i += 1) {
@@ -190,9 +266,9 @@ export default function InteractiveLogo() {
 
       for (let i = 0; i < SLATS.length; i += 1) {
         const slat = SLATS[i];
-        const rect = rectRefs.current[i];
-        if (rect) {
-          rect.setAttribute("x", (slat.x + offsets[i]).toFixed(3));
+        const text = textRefs.current[i];
+        if (text) {
+          text.setAttribute("x", (slat.x + offsets[i]).toFixed(3));
         }
       }
 
@@ -213,10 +289,11 @@ export default function InteractiveLogo() {
 
   return (
     <div className="interactive-logo-shell">
-      <style>{".interactive-logo-shell{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000;padding-left:20px;padding-right:20px;overflow:visible;}.interactive-logo-stage{width:100%;max-width:100%;overflow:visible;transition:margin 240ms ease,transform 240ms ease;will-change:margin,transform;}@media (min-width: 1280px){.interactive-logo-shell{padding-left:96px;padding-right:96px;}}"}</style>
+      <style>{".interactive-logo-shell{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000;padding-left:20px;padding-right:20px;overflow:visible;}.interactive-logo-stage{width:100%;max-width:100%;overflow:visible;transition:margin 240ms ease,transform 240ms ease;will-change:margin,transform;}.interactive-logo-text{fill:#fff;font-family:'IBM Plex Mono','Menlo','Consolas',monospace;font-size:1.04px;font-weight:700;letter-spacing:-0.05px;user-select:none;transition:opacity 180ms ease;}.interactive-logo-stage[data-active='true'] .interactive-logo-text{opacity:0.9;}@media (min-width: 1280px){.interactive-logo-shell{padding-left:96px;padding-right:96px;}}"}</style>
       <div
         ref={stageRef}
         className="interactive-logo-stage"
+        data-active={isActive ? "true" : "false"}
         style={{ cursor: isActive ? "grabbing" : "crosshair" }}
       >
         <svg
@@ -230,17 +307,19 @@ export default function InteractiveLogo() {
           fill="none"
         >
           {SLATS.map((slat, index) => (
-            <rect
+            <text
               key={`${slat.x}-${slat.y}-${slat.w}-${index}`}
-              ref={(node: SVGRectElement | null) => {
-                rectRefs.current[index] = node;
+              ref={(node: SVGTextElement | null) => {
+                textRefs.current[index] = node;
               }}
+              className="interactive-logo-text"
               x={slat.x}
-              y={slat.y}
-              width={slat.w}
-              height={1}
-              fill="#fff"
-            />
+              y={slat.y + 0.84}
+              textLength={slat.w}
+              lengthAdjust="spacingAndGlyphs"
+            >
+              {getIdleStrip(index, 0)}
+            </text>
           ))}
         </svg>
       </div>
