@@ -752,18 +752,6 @@ export default function PortfolioCarousel() {
           transition: none !important;
         }
 
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-image-shell {
-          box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28) !important;
-        }
-
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-image {
-          filter: grayscale(1) saturate(0.28) !important;
-        }
-
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-image-shell::after {
-          opacity: 0 !important;
-        }
-
         .portfolio-image-shell {
           position: relative;
           overflow: hidden;
@@ -899,6 +887,27 @@ export default function PortfolioCarousel() {
 
           .portfolio-image-shell {
             cursor: auto;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
+          }
+
+          .portfolio-image {
+            filter: grayscale(0) saturate(1.04);
+          }
+
+          .portfolio-image-shell::after {
+            opacity: 0.52;
+          }
+
+          .portfolio-image-shell:hover .portfolio-image,
+          .portfolio-image-shell:active .portfolio-image,
+          .portfolio-image-shell:focus-visible .portfolio-image {
+            filter: grayscale(0) saturate(1.04);
+          }
+
+          .portfolio-image-shell:hover::after,
+          .portfolio-image-shell:active::after,
+          .portfolio-image-shell:focus-visible::after {
+            opacity: 0.52;
           }
         }
 
@@ -909,6 +918,27 @@ export default function PortfolioCarousel() {
 
           .portfolio-image-shell {
             cursor: auto;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
+          }
+
+          .portfolio-image {
+            filter: grayscale(0) saturate(1.04);
+          }
+
+          .portfolio-image-shell::after {
+            opacity: 0.52;
+          }
+
+          .portfolio-image-shell:hover .portfolio-image,
+          .portfolio-image-shell:active .portfolio-image,
+          .portfolio-image-shell:focus-visible .portfolio-image {
+            filter: grayscale(0) saturate(1.04);
+          }
+
+          .portfolio-image-shell:hover::after,
+          .portfolio-image-shell:active::after,
+          .portfolio-image-shell:focus-visible::after {
+            opacity: 0.52;
           }
         }
 
