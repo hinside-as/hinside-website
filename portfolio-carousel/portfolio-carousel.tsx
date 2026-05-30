@@ -111,7 +111,7 @@ const HOVER_CURSOR_FRAMES = [
 
 const ITEMS: PortfolioItem[] = [
   {
-    href: "/portfolio-samspill",
+    href: "/samspill",
     title: "Samspill: World Cup 2026",
     subtitle: "Event visual identity",
     image: "https://res.cloudinary.com/dmornfz49/image/upload/q_auto/f_auto/v1779658264/hinside-samspill-cover_nknfqy.png"
