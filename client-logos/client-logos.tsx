@@ -4,6 +4,7 @@ type LogoItem = {
 	name: string;
 	tagline: string;
 	svg: string;
+	href?: string;
 	visualScale?: number;
 	logoHeight?: number;
 };
@@ -59,6 +60,7 @@ const LOGOS: LogoItem[] = [
 		name: "Nordic Light Festival",
 		tagline: "Photo Festival",
 		svg: NORDIC_LIGHT_SVG,
+		href: "https://www.nordiclightfestival.no/",
 		visualScale: 1,
 		logoHeight: 80
 	},
@@ -66,6 +68,7 @@ const LOGOS: LogoItem[] = [
 		name: "Oslo Kommune",
 		tagline: "Public Sector",
 		svg: OSLO_KOMMUNE_SVG,
+		href: "https://www.oslo.kommune.no/",
 		visualScale: 1,
 		logoHeight: 56
 	},
@@ -73,6 +76,7 @@ const LOGOS: LogoItem[] = [
 		name: "Yara",
 		tagline: "Industry",
 		svg: YARA_SVG,
+		href: "https://www.yara.no/",
 		visualScale: 0.96,
 		logoHeight: 72
 	},
@@ -80,6 +84,7 @@ const LOGOS: LogoItem[] = [
 		name: "DIBK",
 		tagline: "Regulation",
 		svg: DIBK_SVG,
+		href: "https://www.dibk.no/",
 		visualScale: 1,
 		logoHeight: 40
 	},
@@ -87,6 +92,7 @@ const LOGOS: LogoItem[] = [
 		name: "Veidekke",
 		tagline: "Construction",
 		svg: VEIDEKKE_SVG,
+		href: "https://www.veidekke.no/",
 		visualScale: 1,
 		logoHeight: 24
 	},
@@ -94,6 +100,7 @@ const LOGOS: LogoItem[] = [
 		name: "Innovasjon Norge",
 		tagline: "Innovation",
 		svg: INNOVASJON_NORGE_SVG,
+		href: "https://www.innovasjonnorge.no/",
 		visualScale: 1,
 		logoHeight: 48
 	},
@@ -101,6 +108,7 @@ const LOGOS: LogoItem[] = [
 		name: "Hydro",
 		tagline: "Materials",
 		svg: HYDRO_SVG,
+		href: "https://www.hydro.com/",
 		visualScale: 1,
 		logoHeight: 80
 	},
@@ -108,6 +116,7 @@ const LOGOS: LogoItem[] = [
 		name: "Storebrand",
 		tagline: "Finance",
 		svg: STOREBRAND_SVG,
+		href: "https://www.storebrand.no/",
 		visualScale: 1,
 		logoHeight: 24
 	},
@@ -115,6 +124,7 @@ const LOGOS: LogoItem[] = [
 		name: "DOGA",
 		tagline: "Design",
 		svg: DOGA_SVG,
+		href: "https://www.doga.no/",
 		visualScale: 1,
 		logoHeight: 64
 	},
@@ -122,6 +132,7 @@ const LOGOS: LogoItem[] = [
 		name: "Ungdata",
 		tagline: "Research",
 		svg: UNGDATA_SVG,
+		href: "https://www.ungdata.no/",
 		visualScale: 1,
 		logoHeight: 32
 	},
@@ -129,6 +140,7 @@ const LOGOS: LogoItem[] = [
 		name: "Eir",
 		tagline: "Healthcare",
 		svg: EIR_SVG,
+		href: "https://www.eir.no/",
 		visualScale: 1,
 		logoHeight: 48
 	},
@@ -136,6 +148,7 @@ const LOGOS: LogoItem[] = [
 		name: "The Convention",
 		tagline: "Partner",
 		svg: CUSTOM_WORDMARK_SVG,
+		href: "https://www.convention.no/",
 		visualScale: 1,
 		logoHeight: 48
 	}
@@ -155,12 +168,20 @@ export default function ClientLogos() {
 	const pointerStartXRef = useRef(0);
 	const lastPointerXRef = useRef(0);
 	const lastPointerTimeRef = useRef(0);
+	const dragDistanceRef = useRef(0);
+	const suppressClickUntilRef = useRef(0);
 	const prefersReducedMotionRef = useRef(false);
 
 	const logosWithAsset = LOGOS.filter(
 		(logo): logo is LogoItem & { svg: string } => Boolean(logo.svg)
 	);
-	const duplicatedLogos: Array<LogoItem & { svg: string }> = [...logosWithAsset, ...logosWithAsset];
+	const duplicatedLogos: Array<LogoItem & { svg: string; href: string }> = [
+		...logosWithAsset,
+		...logosWithAsset
+	].map((logo) => ({
+		...logo,
+		href: logo.href ?? "#"
+	}));
 
 	useEffect(() => {
 		const viewport = viewportRef.current;
@@ -205,8 +226,10 @@ export default function ClientLogos() {
 				return;
 			}
 
+			suppressClickUntilRef.current = 0;
 			pointerIdRef.current = event.pointerId;
 			pointerStartXRef.current = event.clientX;
+			dragDistanceRef.current = 0;
 			velocityRef.current = 0;
 			lastPointerXRef.current = event.clientX;
 			lastPointerTimeRef.current = performance.now();
@@ -237,6 +260,7 @@ export default function ClientLogos() {
 			const dtMs = Math.max(8, now - lastPointerTimeRef.current);
 			const dt = dtMs / 1000;
 
+			dragDistanceRef.current += Math.abs(dx);
 			offsetRef.current = wrapOffset(offsetRef.current - dx);
 			applyTrackTransform(trackRef.current, offsetRef.current);
 			const instantaneousVelocity = -dx / dt;
@@ -278,6 +302,11 @@ export default function ClientLogos() {
 
 			if (isDraggingRef.current && viewport && viewport.hasPointerCapture(event.pointerId)) {
 				viewport.releasePointerCapture(event.pointerId);
+			}
+
+			const dragEndThreshold = getDragStartThreshold(event.pointerType);
+			if (isDraggingRef.current && dragDistanceRef.current > dragEndThreshold) {
+				suppressClickUntilRef.current = performance.now() + 220;
 			}
 
 			if (isDraggingRef.current) {
@@ -461,9 +490,17 @@ export default function ClientLogos() {
 					display: flex;
 					align-items: center;
 					justify-content: center;
-					padding-right: 128px;
-					opacity: 0.86;
+					margin-right: 128px;
 					cursor: grab;
+				}
+
+				.client-logo-link {
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					opacity: 0.86;
+					text-decoration: none;
+					-webkit-user-drag: none;
 				}
 
 				.client-logo-section.is-logo-dragging .client-logo-viewport,
@@ -472,7 +509,7 @@ export default function ClientLogos() {
 					cursor: grabbing !important;
 				}
 
-				.client-logo-item svg {
+				.client-logo-link svg {
 					width: auto;
 					height: var(--logo-height, 64px);
 					max-height: var(--logo-height, 64px);
@@ -480,6 +517,17 @@ export default function ClientLogos() {
 					filter: brightness(1.03) contrast(1.05);
 					transform: scale(var(--logo-scale, 1));
 					transform-origin: center;
+					transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms cubic-bezier(0.22, 1, 0.36, 1);
+					-webkit-user-drag: none;
+				}
+
+				.client-logo-link:hover {
+					opacity: 0.98;
+				}
+
+				.client-logo-link:hover svg {
+					filter: brightness(1.12) contrast(1.08);
+					transform: translateY(-1px) scale(calc(var(--logo-scale, 1) * 1.04));
 				}
 
 				@keyframes client-logo-film-noise {
@@ -527,7 +575,17 @@ export default function ClientLogos() {
 			<div className="client-logo-stage">
 				<div className="client-logo-dither" aria-hidden="true" />
 				<div className="client-logo-noise" aria-hidden="true" />
-				<div ref={viewportRef} className="client-logo-viewport" aria-label="Client logos">
+				<div
+					ref={viewportRef}
+					className="client-logo-viewport"
+					aria-label="Client logos"
+					onClickCapture={(event: { preventDefault: () => void; stopPropagation: () => void }) => {
+						if (performance.now() < suppressClickUntilRef.current) {
+							event.preventDefault();
+							event.stopPropagation();
+						}
+					}}
+				>
 					<div ref={trackRef} className="client-logo-track">
 						<div ref={firstSetRef} className="client-logo-set">
 							{logosWithAsset.map((logo) => (
@@ -539,7 +597,18 @@ export default function ClientLogos() {
 										"--logo-height": `${logo.logoHeight ?? 64}px`
 									} as Record<string, string>}
 								>
-									<div aria-hidden="true" dangerouslySetInnerHTML={{ __html: logo.svg }} />
+									<a
+										className="client-logo-link"
+										href={logo.href ?? "#"}
+										target="_blank"
+										rel="noopener noreferrer"
+										aria-label={`${logo.name} website`}
+										onDragStart={(event: { preventDefault: () => void }) => {
+											event.preventDefault();
+										}}
+									>
+										<div aria-hidden="true" dangerouslySetInnerHTML={{ __html: logo.svg }} />
+									</a>
 								</div>
 							))}
 						</div>
@@ -553,7 +622,17 @@ export default function ClientLogos() {
 										"--logo-height": `${logo.logoHeight ?? 64}px`
 									} as Record<string, string>}
 								>
-									<div aria-hidden="true" dangerouslySetInnerHTML={{ __html: logo.svg }} />
+									<a
+										className="client-logo-link"
+										href={logo.href}
+										target="_blank"
+										rel="noopener noreferrer"
+										onDragStart={(event: { preventDefault: () => void }) => {
+											event.preventDefault();
+										}}
+									>
+										<div aria-hidden="true" dangerouslySetInnerHTML={{ __html: logo.svg }} />
+									</a>
 								</div>
 							))}
 						</div>
