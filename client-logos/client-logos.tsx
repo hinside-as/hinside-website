@@ -52,6 +52,8 @@ const UNGDATA_SVG = "<svg width=\"117\" height=\"32\" viewBox=\"0 0 117 32\" fil
 
 const EIR_SVG = "<svg width=\"100\" height=\"64\" viewBox=\"0 0 100 64\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M58.8809 6.64543C58.8809 10.3174 55.889 13.2909 52.1966 13.2909C48.5041 13.2909 45.5122 10.3174 45.5122 6.64543C45.5122 2.97345 48.5041 0 52.1966 0C55.889 0 58.8809 2.97345 58.8809 6.64543ZM46.975 62.5746H57.4228V18.6903H46.975V62.5746ZM38.0988 58.5062C33.8998 62.0366 28.8534 63.7734 23.3336 63.7734C10.4668 63.7734 0 53.3711 0 40.5805C0 27.79 10.4668 17.3876 23.3384 17.3876C28.2759 17.3876 33.0004 18.9027 36.9911 21.7723L38.9888 23.2071V44.8047H10.3153C12.1047 50.2513 17.2647 54.1923 23.3336 54.1923C26.6095 54.1923 30.5766 52.885 33.2181 50.4212L38.0941 58.5109L38.0988 58.5062ZM10.5899 36.0212H29.3458V28.3469C27.4901 27.4407 25.445 26.9735 23.3384 26.9735C17.7002 26.9735 12.6917 30.3764 10.5899 36.0212ZM89.9214 18.1381L77.0498 25.1469V18.6903H66.602V62.5746H77.0498V39.7687C77.0498 35.823 78.9339 35.0065 80.6902 33.7982C82.5317 32.5333 94.8873 26.3504 94.8873 26.3504L89.9214 18.1333V18.1381ZM100 57.246C100 61.1115 96.8898 64 93.1878 64C89.4859 64 86.3757 61.1068 86.3757 57.246C86.3757 53.3852 89.4859 50.459 93.1878 50.459C96.8898 50.459 100 53.3805 100 57.246ZM98.4851 57.246C98.4851 54.2112 96.0187 51.8372 93.1594 51.8372C90.3001 51.8372 87.8621 54.2112 87.8621 57.246C87.8621 60.2808 90.3285 62.5982 93.1594 62.5982C95.9903 62.5982 98.4851 60.2525 98.4851 57.246ZM94.4234 58.0484L96.0755 60.2242H94.6743L93.131 58.19H92.0375V60.2242H90.9439V53.9563H93.5239C94.8684 53.9563 95.8767 54.8153 95.8767 56.1038C95.8767 57.0761 95.2897 57.7652 94.4187 58.0484H94.4234ZM94.7311 56.0755C94.7311 55.4478 94.2246 55.0183 93.4955 55.0183H92.0375V57.1658H93.4955C94.2246 57.1658 94.7311 56.7363 94.7311 56.0755Z\" fill=\"white\"/>\n</svg>";
 
+const CUSTOM_WORDMARK_SVG = "<svg width=\"37\" height=\"12\" viewBox=\"0 0 37 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M3 12H1V11H3V12Z\" fill=\"white\"/>\n<path d=\"M7 12H6V11H7V12Z\" fill=\"white\"/>\n<path d=\"M11 9H10V12H9V8H11V9Z\" fill=\"white\"/>\n<path d=\"M12 12H11V9H12V12Z\" fill=\"white\"/>\n<path d=\"M15 12H14V11H15V12Z\" fill=\"white\"/>\n<path d=\"M20 12H18V11H20V12Z\" fill=\"white\"/>\n<path d=\"M23 9H22V12H21V8H23V9Z\" fill=\"white\"/>\n<path d=\"M24 12H23V9H24V12Z\" fill=\"white\"/>\n<path d=\"M27 12H26V11H27V12Z\" fill=\"white\"/>\n<path d=\"M29 12H28V9H29V12Z\" fill=\"white\"/>\n<path d=\"M32 12H31V11H32V12Z\" fill=\"white\"/>\n<path d=\"M36 9H35V12H34V8H36V9Z\" fill=\"white\"/>\n<path d=\"M37 12H36V9H37V12Z\" fill=\"white\"/>\n<path d=\"M1 11H0V8H1V11Z\" fill=\"white\"/>\n<path d=\"M4 11H3V10H4V11Z\" fill=\"white\"/>\n<path d=\"M6 11H5V9H6V11Z\" fill=\"white\"/>\n<path d=\"M8 11H7V9H8V11Z\" fill=\"white\"/>\n<path d=\"M14 11H13V8H14V11Z\" fill=\"white\"/>\n<path d=\"M16 11H15V8H16V11Z\" fill=\"white\"/>\n<path d=\"M19 9H20V10H18V11H17V9H18V8H19V9Z\" fill=\"white\"/>\n<path d=\"M26 8H27V9H26V11H25V7H26V8Z\" fill=\"white\"/>\n<path d=\"M31 11H30V9H31V11Z\" fill=\"white\"/>\n<path d=\"M33 11H32V9H33V11Z\" fill=\"white\"/>\n<path d=\"M4 9H3V8H4V9Z\" fill=\"white\"/>\n<path d=\"M7 9H6V8H7V9Z\" fill=\"white\"/>\n<path d=\"M32 9H31V8H32V9Z\" fill=\"white\"/>\n<path d=\"M3 8H1V7H3V8Z\" fill=\"white\"/>\n<path d=\"M29 8H28V7H29V8Z\" fill=\"white\"/>\n<path d=\"M3 1H2V5H1V1H0V0H3V1Z\" fill=\"white\"/>\n<path d=\"M5 1H6V2H5V5H4V0H5V1Z\" fill=\"white\"/>\n<path d=\"M7 5H6V2H7V5Z\" fill=\"white\"/>\n<path d=\"M11 5H9V4H11V5Z\" fill=\"white\"/>\n<path d=\"M10 2H11V3H9V4H8V2H9V1H10V2Z\" fill=\"white\"/>\n</svg>";
+
 const LOGOS: LogoItem[] = [
 	{
 		name: "Nordic Light Festival",
@@ -127,6 +129,13 @@ const LOGOS: LogoItem[] = [
 		name: "Eir",
 		tagline: "Healthcare",
 		svg: EIR_SVG,
+		visualScale: 1,
+		logoHeight: 48
+	},
+	{
+		name: "The Convention",
+		tagline: "Partner",
+		svg: CUSTOM_WORDMARK_SVG,
 		visualScale: 1,
 		logoHeight: 48
 	}
