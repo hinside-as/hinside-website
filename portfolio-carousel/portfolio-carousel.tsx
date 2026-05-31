@@ -117,6 +117,12 @@ const ITEMS: PortfolioItem[] = [
     image: "https://res.cloudinary.com/dmornfz49/image/upload/q_auto/f_auto/v1779658264/hinside-samspill-cover_nknfqy.png"
   },
   {
+    href: "/grieg",
+    title: "Grieg Connect",
+    subtitle: "Product design system",
+    image: "https://res.cloudinary.com/dmornfz49/image/upload/v1780253719/hinside-grieg-cover_vrfycd.png"
+  },
+  {
     href: "/portfolio-arktisk",
     title: "Arktisk Form",
     subtitle: "Brand direction and campaign",
