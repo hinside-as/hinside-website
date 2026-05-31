@@ -1,41 +1,38 @@
-import { type ComponentType, useEffect, useMemo, useRef, useState } from "react";
+import { type ComponentType, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const CLOUDINARY_ILLUSTRATION_URLS: Record<number, string> = {
-  1: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164951/illustration-1_ytbkrv.svg",
-  2: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164951/illustration-2_xzvllr.svg",
-  3: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164951/illustration-3_w47doh.svg",
-  4: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164950/illustration-4_dxsr3v.svg",
-  5: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164951/illustration-5_j0nkly.svg",
-  6: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164951/illustration-6_y9f8to.svg",
-  7: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164952/illustration-7_sua53v.svg",
-  8: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164952/illustration-8_wezs75.svg",
-  9: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164952/illustration-9_v3phof.svg",
-  10: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164953/illustration-10_z3v8bi.svg",
-  11: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164954/illustration-11_r0qaa1.svg",
-  12: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164954/illustration-12_h8rbqh.svg",
-  13: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164954/illustration-13_ikqys6.svg",
-  14: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164954/illustration-14_iibdg4.svg",
-  15: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164955/illustration-15_as8vdd.svg",
-  16: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164955/illustration-16_qqyz8u.svg",
-  17: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164955/illustration-17_jajqlx.svg",
-  18: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164956/illustration-18_ja9uxz.svg",
-  19: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164956/illustration-19_wovtyd.svg",
-  20: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164956/illustration-20_ng13pk.svg",
-  21: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164957/illustration-21_qlgp4a.svg",
-  22: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164957/illustration-22_byf6cl.svg",
-  23: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164957/illustration-23_fix2uf.svg",
-  24: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164957/illustration-24_gtequj.svg",
-  25: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164958/illustration-25_giotld.svg",
-  26: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164958/illustration-26_kiuhfv.svg",
-  27: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164959/illustration-27_k0g3tc.svg",
-  28: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164959/illustration-28_ilx5o3.svg",
-  29: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164959/illustration-29_pnxbaq.svg",
-  30: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164959/illustration-30_zhqznh.svg",
-  31: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164960/illustration-31_genevt.svg",
-  32: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164960/illustration-32_lpmwqj.svg",
-  33: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164960/illustration-33_wo0uul.svg",
-  34: "https://res.cloudinary.com/dmornfz49/image/upload/v1780234901/illustration-34_j7i9h5.svg",
-  35: "https://res.cloudinary.com/dmornfz49/image/upload/v1780164961/illustration-35_rq01fc.svg",
+  1: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239553/icon-30_nvyqdl.svg",
+  2: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239554/icon-32_p1czrl.svg",
+  3: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239553/icon-31_vtmpkt.svg",
+  4: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239553/icon-29_unrqe2.svg",
+  5: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239553/icon-28_b4tkyl.svg",
+  6: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239552/icon-27_gbnpsa.svg",
+  7: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239552/icon-26_acymq7.svg",
+  8: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239551/icon-25_gjamjf.svg",
+  9: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239551/icon-24_dr8tsq.svg",
+  10: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239551/icon-23_gji0ot.svg",
+  11: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239550/icon-21_jd7xgd.svg",
+  12: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239550/icon-22_wonqcs.svg",
+  13: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239550/icon-20_xto86m.svg",
+  14: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239549/icon-19_zoajfa.svg",
+  15: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239549/icon-18_im260d.svg",
+  16: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239549/icon-15_n3fri7.svg",
+  17: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239549/icon-16_o7jhrr.svg",
+  18: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239549/icon-17_ggnj6t.svg",
+  19: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239548/icon-14_chcvyk.svg",
+  20: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239548/icon-13_m4sdah.svg",
+  21: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239547/icon-11_bjtr7z.svg",
+  22: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239547/icon-10_o3d50j.svg",
+  23: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239547/icon-12_fsog96.svg",
+  24: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239547/icon-07_vskrqh.svg",
+  25: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239547/icon-09_pbchi7.svg",
+  26: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239547/icon-08_ahvjp2.svg",
+  27: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239546/icon-06_xx4but.svg",
+  28: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239546/icon-05_eam7we.svg",
+  29: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239546/icon-04_rjraxq.svg",
+  30: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239545/icon-02_djnlq6.svg",
+  31: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239545/icon-03_erqrpa.svg",
+  32: "https://res.cloudinary.com/dmornfz49/image/upload/v1780239545/icon-01_nbkswr.svg",
 };
 
 const createCloudinaryIllustration = (src: string, id: string) => {
@@ -126,10 +123,10 @@ const HOVER_CURSOR_FRAMES = [
   },
 ] as const;
 
-const ITEMS: IllustrationItem[] = Array.from({ length: 35 }, (_, index) => {
+const ITEMS: IllustrationItem[] = Array.from({ length: Object.keys(CLOUDINARY_ILLUSTRATION_URLS).length }, (_, index) => {
   const number = index + 1;
   const padded = String(number).padStart(2, "0");
-  const id = `illustration-${padded}`;
+  const id = `icon-${padded}`;
   return {
     id,
     Component: createCloudinaryIllustration(CLOUDINARY_ILLUSTRATION_URLS[number], id),
@@ -149,6 +146,7 @@ function Lightbox({
 }) {
   const [isUiActive, setIsUiActive] = useState(true);
   const [isKeyboardInputActive, setIsKeyboardInputActive] = useState(false);
+  const lightboxStageRef = useRef<HTMLDivElement | null>(null);
   const uiIdleTimerRef = useRef<number | null>(null);
   const indicatorAnimationTimerRef = useRef<number | null>(null);
   const indicatorCollapseTimerRef = useRef<number | null>(null);
@@ -216,6 +214,45 @@ function Lightbox({
       document.body.style.overflow = "";
     };
   }, [currentIndex, items.length, onClose, onNavigate]);
+
+  useLayoutEffect(() => {
+    if (currentIndex === null || !lightboxStageRef.current) {
+      return;
+    }
+
+    const stage = lightboxStageRef.current;
+    let resizeFrame = 0;
+
+    const updateGridSizing = () => {
+      const bounds = stage.getBoundingClientRect();
+      const squareSide = Math.max(24, Math.floor(Math.min(bounds.width, bounds.height) / 24) * 24);
+      const cell = squareSide / 24;
+      stage.style.setProperty("--lb-grid-cell", `${cell}px`);
+      stage.style.setProperty("--lb-artwork-size", `${squareSide}px`);
+      stage.style.setProperty("--lb-grid-x", `${bounds.width / 2}px`);
+      stage.style.setProperty("--lb-grid-y", `${bounds.height / 2}px`);
+      stage.style.setProperty("--lb-grid-offset-x", `${(bounds.width - squareSide) / 2}px`);
+      stage.style.setProperty("--lb-grid-offset-y", `${(bounds.height - squareSide) / 2}px`);
+    };
+
+    updateGridSizing();
+    resizeFrame = window.requestAnimationFrame(() => {
+      updateGridSizing();
+      window.requestAnimationFrame(updateGridSizing);
+    });
+
+    const observer = new ResizeObserver(updateGridSizing);
+    observer.observe(stage);
+    window.addEventListener("resize", updateGridSizing);
+    window.addEventListener("orientationchange", updateGridSizing);
+
+    return () => {
+      window.cancelAnimationFrame(resizeFrame);
+      observer.disconnect();
+      window.removeEventListener("resize", updateGridSizing);
+      window.removeEventListener("orientationchange", updateGridSizing);
+    };
+  }, [currentIndex]);
 
   const clearIndicatorTimers = () => {
     if (indicatorAnimationTimerRef.current !== null) {
@@ -405,8 +442,25 @@ function Lightbox({
     onNavigate(nextIndex);
   };
 
+  const handleLightboxPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const stage = lightboxStageRef.current;
+    if (!stage) {
+      return;
+    }
+
+    const bounds = stage.getBoundingClientRect();
+    const x = Math.min(bounds.width, Math.max(0, event.clientX - bounds.left));
+    const y = Math.min(bounds.height, Math.max(0, event.clientY - bounds.top));
+
+    stage.style.setProperty("--lb-grid-x", `${x}px`);
+    stage.style.setProperty("--lb-grid-y", `${y}px`);
+  };
+
   return (
-    <div className={`lightbox-overlay value-feature-lightbox ${isUiActive ? "" : "is-ui-idle"} ${isKeyboardInputActive ? "is-keyboard-input" : ""}`}>
+    <div
+      className={`lightbox-overlay ${isUiActive ? "" : "is-ui-idle"} ${isKeyboardInputActive ? "is-keyboard-input" : ""}`}
+      onPointerMove={handleLightboxPointerMove}
+    >
       <button
         type="button"
         className="lightbox-hit lightbox-hit-left"
@@ -455,8 +509,10 @@ function Lightbox({
       <div
         className="lightbox-content"
       >
-        <div className="lightbox-stage">
-          <Component />
+        <div className="lightbox-stage" ref={lightboxStageRef}>
+          <div className="lightbox-artwork">
+            <Component />
+          </div>
         </div>
       </div>
 
@@ -977,12 +1033,12 @@ export default function GriegConnectCarousel() {
 
   return (
     <>
-      <section ref={sectionRef} className="portfolio-carousel-section value-feature-carousel-section" aria-label="Grieg Connect Illustrations">
+      <section ref={sectionRef} className="portfolio-carousel-section" aria-label="Grieg Connect Illustrations">
         <style>{`
           .portfolio-carousel-section {
             position: relative;
             --section-vpad: 96px;
-            --card-size: 384px;
+            --card-size: 192px;
             width: 100%;
             height: 100%;
             overflow: visible;
@@ -1040,7 +1096,7 @@ export default function GriegConnectCarousel() {
             display: flex;
             width: max-content;
             will-change: transform;
-            gap: clamp(18px, 2.6vw, 40px);
+            gap: clamp(36px, 5.2vw, 80px);
             padding: 0 clamp(16px, 4vw, 48px);
           }
 
@@ -1054,15 +1110,15 @@ export default function GriegConnectCarousel() {
 
           .portfolio-set {
             display: flex;
-            gap: clamp(18px, 2.6vw, 40px);
+            gap: clamp(36px, 5.2vw, 80px);
           }
 
           .portfolio-card {
             position: relative;
             --glint-x: 50%;
             --glint-y: 30%;
-            width: 384px;
-            height: 384px;
+            width: 192px;
+            height: 192px;
             flex: 0 0 auto;
             cursor: pointer;
             user-select: none;
@@ -1077,6 +1133,7 @@ export default function GriegConnectCarousel() {
             cursor: none;
             width: 100%;
             height: 100%;
+            --icon-native-grid: 24;
           }
 
           .portfolio-card-cursor {
@@ -1130,6 +1187,40 @@ export default function GriegConnectCarousel() {
             border-radius: 8px;
           }
 
+          .portfolio-image-shell::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+              linear-gradient(to right, rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+            background-size:
+              calc(100% / var(--icon-native-grid)) calc(100% / var(--icon-native-grid)),
+              calc(100% / var(--icon-native-grid)) calc(100% / var(--icon-native-grid));
+            background-position: 0 0, 0 0;
+            -webkit-mask-image: radial-gradient(
+              150% 120% at var(--glint-x, 50%) var(--glint-y, 50%),
+              rgba(0, 0, 0, 0.94) 0%,
+              rgba(0, 0, 0, 0.72) 34%,
+              rgba(0, 0, 0, 0.24) 68%,
+              transparent 100%
+            );
+            mask-image: radial-gradient(
+              150% 120% at var(--glint-x, 50%) var(--glint-y, 50%),
+              rgba(0, 0, 0, 0.94) 0%,
+              rgba(0, 0, 0, 0.72) 34%,
+              rgba(0, 0, 0, 0.24) 68%,
+              transparent 100%
+            );
+            opacity: 0;
+            transform: scale(1);
+            transform-origin: center;
+            mix-blend-mode: screen;
+            transition: opacity 220ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 1;
+          }
+
           .portfolio-image-shell::after {
             content: "";
             position: absolute;
@@ -1160,11 +1251,11 @@ export default function GriegConnectCarousel() {
             display: block;
           }
 
-          .value-feature-carousel-section .portfolio-image {
+          .portfolio-image {
             display: block;
             width: 100%;
             height: 100%;
-            filter: grayscale(1) saturate(0.28);
+            filter: grayscale(1) saturate(0) brightness(0.68) contrast(1.05);
             transition: filter 220ms ease;
           }
 
@@ -1175,10 +1266,17 @@ export default function GriegConnectCarousel() {
             display: block;
           }
 
-          .value-feature-carousel-section .portfolio-image-shell:hover .portfolio-image,
-          .value-feature-carousel-section .portfolio-image-shell:active .portfolio-image,
-          .value-feature-carousel-section .portfolio-image-shell:focus-visible .portfolio-image {
-            filter: grayscale(0) saturate(1.04);
+          .portfolio-image-shell:hover .portfolio-image,
+          .portfolio-image-shell:active .portfolio-image,
+          .portfolio-image-shell:focus-visible .portfolio-image {
+            filter: grayscale(1) saturate(0) brightness(1.45) contrast(1.08);
+          }
+
+          .portfolio-image-shell:hover::before,
+          .portfolio-image-shell:active::before,
+          .portfolio-image-shell:focus-visible::before {
+            opacity: 0.28;
+            transform: scale(1.03);
           }
 
           .portfolio-image-shell:hover,
@@ -1213,7 +1311,7 @@ export default function GriegConnectCarousel() {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px;
+            padding: 0;
             backdrop-filter: blur(12px) saturate(1.08);
             -webkit-backdrop-filter: blur(12px) saturate(1.08);
             isolation: isolate;
@@ -1234,38 +1332,98 @@ export default function GriegConnectCarousel() {
 
 
           .lightbox-content {
-            width: min(96vw, 1520px);
-            height: min(92vh, 1080px);
+            width: 100vw;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: scaleIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: lightboxContentFadeIn 180ms ease;
             position: relative;
             z-index: 1;
             pointer-events: none;
           }
 
           .lightbox-stage {
+            --lb-grid-x: 50%;
+            --lb-grid-y: 50%;
+            --lb-grid-offset-x: 0px;
+            --lb-grid-offset-y: 0px;
+            --lb-grid-cell: 8px;
+            --lb-artwork-size: min(92vw, 92vh);
             width: 100%;
             height: 100%;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
           }
 
-          @keyframes scaleIn {
+          .lightbox-stage::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+              linear-gradient(to right, rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+            background-size:
+              var(--lb-grid-cell) var(--lb-grid-cell),
+              var(--lb-grid-cell) var(--lb-grid-cell);
+            background-position:
+              var(--lb-grid-offset-x) var(--lb-grid-offset-y),
+              var(--lb-grid-offset-x) var(--lb-grid-offset-y);
+            -webkit-mask-image: radial-gradient(
+              135% 120% at var(--lb-grid-x, 50%) var(--lb-grid-y, 50%),
+              rgba(0, 0, 0, 0.96) 0%,
+              rgba(0, 0, 0, 0.72) 34%,
+              rgba(0, 0, 0, 0.2) 72%,
+              transparent 100%
+            );
+            mask-image: radial-gradient(
+              135% 120% at var(--lb-grid-x, 50%) var(--lb-grid-y, 50%),
+              rgba(0, 0, 0, 0.96) 0%,
+              rgba(0, 0, 0, 0.72) 34%,
+              rgba(0, 0, 0, 0.2) 72%,
+              transparent 100%
+            );
+            opacity: 0.34;
+            mix-blend-mode: screen;
+            z-index: 2;
+          }
+
+          .lightbox-artwork {
+            position: relative;
+            width: var(--lb-artwork-size);
+            height: var(--lb-artwork-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            image-rendering: pixelated;
+          }
+
+          .lightbox-artwork svg,
+          .lightbox-artwork > * {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+            image-rendering: pixelated;
+          }
+
+          @keyframes lightboxContentFadeIn {
             from {
               opacity: 0;
-              transform: scale(0.9);
             }
             to {
               opacity: 1;
-              transform: scale(1);
             }
           }
 
-          .lightbox-stage svg,
-          .lightbox-stage > * {
+          .lightbox-stage svg {
             width: 100%;
             height: 100%;
             max-width: 100vw;
@@ -1451,14 +1609,14 @@ export default function GriegConnectCarousel() {
 
           @media (max-width: 720px) {
             .portfolio-carousel-section {
-              --section-vpad: 64px;
-              --card-size: min(74vw, 320px);
+              --section-vpad: 96px;
+              --card-size: min(37vw, 160px);
               padding: var(--section-vpad) 0;
             }
 
             .portfolio-card {
-              width: min(74vw, 320px);
-              height: min(74vw, 320px);
+              width: min(37vw, 160px);
+              height: min(37vw, 160px);
             }
 
             .portfolio-card-cursor {
@@ -1470,11 +1628,15 @@ export default function GriegConnectCarousel() {
               box-shadow: none;
             }
 
-            .value-feature-carousel-section .portfolio-image {
-              filter: grayscale(0) saturate(1.04);
+            .portfolio-image {
+              filter: grayscale(1) saturate(0) brightness(0.68) contrast(1.05);
             }
 
             .portfolio-image-shell::after {
+              opacity: 0;
+            }
+
+            .portfolio-image-shell::before {
               opacity: 0;
             }
 
@@ -1514,8 +1676,8 @@ export default function GriegConnectCarousel() {
               box-shadow: none;
             }
 
-            .value-feature-carousel-section .portfolio-image {
-              filter: grayscale(0) saturate(1.04);
+            .portfolio-image {
+              filter: grayscale(1) saturate(0) brightness(0.68) contrast(1.05);
             }
 
             .portfolio-image-shell::after {
@@ -1545,6 +1707,16 @@ export default function GriegConnectCarousel() {
               transition: none;
             }
 
+            .portfolio-image-shell::before {
+              transition: opacity 0s ease;
+              transform: none;
+              animation: none;
+            }
+
+            .lightbox-stage::before {
+              animation: none;
+            }
+
             .lightbox-overlay,
             .lightbox-content {
               animation: none;
@@ -1552,30 +1724,6 @@ export default function GriegConnectCarousel() {
 
             .lightbox-indicator-bar {
               animation: none !important;
-            }
-          }
-
-          /* Prevent class-name collisions with griegconnect-icons styles */
-          .value-feature-carousel-section .portfolio-track,
-          .value-feature-carousel-section .portfolio-set {
-            gap: clamp(18px, 2.6vw, 40px) !important;
-          }
-
-          .value-feature-carousel-section .portfolio-card {
-            width: 384px !important;
-            height: 384px !important;
-          }
-
-          .value-feature-carousel-section .portfolio-image-shell::before,
-          .value-feature-lightbox .lightbox-stage::before {
-            content: none !important;
-            display: none !important;
-          }
-
-          @media (max-width: 720px) {
-            .value-feature-carousel-section .portfolio-card {
-              width: min(74vw, 320px) !important;
-              height: min(74vw, 320px) !important;
             }
           }
         `}</style>
