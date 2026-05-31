@@ -674,7 +674,7 @@ function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: Illustra
   return (
     <button
       ref={cardRef}
-      className="portfolio-card"
+      className="gcp-card"
       aria-label={`View ${item.id}`}
       onClick={handleClick}
       onPointerEnter={() => {
@@ -690,7 +690,7 @@ function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: Illustra
     >
       <div
         ref={imageShellRef}
-        className="portfolio-image-shell"
+        className="gcp-image-shell"
         onPointerDown={(event) => {
           if (!isEyeCursorEnabled() || isCarouselDragging() || event.pointerType !== "mouse" || event.button !== 0) {
             return;
@@ -730,11 +730,11 @@ function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: Illustra
           stopCursorTracking();
         }}
       >
-        <div className="portfolio-image">
+        <div className="gcp-image">
           <Component />
         </div>
       </div>
-      <span aria-hidden="true" className="portfolio-card-cursor" ref={cursorRef} />
+      <span aria-hidden="true" className="gcp-card-cursor" ref={cursorRef} />
     </button>
   );
 }
@@ -966,7 +966,7 @@ export default function GriegConnectCarousel() {
 
   return (
     <>
-      <section ref={sectionRef} className="portfolio-carousel-section portraits-carousel-section" aria-label="Grieg Connect Portrait Illustrations">
+      <section ref={sectionRef} className="gcp-carousel-section portraits-carousel-section" aria-label="Grieg Connect Portrait Illustrations">
         <style>{`
           .portraits-carousel-section {
             position: relative;
@@ -1015,7 +1015,7 @@ export default function GriegConnectCarousel() {
             }
           }
 
-          .portraits-carousel-section .portfolio-carousel-mask {
+          .portraits-carousel-section .gcp-carousel-mask {
             pointer-events: none;
             position: absolute;
             inset: 0;
@@ -1023,7 +1023,7 @@ export default function GriegConnectCarousel() {
             background: linear-gradient(90deg, #050505 0%, rgba(5, 5, 5, 0) 8%, rgba(5, 5, 5, 0) 92%, #050505 100%);
           }
 
-          .portraits-carousel-section .portfolio-track {
+          .portraits-carousel-section .gcp-track {
             position: relative;
             z-index: 1;
             display: flex;
@@ -1033,7 +1033,7 @@ export default function GriegConnectCarousel() {
             padding: 0 clamp(16px, 4vw, 48px);
           }
 
-          .portraits-carousel-section .portfolio-viewport {
+          .portraits-carousel-section .gcp-viewport {
             width: 100%;
             overflow: visible;
             touch-action: pan-y;
@@ -1041,12 +1041,12 @@ export default function GriegConnectCarousel() {
             -webkit-user-select: none;
           }
 
-          .portraits-carousel-section .portfolio-set {
+          .portraits-carousel-section .gcp-set {
             display: flex;
             gap: clamp(18px, 2.6vw, 40px);
           }
 
-          .portraits-carousel-section .portfolio-card {
+          .portraits-carousel-section .gcp-card {
             position: relative;
             --glint-x: 50%;
             --glint-y: 30%;
@@ -1062,13 +1062,13 @@ export default function GriegConnectCarousel() {
             display: block;
           }
 
-          .portraits-carousel-section .portfolio-image-shell {
+          .portraits-carousel-section .gcp-image-shell {
             cursor: none;
             width: 100%;
             height: 100%;
           }
 
-          .portraits-carousel-section .portfolio-card-cursor {
+          .portraits-carousel-section .gcp-card-cursor {
             position: absolute;
             left: 0;
             top: 0;
@@ -1084,33 +1084,33 @@ export default function GriegConnectCarousel() {
             will-change: left, top, width, height, margin-left, margin-top, background-image;
           }
 
-          .portraits-carousel-section .portfolio-image-shell:hover ~ .portfolio-card-cursor,
-          .portraits-carousel-section .portfolio-image-shell:active ~ .portfolio-card-cursor,
-          .portraits-carousel-section .portfolio-image-shell:focus-visible ~ .portfolio-card-cursor {
+          .portraits-carousel-section .gcp-image-shell:hover ~ .gcp-card-cursor,
+          .portraits-carousel-section .gcp-image-shell:active ~ .gcp-card-cursor,
+          .portraits-carousel-section .gcp-image-shell:focus-visible ~ .gcp-card-cursor {
             opacity: 1;
           }
 
-          .portraits-carousel-section .portfolio-card.is-pointer-down .portfolio-card-cursor {
+          .portraits-carousel-section .gcp-card.is-pointer-down .gcp-card-cursor {
             opacity: 0 !important;
           }
 
-          .portraits-carousel-section.is-carousel-dragging .portfolio-card-cursor {
+          .portraits-carousel-section.is-carousel-dragging .gcp-card-cursor {
             opacity: 0 !important;
           }
 
-          .portraits-carousel-section.is-carousel-dragging .portfolio-viewport,
-          .portraits-carousel-section.is-carousel-dragging .portfolio-card,
-          .portraits-carousel-section.is-carousel-dragging .portfolio-image-shell {
+          .portraits-carousel-section.is-carousel-dragging .gcp-viewport,
+          .portraits-carousel-section.is-carousel-dragging .gcp-card,
+          .portraits-carousel-section.is-carousel-dragging .gcp-image-shell {
             cursor: grabbing !important;
           }
 
-          .portraits-carousel-section.is-carousel-dragging .portfolio-image-shell,
-          .portraits-carousel-section.is-carousel-dragging .portfolio-image,
-          .portraits-carousel-section.is-carousel-dragging .portfolio-image-shell::after {
+          .portraits-carousel-section.is-carousel-dragging .gcp-image-shell,
+          .portraits-carousel-section.is-carousel-dragging .gcp-image,
+          .portraits-carousel-section.is-carousel-dragging .gcp-image-shell::after {
             transition: none !important;
           }
 
-          .portraits-carousel-section .portfolio-image-shell {
+          .portraits-carousel-section .gcp-image-shell {
             position: relative;
             overflow: hidden;
             background: transparent;
@@ -1119,7 +1119,7 @@ export default function GriegConnectCarousel() {
             border-radius: 50%;
           }
 
-          .portraits-carousel-section .portfolio-image-shell::after {
+          .portraits-carousel-section .gcp-image-shell::after {
             content: "";
             position: absolute;
             inset: 0;
@@ -1149,7 +1149,7 @@ export default function GriegConnectCarousel() {
             display: block;
           }
 
-          .portraits-carousel-section .portfolio-image {
+          .portraits-carousel-section .gcp-image {
             display: block;
             width: 100%;
             height: 100%;
@@ -1157,37 +1157,37 @@ export default function GriegConnectCarousel() {
             transition: filter 220ms ease;
           }
 
-          .portraits-carousel-section .portfolio-image svg,
-          .portraits-carousel-section .portfolio-image > * {
+          .portraits-carousel-section .gcp-image svg,
+          .portraits-carousel-section .gcp-image > * {
             width: 100%;
             height: 100%;
             display: block;
           }
 
-          .portraits-carousel-section .portfolio-image-shell:hover .portfolio-image,
-          .portraits-carousel-section .portfolio-image-shell:active .portfolio-image,
-          .portraits-carousel-section .portfolio-image-shell:focus-visible .portfolio-image {
+          .portraits-carousel-section .gcp-image-shell:hover .gcp-image,
+          .portraits-carousel-section .gcp-image-shell:active .gcp-image,
+          .portraits-carousel-section .gcp-image-shell:focus-visible .gcp-image {
             filter: grayscale(0) saturate(1.04);
           }
 
-          .portraits-carousel-section .portfolio-image-shell:hover,
-          .portraits-carousel-section .portfolio-image-shell:active,
-          .portraits-carousel-section .portfolio-image-shell:focus-visible {
+          .portraits-carousel-section .gcp-image-shell:hover,
+          .portraits-carousel-section .gcp-image-shell:active,
+          .portraits-carousel-section .gcp-image-shell:focus-visible {
             background: transparent;
           }
 
-          .portraits-carousel-section .portfolio-image-shell:hover,
-          .portraits-carousel-section .portfolio-image-shell:focus-visible {
+          .portraits-carousel-section .gcp-image-shell:hover,
+          .portraits-carousel-section .gcp-image-shell:focus-visible {
             box-shadow: none;
           }
 
-          .portraits-carousel-section .portfolio-image-shell:hover::after,
-          .portraits-carousel-section .portfolio-image-shell:active::after,
-          .portraits-carousel-section .portfolio-image-shell:focus-visible::after {
+          .portraits-carousel-section .gcp-image-shell:hover::after,
+          .portraits-carousel-section .gcp-image-shell:active::after,
+          .portraits-carousel-section .gcp-image-shell:focus-visible::after {
             opacity: 0.5;
           }
 
-          .portraits-carousel-section .portfolio-card:focus-visible {
+          .portraits-carousel-section .gcp-card:focus-visible {
             outline: 2px solid rgba(255, 255, 255, 0.9);
             outline-offset: 6px;
           }
@@ -1445,25 +1445,25 @@ export default function GriegConnectCarousel() {
               padding: var(--section-vpad) 0;
             }
 
-            .portraits-carousel-section .portfolio-card {
+            .portraits-carousel-section .gcp-card {
               width: var(--card-size);
               height: var(--card-size);
             }
 
-            .portraits-carousel-section .portfolio-card-cursor {
+            .portraits-carousel-section .gcp-card-cursor {
               display: none !important;
             }
 
-            .portraits-carousel-section .portfolio-image-shell {
+            .portraits-carousel-section .gcp-image-shell {
               cursor: auto;
               box-shadow: none;
             }
 
-            .portraits-carousel-section .portfolio-image {
+            .portraits-carousel-section .gcp-image {
               filter: grayscale(0) saturate(1.04);
             }
 
-            .portraits-carousel-section .portfolio-image-shell::after {
+            .portraits-carousel-section .gcp-image-shell::after {
               opacity: 0;
             }
 
@@ -1494,20 +1494,20 @@ export default function GriegConnectCarousel() {
           }
 
           @media (hover: none), (pointer: coarse) {
-            .portraits-carousel-section .portfolio-card-cursor {
+            .portraits-carousel-section .gcp-card-cursor {
               display: none !important;
             }
 
-            .portraits-carousel-section .portfolio-image-shell {
+            .portraits-carousel-section .gcp-image-shell {
               cursor: auto;
               box-shadow: none;
             }
 
-            .portraits-carousel-section .portfolio-image {
+            .portraits-carousel-section .gcp-image {
               filter: grayscale(0) saturate(1.04);
             }
 
-            .portraits-carousel-section .portfolio-image-shell::after {
+            .portraits-carousel-section .gcp-image-shell::after {
               opacity: 0;
             }
 
@@ -1522,15 +1522,15 @@ export default function GriegConnectCarousel() {
               opacity: 0.05;
             }
 
-            .portraits-carousel-section .portfolio-track {
+            .portraits-carousel-section .gcp-track {
               transform: translate3d(0, 0, 0) !important;
             }
 
-            .portraits-carousel-section .portfolio-image {
+            .portraits-carousel-section .gcp-image {
               transition: filter 0s ease;
             }
 
-            .portraits-carousel-section .portfolio-image-shell {
+            .portraits-carousel-section .gcp-image-shell {
               transition: none;
             }
 
@@ -1545,24 +1545,24 @@ export default function GriegConnectCarousel() {
           }
 
           /* Prevent class-name collisions with griegconnect-icons styles */
-          .portraits-carousel-section .portfolio-track,
-          .portraits-carousel-section .portfolio-set {
+          .portraits-carousel-section .gcp-track,
+          .portraits-carousel-section .gcp-set {
             gap: clamp(18px, 2.6vw, 40px) !important;
           }
 
-          .portraits-carousel-section .portfolio-card {
+          .portraits-carousel-section .gcp-card {
             width: var(--card-size) !important;
             height: var(--card-size) !important;
           }
 
-          .portraits-carousel-section .portfolio-image-shell::before,
+          .portraits-carousel-section .gcp-image-shell::before,
           .portraits-lightbox .lightbox-stage::before {
             content: none !important;
             display: none !important;
           }
 
           @media (max-width: 720px) {
-            .portraits-carousel-section .portfolio-card {
+            .portraits-carousel-section .gcp-card {
               width: var(--card-size) !important;
               height: var(--card-size) !important;
             }
@@ -1571,7 +1571,7 @@ export default function GriegConnectCarousel() {
 
         <div
           ref={viewportRef}
-          className="portfolio-viewport"
+          className="gcp-viewport"
           onClickCapture={(event) => {
             if (performance.now() < suppressClickUntilRef.current) {
               event.preventDefault();
@@ -1579,8 +1579,8 @@ export default function GriegConnectCarousel() {
             }
           }}
         >
-          <div ref={trackRef} className="portfolio-track">
-            <div ref={firstSetRef} className="portfolio-set">
+          <div ref={trackRef} className="gcp-track">
+            <div ref={firstSetRef} className="gcp-set">
               {ITEMS.map((item) => (
                 <IllustrationCard 
                   key={item.id} 
@@ -1591,7 +1591,7 @@ export default function GriegConnectCarousel() {
               ))}
             </div>
 
-            <div className="portfolio-set" aria-hidden="true">
+            <div className="gcp-set" aria-hidden="true">
               {doubledItems.slice(ITEMS.length).map((item, index) => (
                 <IllustrationCard 
                   key={`${item.id}-${index}`} 
@@ -1604,7 +1604,7 @@ export default function GriegConnectCarousel() {
           </div>
         </div>
 
-        <div className="portfolio-carousel-mask" aria-hidden="true" />
+        <div className="gcp-carousel-mask" aria-hidden="true" />
       </section>
 
       <Lightbox

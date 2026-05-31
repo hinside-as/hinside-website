@@ -685,7 +685,7 @@ function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: Illustra
   return (
     <button
       ref={cardRef}
-      className="portfolio-card"
+      className="vf-card"
       aria-label={`View ${item.id}`}
       onClick={handleClick}
       onPointerEnter={() => {
@@ -701,7 +701,7 @@ function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: Illustra
     >
       <div
         ref={imageShellRef}
-        className="portfolio-image-shell"
+        className="vf-image-shell"
         onPointerDown={(event) => {
           if (!isEyeCursorEnabled() || isCarouselDragging() || event.pointerType !== "mouse" || event.button !== 0) {
             return;
@@ -741,11 +741,11 @@ function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: Illustra
           stopCursorTracking();
         }}
       >
-        <div className="portfolio-image">
+        <div className="vf-image">
           <Component />
         </div>
       </div>
-      <span aria-hidden="true" className="portfolio-card-cursor" ref={cursorRef} />
+      <span aria-hidden="true" className="vf-card-cursor" ref={cursorRef} />
     </button>
   );
 }
@@ -977,9 +977,9 @@ export default function GriegConnectCarousel() {
 
   return (
     <>
-      <section ref={sectionRef} className="portfolio-carousel-section value-feature-carousel-section" aria-label="Grieg Connect Illustrations">
+      <section ref={sectionRef} className="vf-carousel-section value-feature-carousel-section" aria-label="Grieg Connect Illustrations">
         <style>{`
-          .portfolio-carousel-section {
+          .value-feature-carousel-section {
             position: relative;
             --section-vpad: 96px;
             --card-size: 384px;
@@ -994,7 +994,7 @@ export default function GriegConnectCarousel() {
             background: radial-gradient(120% 92% at 50% 50%, #161616 0%, #0a0a0a 52%, #040404 100%);
           }
 
-          .portfolio-carousel-section::before {
+          .value-feature-carousel-section::before {
             content: "";
             position: absolute;
             inset: 0;
@@ -1026,7 +1026,7 @@ export default function GriegConnectCarousel() {
             }
           }
 
-          .portfolio-carousel-mask {
+          .vf-carousel-mask {
             pointer-events: none;
             position: absolute;
             inset: 0;
@@ -1034,7 +1034,7 @@ export default function GriegConnectCarousel() {
             background: linear-gradient(90deg, #050505 0%, rgba(5, 5, 5, 0) 8%, rgba(5, 5, 5, 0) 92%, #050505 100%);
           }
 
-          .portfolio-track {
+          .vf-track {
             position: relative;
             z-index: 1;
             display: flex;
@@ -1044,7 +1044,7 @@ export default function GriegConnectCarousel() {
             padding: 0 clamp(16px, 4vw, 48px);
           }
 
-          .portfolio-viewport {
+          .vf-viewport {
             width: 100%;
             overflow: visible;
             touch-action: pan-y;
@@ -1052,12 +1052,12 @@ export default function GriegConnectCarousel() {
             -webkit-user-select: none;
           }
 
-          .portfolio-set {
+          .vf-set {
             display: flex;
             gap: clamp(18px, 2.6vw, 40px);
           }
 
-          .portfolio-card {
+          .vf-card {
             position: relative;
             --glint-x: 50%;
             --glint-y: 30%;
@@ -1073,13 +1073,13 @@ export default function GriegConnectCarousel() {
             display: block;
           }
 
-          .portfolio-image-shell {
+          .vf-image-shell {
             cursor: none;
             width: 100%;
             height: 100%;
           }
 
-          .portfolio-card-cursor {
+          .vf-card-cursor {
             position: absolute;
             left: 0;
             top: 0;
@@ -1095,33 +1095,33 @@ export default function GriegConnectCarousel() {
             will-change: left, top, width, height, margin-left, margin-top, background-image;
           }
 
-          .portfolio-image-shell:hover ~ .portfolio-card-cursor,
-          .portfolio-image-shell:active ~ .portfolio-card-cursor,
-          .portfolio-image-shell:focus-visible ~ .portfolio-card-cursor {
+          .vf-image-shell:hover ~ .vf-card-cursor,
+          .vf-image-shell:active ~ .vf-card-cursor,
+          .vf-image-shell:focus-visible ~ .vf-card-cursor {
             opacity: 1;
           }
 
-          .portfolio-card.is-pointer-down .portfolio-card-cursor {
+          .vf-card.is-pointer-down .vf-card-cursor {
             opacity: 0 !important;
           }
 
-          .portfolio-carousel-section.is-carousel-dragging .portfolio-card-cursor {
+          .vf-carousel-section.is-carousel-dragging .vf-card-cursor {
             opacity: 0 !important;
           }
 
-          .portfolio-carousel-section.is-carousel-dragging .portfolio-viewport,
-          .portfolio-carousel-section.is-carousel-dragging .portfolio-card,
-          .portfolio-carousel-section.is-carousel-dragging .portfolio-image-shell {
+          .vf-carousel-section.is-carousel-dragging .vf-viewport,
+          .vf-carousel-section.is-carousel-dragging .vf-card,
+          .vf-carousel-section.is-carousel-dragging .vf-image-shell {
             cursor: grabbing !important;
           }
 
-          .portfolio-carousel-section.is-carousel-dragging .portfolio-image-shell,
-          .portfolio-carousel-section.is-carousel-dragging .portfolio-image,
-          .portfolio-carousel-section.is-carousel-dragging .portfolio-image-shell::after {
+          .vf-carousel-section.is-carousel-dragging .vf-image-shell,
+          .vf-carousel-section.is-carousel-dragging .vf-image,
+          .vf-carousel-section.is-carousel-dragging .vf-image-shell::after {
             transition: none !important;
           }
 
-          .portfolio-image-shell {
+          .vf-image-shell {
             position: relative;
             overflow: hidden;
             background: transparent;
@@ -1130,7 +1130,7 @@ export default function GriegConnectCarousel() {
             border-radius: 8px;
           }
 
-          .portfolio-image-shell::after {
+          .vf-image-shell::after {
             content: "";
             position: absolute;
             inset: 0;
@@ -1160,7 +1160,7 @@ export default function GriegConnectCarousel() {
             display: block;
           }
 
-          .value-feature-carousel-section .portfolio-image {
+          .value-feature-carousel-section .vf-image {
             display: block;
             width: 100%;
             height: 100%;
@@ -1168,37 +1168,44 @@ export default function GriegConnectCarousel() {
             transition: filter 220ms ease;
           }
 
-          .portfolio-image svg,
-          .portfolio-image > * {
+          .value-feature-carousel-section .vf-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+          }
+
+          .vf-image svg,
+          .vf-image > * {
             width: 100%;
             height: 100%;
             display: block;
           }
 
-          .value-feature-carousel-section .portfolio-image-shell:hover .portfolio-image,
-          .value-feature-carousel-section .portfolio-image-shell:active .portfolio-image,
-          .value-feature-carousel-section .portfolio-image-shell:focus-visible .portfolio-image {
+          .value-feature-carousel-section .vf-image-shell:hover .vf-image,
+          .value-feature-carousel-section .vf-image-shell:active .vf-image,
+          .value-feature-carousel-section .vf-image-shell:focus-visible .vf-image {
             filter: grayscale(0) saturate(1.04);
           }
 
-          .portfolio-image-shell:hover,
-          .portfolio-image-shell:active,
-          .portfolio-image-shell:focus-visible {
+          .vf-image-shell:hover,
+          .vf-image-shell:active,
+          .vf-image-shell:focus-visible {
             background: transparent;
           }
 
-          .portfolio-image-shell:hover,
-          .portfolio-image-shell:focus-visible {
+          .vf-image-shell:hover,
+          .vf-image-shell:focus-visible {
             box-shadow: none;
           }
 
-          .portfolio-image-shell:hover::after,
-          .portfolio-image-shell:active::after,
-          .portfolio-image-shell:focus-visible::after {
+          .vf-image-shell:hover::after,
+          .vf-image-shell:active::after,
+          .vf-image-shell:focus-visible::after {
             opacity: 0.78;
           }
 
-          .portfolio-card:focus-visible {
+          .vf-card:focus-visible {
             outline: 2px solid rgba(255, 255, 255, 0.9);
             outline-offset: 6px;
           }
@@ -1450,31 +1457,31 @@ export default function GriegConnectCarousel() {
           }
 
           @media (max-width: 720px) {
-            .portfolio-carousel-section {
-              --section-vpad: 64px;
-              --card-size: min(74vw, 320px);
+            .value-feature-carousel-section {
+              --section-vpad: 96px;
+              --card-size: 192px !important;
               padding: var(--section-vpad) 0;
             }
 
-            .portfolio-card {
-              width: min(74vw, 320px);
-              height: min(74vw, 320px);
+            .vf-card {
+              width: var(--card-size);
+              height: var(--card-size);
             }
 
-            .portfolio-card-cursor {
+            .vf-card-cursor {
               display: none !important;
             }
 
-            .portfolio-image-shell {
+            .vf-image-shell {
               cursor: auto;
               box-shadow: none;
             }
 
-            .value-feature-carousel-section .portfolio-image {
+            .value-feature-carousel-section .vf-image {
               filter: grayscale(0) saturate(1.04);
             }
 
-            .portfolio-image-shell::after {
+            .vf-image-shell::after {
               opacity: 0;
             }
 
@@ -1505,20 +1512,20 @@ export default function GriegConnectCarousel() {
           }
 
           @media (hover: none), (pointer: coarse) {
-            .portfolio-card-cursor {
+            .vf-card-cursor {
               display: none !important;
             }
 
-            .portfolio-image-shell {
+            .vf-image-shell {
               cursor: auto;
               box-shadow: none;
             }
 
-            .value-feature-carousel-section .portfolio-image {
+            .value-feature-carousel-section .vf-image {
               filter: grayscale(0) saturate(1.04);
             }
 
-            .portfolio-image-shell::after {
+            .vf-image-shell::after {
               opacity: 0;
             }
 
@@ -1528,20 +1535,20 @@ export default function GriegConnectCarousel() {
           }
 
           @media (prefers-reduced-motion: reduce) {
-            .portfolio-carousel-section::before {
+            .vf-carousel-section::before {
               animation: none;
               opacity: 0.05;
             }
 
-            .portfolio-track {
+            .vf-track {
               transform: translate3d(0, 0, 0) !important;
             }
 
-            .portfolio-image {
+            .vf-image {
               transition: filter 0s ease;
             }
 
-            .portfolio-image-shell {
+            .vf-image-shell {
               transition: none;
             }
 
@@ -1556,33 +1563,33 @@ export default function GriegConnectCarousel() {
           }
 
           /* Prevent class-name collisions with griegconnect-icons styles */
-          .value-feature-carousel-section .portfolio-track,
-          .value-feature-carousel-section .portfolio-set {
+          .value-feature-carousel-section .vf-track,
+          .value-feature-carousel-section .vf-set {
             gap: clamp(18px, 2.6vw, 40px) !important;
           }
 
-          .value-feature-carousel-section .portfolio-card {
+          .value-feature-carousel-section .vf-card {
             width: 384px !important;
             height: 384px !important;
           }
 
-          .value-feature-carousel-section .portfolio-image-shell::before,
+          .value-feature-carousel-section .vf-image-shell::before,
           .value-feature-lightbox .lightbox-stage::before {
             content: none !important;
             display: none !important;
           }
 
           @media (max-width: 720px) {
-            .value-feature-carousel-section .portfolio-card {
-              width: min(74vw, 320px) !important;
-              height: min(74vw, 320px) !important;
+            .value-feature-carousel-section .vf-card {
+              width: 192px !important;
+              height: 192px !important;
             }
           }
         `}</style>
 
         <div
           ref={viewportRef}
-          className="portfolio-viewport"
+          className="vf-viewport"
           onClickCapture={(event) => {
             if (performance.now() < suppressClickUntilRef.current) {
               event.preventDefault();
@@ -1590,8 +1597,8 @@ export default function GriegConnectCarousel() {
             }
           }}
         >
-          <div ref={trackRef} className="portfolio-track">
-            <div ref={firstSetRef} className="portfolio-set">
+          <div ref={trackRef} className="vf-track">
+            <div ref={firstSetRef} className="vf-set">
               {ITEMS.map((item) => (
                 <IllustrationCard 
                   key={item.id} 
@@ -1602,7 +1609,7 @@ export default function GriegConnectCarousel() {
               ))}
             </div>
 
-            <div className="portfolio-set" aria-hidden="true">
+            <div className="vf-set" aria-hidden="true">
               {doubledItems.slice(ITEMS.length).map((item, index) => (
                 <IllustrationCard 
                   key={`${item.id}-${index}`} 
@@ -1615,7 +1622,7 @@ export default function GriegConnectCarousel() {
           </div>
         </div>
 
-        <div className="portfolio-carousel-mask" aria-hidden="true" />
+        <div className="vf-carousel-mask" aria-hidden="true" />
       </section>
 
       <Lightbox

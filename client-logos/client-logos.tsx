@@ -403,17 +403,40 @@ export default function ClientLogos() {
 		<section ref={sectionRef} className="client-logo-section" data-name="section-collaborators">
 			<style>{`
 				.client-logo-section {
+					--section-vpad: 96px;
+					--logo-row-height: 80px;
 					position: relative;
+					isolation: isolate;
+					display: flex;
+					align-items: center;
+					justify-content: center;
 					width: 100%;
+					height: 100%;
+					min-height: calc((var(--section-vpad) * 2) + var(--logo-row-height));
+					padding: var(--section-vpad) 0;
+					box-sizing: border-box;
 					overflow: hidden;
-					height: 240px;
-					background: radial-gradient(120% 90% at 50% 50%, #151515, #050505);
+				}
+
+				.client-logo-section::before {
+					content: "";
+					position: absolute;
+					inset: 0;
+					z-index: 0;
+					pointer-events: none;
+					background-color: #050505;
+					background-image: radial-gradient(120% 90% at 50% 50%, #151515, #050505);
+					background-repeat: no-repeat;
+					background-size: cover;
 				}
 
 				.client-logo-stage {
-					position: relative;
-					width: 100%;
+					position: absolute;
+					inset: 0;
+					z-index: 1;
 					height: 100%;
+					display: flex;
+					align-items: center;
 					overflow: hidden;
 					background: radial-gradient(120% 90% at 50% 50%, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0));
 				}
@@ -467,7 +490,11 @@ export default function ClientLogos() {
 				}
 
 				.client-logo-viewport {
+					position: relative;
+					z-index: 1;
+					width: 100%;
 					height: 100%;
+					margin-block: auto;
 					display: flex;
 					align-items: center;
 					overflow: hidden;
@@ -540,11 +567,8 @@ export default function ClientLogos() {
 
 				@media (max-width: 768px) {
 					.client-logo-section {
-						height: 160px;
-					}
-
-					.client-logo-stage {
-						height: 100%;
+						--section-vpad: 96px;
+						--logo-row-height: 64px;
 					}
 
 					.client-logo-item {

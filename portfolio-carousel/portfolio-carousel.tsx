@@ -359,7 +359,7 @@ function PortfolioCard({ item, isCarouselDragging }: { item: PortfolioItem; isCa
     <a
       ref={cardRef}
       href={item.href}
-      className="portfolio-card"
+      className="pc-card"
       aria-label={`${item.title} - ${item.subtitle}`}
       draggable={false}
       onClick={handleClick}
@@ -379,7 +379,7 @@ function PortfolioCard({ item, isCarouselDragging }: { item: PortfolioItem; isCa
     >
       <div
         ref={imageShellRef}
-        className="portfolio-image-shell"
+        className="pc-image-shell"
         onPointerDown={(event) => {
           if (!isEyeCursorEnabled() || isCarouselDragging() || event.pointerType !== "mouse" || event.button !== 0) {
             return;
@@ -419,13 +419,13 @@ function PortfolioCard({ item, isCarouselDragging }: { item: PortfolioItem; isCa
           stopCursorTracking();
         }}
       >
-        <img className="portfolio-image" src={item.image} alt={item.title} loading="lazy" draggable={false} />
+        <img className="pc-image" src={item.image} alt={item.title} loading="lazy" draggable={false} />
       </div>
-      <div className="portfolio-meta">
-        <div className="portfolio-title" style={{ fontStyle: "normal" }}>{item.title}</div>
-        <p className="portfolio-subtitle" style={{ fontStyle: "italic" }}>{item.subtitle}</p>
+      <div className="pc-meta">
+        <div className="pc-title" style={{ fontStyle: "normal" }}>{item.title}</div>
+        <p className="pc-subtitle" style={{ fontStyle: "italic" }}>{item.subtitle}</p>
       </div>
-      <span aria-hidden="true" className="portfolio-card-cursor" ref={cursorRef} />
+      <span aria-hidden="true" className="pc-card-cursor" ref={cursorRef} />
     </a>
   );
 }
@@ -654,17 +654,38 @@ export default function PortfolioCarousel() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="portfolio-carousel-section" aria-label="Portfolio carousel">
+    <section ref={sectionRef} className="pc-carousel-section" aria-label="Portfolio carousel">
       <style>{`
-        .portfolio-carousel-section {
+        .pc-carousel-section {
+          --section-vpad: 96px;
+          --card-size: clamp(220px, 28vw, 360px);
+          --meta-block-height: 62px;
           position: relative;
+          isolation: isolate;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           width: 100%;
+          height: 100%;
+          min-height: calc((var(--section-vpad) * 2) + var(--card-size) + var(--meta-block-height));
           overflow: visible;
-          padding: 96px 0;
-          background: radial-gradient(120% 90% at 50% 50%, #151515, #050505);
+          padding: var(--section-vpad) 0;
+          box-sizing: border-box;
         }
 
-        .portfolio-carousel-mask {
+        .pc-carousel-section::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          background-color: #050505;
+          background-image: radial-gradient(120% 90% at 50% 50%, #151515, #050505);
+          background-repeat: no-repeat;
+          background-size: cover;
+        }
+
+        .pc-carousel-mask {
           pointer-events: none;
           position: absolute;
           inset: 0;
@@ -672,7 +693,7 @@ export default function PortfolioCarousel() {
           background: linear-gradient(90deg, #050505 0%, rgba(5, 5, 5, 0) 8%, rgba(5, 5, 5, 0) 92%, #050505 100%);
         }
 
-        .portfolio-track {
+        .pc-track {
           position: relative;
           z-index: 1;
           display: flex;
@@ -682,40 +703,44 @@ export default function PortfolioCarousel() {
           padding: 0 clamp(16px, 4vw, 48px);
         }
 
-        .portfolio-viewport {
+        .pc-viewport {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          margin-block: auto;
           overflow: visible;
           touch-action: pan-y;
           user-select: none;
           -webkit-user-select: none;
         }
 
-        .portfolio-set {
+        .pc-set {
           display: flex;
           gap: clamp(18px, 2.6vw, 40px);
         }
 
-        .portfolio-card {
+        .pc-card {
           position: relative;
           --glint-x: 50%;
           --glint-y: 30%;
           text-decoration: none;
           color: #f6f6f6;
-          width: clamp(220px, 28vw, 360px);
+          width: var(--card-size);
           flex: 0 0 auto;
           cursor: pointer;
           user-select: none;
           -webkit-user-select: none;
         }
 
-        .portfolio-meta {
+        .pc-meta {
           cursor: pointer;
         }
 
-        .portfolio-image-shell {
+        .pc-image-shell {
           cursor: none;
         }
 
-        .portfolio-card-cursor {
+        .pc-card-cursor {
           position: absolute;
           left: 0;
           top: 0;
@@ -731,34 +756,34 @@ export default function PortfolioCarousel() {
           will-change: left, top, width, height, margin-left, margin-top, background-image;
         }
 
-        .portfolio-image-shell:hover ~ .portfolio-card-cursor,
-        .portfolio-image-shell:active ~ .portfolio-card-cursor,
-        .portfolio-image-shell:focus-visible ~ .portfolio-card-cursor {
+        .pc-image-shell:hover ~ .pc-card-cursor,
+        .pc-image-shell:active ~ .pc-card-cursor,
+        .pc-image-shell:focus-visible ~ .pc-card-cursor {
           opacity: 1;
         }
 
-        .portfolio-card.is-pointer-down .portfolio-card-cursor {
+        .pc-card.is-pointer-down .pc-card-cursor {
           opacity: 0 !important;
         }
 
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-card-cursor {
+        .pc-carousel-section.is-carousel-dragging .pc-card-cursor {
           opacity: 0 !important;
         }
 
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-viewport,
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-card,
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-image-shell,
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-meta {
+        .pc-carousel-section.is-carousel-dragging .pc-viewport,
+        .pc-carousel-section.is-carousel-dragging .pc-card,
+        .pc-carousel-section.is-carousel-dragging .pc-image-shell,
+        .pc-carousel-section.is-carousel-dragging .pc-meta {
           cursor: grabbing !important;
         }
 
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-image-shell,
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-image,
-        .portfolio-carousel-section.is-carousel-dragging .portfolio-image-shell::after {
+        .pc-carousel-section.is-carousel-dragging .pc-image-shell,
+        .pc-carousel-section.is-carousel-dragging .pc-image,
+        .pc-carousel-section.is-carousel-dragging .pc-image-shell::after {
           transition: none !important;
         }
 
-        .portfolio-image-shell {
+        .pc-image-shell {
           position: relative;
           overflow: hidden;
           background: #0f0f0f;
@@ -766,7 +791,7 @@ export default function PortfolioCarousel() {
           transition: box-shadow 260ms ease;
         }
 
-        .portfolio-image-shell::after {
+        .pc-image-shell::after {
           content: "";
           position: absolute;
           inset: 0;
@@ -795,7 +820,7 @@ export default function PortfolioCarousel() {
           transition: opacity 260ms ease;
         }
 
-        .portfolio-image {
+        .pc-image {
           display: block;
           width: 100%;
           aspect-ratio: 1 / 1;
@@ -805,24 +830,24 @@ export default function PortfolioCarousel() {
           -webkit-user-drag: none;
         }
 
-        .portfolio-image-shell:hover .portfolio-image,
-        .portfolio-image-shell:active .portfolio-image,
-        .portfolio-image-shell:focus-visible .portfolio-image {
+        .pc-image-shell:hover .pc-image,
+        .pc-image-shell:active .pc-image,
+        .pc-image-shell:focus-visible .pc-image {
           filter: grayscale(0) saturate(1.04);
         }
 
-        .portfolio-image-shell:hover,
-        .portfolio-image-shell:focus-visible {
+        .pc-image-shell:hover,
+        .pc-image-shell:focus-visible {
           box-shadow: 0 22px 40px rgba(0, 0, 0, 0.38);
         }
 
-        .portfolio-image-shell:hover::after,
-        .portfolio-image-shell:active::after,
-        .portfolio-image-shell:focus-visible::after {
+        .pc-image-shell:hover::after,
+        .pc-image-shell:active::after,
+        .pc-image-shell:focus-visible::after {
           opacity: 0.78;
         }
 
-        .portfolio-meta {
+        .pc-meta {
           margin-top: 14px;
           display: flex;
           flex-direction: column;
@@ -831,7 +856,7 @@ export default function PortfolioCarousel() {
           font-style: normal;
         }
 
-        .portfolio-title {
+        .pc-title {
           margin: 0;
           line-height: 1.35;
           font-size: clamp(14px, 1.3vw, 17px);
@@ -842,13 +867,13 @@ export default function PortfolioCarousel() {
           color: #ffffff;
         }
 
-        .portfolio-card .portfolio-title,
-        .portfolio-card .portfolio-title * {
+        .pc-card .pc-title,
+        .pc-card .pc-title * {
           font-style: normal !important;
           font-variation-settings: "slnt" 0 !important;
         }
 
-        .portfolio-subtitle {
+        .pc-subtitle {
           margin: 0;
           line-height: 1.35;
           font-size: clamp(13px, 1.2vw, 16px);
@@ -858,106 +883,104 @@ export default function PortfolioCarousel() {
           color: rgba(255, 255, 255, 0.6);
         }
 
-        .portfolio-card .portfolio-subtitle,
-        .portfolio-card .portfolio-subtitle * {
+        .pc-card .pc-subtitle,
+        .pc-card .pc-subtitle * {
           font-style: italic !important;
         }
 
         @media (min-width: 721px) {
-          .portfolio-title {
+          .pc-title {
             font-size: 16px;
           }
 
-          .portfolio-subtitle {
+          .pc-subtitle {
             font-size: 16px;
           }
         }
 
-        .portfolio-card:focus-visible {
+        .pc-card:focus-visible {
           outline: 2px solid rgba(255, 255, 255, 0.9);
           outline-offset: 6px;
         }
 
         @media (max-width: 720px) {
-          .portfolio-carousel-section {
-            padding: 64px 0;
+          .pc-carousel-section {
+            --section-vpad: 96px;
+            --card-size: min(74vw, 320px);
+            --meta-block-height: 55px;
           }
 
-          .portfolio-card {
-            width: min(74vw, 320px);
-          }
-
-          .portfolio-card-cursor {
+          .pc-card-cursor {
             display: none !important;
           }
 
-          .portfolio-image-shell {
+          .pc-image-shell {
             cursor: auto;
             box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
           }
 
-          .portfolio-image {
+          .pc-image {
             filter: grayscale(0) saturate(1.04);
           }
 
-          .portfolio-image-shell::after {
+          .pc-image-shell::after {
             opacity: 0.52;
           }
 
-          .portfolio-image-shell:hover .portfolio-image,
-          .portfolio-image-shell:active .portfolio-image,
-          .portfolio-image-shell:focus-visible .portfolio-image {
+          .pc-image-shell:hover .pc-image,
+          .pc-image-shell:active .pc-image,
+          .pc-image-shell:focus-visible .pc-image {
             filter: grayscale(0) saturate(1.04);
           }
 
-          .portfolio-image-shell:hover::after,
-          .portfolio-image-shell:active::after,
-          .portfolio-image-shell:focus-visible::after {
+          .pc-image-shell:hover::after,
+          .pc-image-shell:active::after,
+          .pc-image-shell:focus-visible::after {
             opacity: 0.52;
           }
         }
 
         @media (hover: none), (pointer: coarse) {
-          .portfolio-card-cursor {
+          .pc-card-cursor {
             display: none !important;
           }
 
-          .portfolio-image-shell {
+          .pc-image-shell {
             cursor: auto;
             box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
           }
 
-          .portfolio-image {
+          .pc-image {
             filter: grayscale(0) saturate(1.04);
           }
 
-          .portfolio-image-shell::after {
+          .pc-image-shell::after {
             opacity: 0.52;
           }
 
-          .portfolio-image-shell:hover .portfolio-image,
-          .portfolio-image-shell:active .portfolio-image,
-          .portfolio-image-shell:focus-visible .portfolio-image {
+          .pc-image-shell:hover .pc-image,
+          .pc-image-shell:active .pc-image,
+          .pc-image-shell:focus-visible .pc-image {
             filter: grayscale(0) saturate(1.04);
           }
 
-          .portfolio-image-shell:hover::after,
-          .portfolio-image-shell:active::after,
-          .portfolio-image-shell:focus-visible::after {
+          .pc-image-shell:hover::after,
+          .pc-image-shell:active::after,
+          .pc-image-shell:focus-visible::after {
             opacity: 0.52;
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .portfolio-track {
+          .pc-track {
             transform: translate3d(0, 0, 0) !important;
           }
 
-          .portfolio-image {
+          .pc-image {
             transition: filter 0s ease;
           }
 
-          .portfolio-image-shell {
+          .pc-image-shell {
             transition: none;
           }
         }
@@ -965,7 +988,7 @@ export default function PortfolioCarousel() {
 
       <div
         ref={viewportRef}
-        className="portfolio-viewport"
+        className="pc-viewport"
         onClickCapture={(event) => {
           if (performance.now() < suppressClickUntilRef.current) {
             event.preventDefault();
@@ -973,14 +996,14 @@ export default function PortfolioCarousel() {
           }
         }}
       >
-        <div ref={trackRef} className="portfolio-track">
-        <div ref={firstSetRef} className="portfolio-set">
+        <div ref={trackRef} className="pc-track">
+        <div ref={firstSetRef} className="pc-set">
           {ITEMS.map((item) => (
             <PortfolioCard key={item.href} item={item} isCarouselDragging={() => isDraggingRef.current} />
           ))}
         </div>
 
-        <div className="portfolio-set" aria-hidden="true">
+        <div className="pc-set" aria-hidden="true">
           {doubledItems.slice(ITEMS.length).map((item, index) => (
             <PortfolioCard key={`${item.href}-${index}`} item={item} isCarouselDragging={() => isDraggingRef.current} />
           ))}
@@ -988,7 +1011,7 @@ export default function PortfolioCarousel() {
         </div>
       </div>
 
-      <div className="portfolio-carousel-mask" aria-hidden="true" />
+      <div className="pc-carousel-mask" aria-hidden="true" />
     </section>
   );
 }
