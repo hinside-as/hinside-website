@@ -407,7 +407,7 @@ export default function ClientLogos() {
 					width: 100%;
 					overflow: hidden;
 					height: 240px;
-					background: #090909;
+					background: radial-gradient(120% 90% at 50% 50%, #151515, #050505);
 				}
 
 				.client-logo-stage {
@@ -424,10 +424,10 @@ export default function ClientLogos() {
 					pointer-events: none;
 					background: linear-gradient(
 						90deg,
-						rgba(9, 9, 9, 1) 0%,
-						rgba(9, 9, 9, 0) 10%,
-						rgba(9, 9, 9, 0) 90%,
-						rgba(9, 9, 9, 1) 100%
+						rgba(5, 5, 5, 1) 0%,
+						rgba(5, 5, 5, 0) 8%,
+						rgba(5, 5, 5, 0) 92%,
+						rgba(5, 5, 5, 1) 100%
 					);
 				}
 
