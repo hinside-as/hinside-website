@@ -459,7 +459,7 @@ function Lightbox({
 
   return (
     <div
-      className={`lightbox-overlay ${isUiActive ? "" : "is-ui-idle"} ${isKeyboardInputActive ? "is-keyboard-input" : ""}`}
+      className={`gci-lightbox ${isUiActive ? "" : "is-ui-idle"} ${isKeyboardInputActive ? "is-keyboard-input" : ""}`}
       onPointerMove={handleLightboxPointerMove}
     >
       <button
@@ -1063,10 +1063,10 @@ export default function GriegConnectCarousel() {
             background-repeat: repeat;
             mix-blend-mode: soft-light;
             opacity: 0.085;
-            animation: carouselNoiseShift 520ms steps(2, end) infinite;
+            animation: gciCarouselNoiseShift 520ms steps(2, end) infinite;
           }
 
-          @keyframes carouselNoiseShift {
+          @keyframes gciCarouselNoiseShift {
             0% {
               transform: translate3d(0, 0, 0);
             }
@@ -1302,7 +1302,7 @@ export default function GriegConnectCarousel() {
           }
 
           /* Lightbox Styles */
-          .lightbox-overlay {
+          .gci-lightbox {
             position: fixed;
             inset: 0;
             z-index: 9999;
@@ -1317,10 +1317,10 @@ export default function GriegConnectCarousel() {
             isolation: isolate;
             transform: translateZ(0);
             will-change: opacity;
-            animation: fadeIn 200ms ease;
+            animation: gciLightboxFadeIn 200ms ease;
           }
 
-          @keyframes fadeIn {
+          @keyframes gciLightboxFadeIn {
             from {
               opacity: 0;
             }
@@ -1331,19 +1331,19 @@ export default function GriegConnectCarousel() {
 
 
 
-          .lightbox-content {
+          .gci-lightbox .lightbox-content {
             width: 100vw;
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: lightboxContentFadeIn 180ms ease;
+            animation: gciLightboxContentFadeIn 180ms ease;
             position: relative;
             z-index: 1;
             pointer-events: none;
           }
 
-          .lightbox-stage {
+          .gci-lightbox .lightbox-stage {
             --lb-grid-x: 50%;
             --lb-grid-y: 50%;
             --lb-grid-offset-x: 0px;
@@ -1358,7 +1358,7 @@ export default function GriegConnectCarousel() {
             justify-content: center;
           }
 
-          .lightbox-stage::before {
+          .gci-lightbox .lightbox-stage::before {
             content: "";
             position: absolute;
             inset: 0;
@@ -1391,7 +1391,7 @@ export default function GriegConnectCarousel() {
             z-index: 2;
           }
 
-          .lightbox-artwork {
+          .gci-lightbox .lightbox-artwork {
             position: relative;
             width: var(--lb-artwork-size);
             height: var(--lb-artwork-size);
@@ -1402,8 +1402,8 @@ export default function GriegConnectCarousel() {
             image-rendering: pixelated;
           }
 
-          .lightbox-artwork svg,
-          .lightbox-artwork > * {
+          .gci-lightbox .lightbox-artwork svg,
+          .gci-lightbox .lightbox-artwork > * {
             width: 100%;
             height: 100%;
             max-width: 100%;
@@ -1414,7 +1414,7 @@ export default function GriegConnectCarousel() {
             image-rendering: pixelated;
           }
 
-          @keyframes lightboxContentFadeIn {
+          @keyframes gciLightboxContentFadeIn {
             from {
               opacity: 0;
             }
@@ -1423,7 +1423,7 @@ export default function GriegConnectCarousel() {
             }
           }
 
-          .lightbox-stage svg {
+          .gci-lightbox .lightbox-stage svg {
             width: 100%;
             height: 100%;
             max-width: 100vw;
@@ -1433,7 +1433,7 @@ export default function GriegConnectCarousel() {
             pointer-events: none;
           }
 
-          .lightbox-hit {
+          .gci-lightbox .lightbox-hit {
             position: absolute;
             top: 0;
             bottom: 0;
@@ -1448,32 +1448,32 @@ export default function GriegConnectCarousel() {
             transition: background-color 220ms cubic-bezier(0.22, 1, 0.36, 1);
           }
 
-          .lightbox-hit:focus,
-          .lightbox-hit:focus-visible {
+          .gci-lightbox .lightbox-hit:focus,
+          .gci-lightbox .lightbox-hit:focus-visible {
             outline: none;
           }
 
-          .lightbox-hit-left {
+          .gci-lightbox .lightbox-hit-left {
             left: 0;
             width: 25vw;
             justify-content: flex-start;
             padding-left: clamp(12px, 2vw, 26px);
           }
 
-          .lightbox-hit-center {
+          .gci-lightbox .lightbox-hit-center {
             left: 25vw;
             width: 50vw;
             justify-content: center;
           }
 
-          .lightbox-hit-right {
+          .gci-lightbox .lightbox-hit-right {
             right: 0;
             width: 25vw;
             justify-content: flex-end;
             padding-right: clamp(12px, 2vw, 26px);
           }
 
-          .lightbox-indicator {
+          .gci-lightbox .lightbox-indicator {
             position: absolute;
             left: 50%;
             bottom: clamp(14px, 2.2vh, 28px);
@@ -1496,55 +1496,55 @@ export default function GriegConnectCarousel() {
               transform 440ms cubic-bezier(0.16, 1, 0.3, 1);
           }
 
-          .lightbox-overlay.is-ui-idle .lightbox-indicator {
+          .gci-lightbox.is-ui-idle .lightbox-indicator {
             opacity: 0.34;
           }
 
-          .lightbox-indicator-label,
-          .lightbox-indicator-separator,
-          .lightbox-indicator-glyph,
-          .lightbox-indicator-bar {
+          .gci-lightbox .lightbox-indicator-label,
+          .gci-lightbox .lightbox-indicator-separator,
+          .gci-lightbox .lightbox-indicator-glyph,
+          .gci-lightbox .lightbox-indicator-bar {
             font-variant-numeric: tabular-nums;
           }
 
-          .lightbox-indicator-label {
+          .gci-lightbox .lightbox-indicator-label {
             font-size: 0.78em;
             opacity: 0.84;
           }
 
-          .lightbox-indicator-number {
+          .gci-lightbox .lightbox-indicator-number {
             font-size: 0.82em;
           }
 
-          .lightbox-indicator-separator,
-          .lightbox-indicator-glyph {
+          .gci-lightbox .lightbox-indicator-separator,
+          .gci-lightbox .lightbox-indicator-glyph {
             opacity: 0.66;
           }
 
-          .lightbox-indicator-bar {
+          .gci-lightbox .lightbox-indicator-bar {
             display: inline-block;
             letter-spacing: 0.1em;
             text-shadow: 0 0 8px rgba(148, 220, 255, 0.14);
           }
 
-          .lightbox-indicator-bar-notch {
+          .gci-lightbox .lightbox-indicator-bar-notch {
             display: inline-block;
             opacity: 0.72;
             transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1);
           }
 
-          .lightbox-indicator-bar-notch.is-unwatched {
+          .gci-lightbox .lightbox-indicator-bar-notch.is-unwatched {
             opacity: 0.54;
           }
 
-          .lightbox-indicator-notch {
+          .gci-lightbox .lightbox-indicator-notch {
             display: inline-block;
             letter-spacing: 0.1em;
-            animation: notchPulse 360ms cubic-bezier(0.22, 1, 0.36, 1);
+            animation: gciLightboxNotchPulse 360ms cubic-bezier(0.22, 1, 0.36, 1);
             animation-fill-mode: both;
           }
 
-          @keyframes notchPulse {
+          @keyframes gciLightboxNotchPulse {
             0% {
               opacity: 0.68;
             }
@@ -1556,7 +1556,7 @@ export default function GriegConnectCarousel() {
             }
           }
 
-          .lightbox-hit-arrow {
+          .gci-lightbox .lightbox-hit-arrow {
             width: 32px;
             height: 56px;
             opacity: 0.35;
@@ -1568,42 +1568,42 @@ export default function GriegConnectCarousel() {
             filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
           }
 
-          .lightbox-overlay.is-ui-idle .lightbox-hit-arrow {
+          .gci-lightbox.is-ui-idle .lightbox-hit-arrow {
             opacity: 0;
             transform: scale(0.92);
             filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
           }
 
-          .lightbox-overlay.is-keyboard-input .lightbox-hit-arrow {
+          .gci-lightbox.is-keyboard-input .lightbox-hit-arrow {
             opacity: 0;
             transform: scale(0.92);
             filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
           }
 
-          .lightbox-hit-arrow svg {
+          .gci-lightbox .lightbox-hit-arrow svg {
             width: 100%;
             height: 100%;
             display: block;
           }
 
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit:hover .lightbox-hit-arrow,
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit:focus-visible .lightbox-hit-arrow {
+          .gci-lightbox:not(.is-keyboard-input) .lightbox-hit:hover .lightbox-hit-arrow,
+          .gci-lightbox:not(.is-keyboard-input) .lightbox-hit:focus-visible .lightbox-hit-arrow {
             opacity: 1;
             transform: scale(1.06);
             filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.36));
           }
 
-          .lightbox-hit:active .lightbox-hit-arrow {
+          .gci-lightbox .lightbox-hit:active .lightbox-hit-arrow {
             transform: scale(0.95);
           }
 
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit-left:hover .lightbox-hit-arrow,
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit-left:focus-visible .lightbox-hit-arrow {
+          .gci-lightbox:not(.is-keyboard-input) .lightbox-hit-left:hover .lightbox-hit-arrow,
+          .gci-lightbox:not(.is-keyboard-input) .lightbox-hit-left:focus-visible .lightbox-hit-arrow {
             transform: translateX(-3px) scale(1.06);
           }
 
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit-right:hover .lightbox-hit-arrow,
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit-right:focus-visible .lightbox-hit-arrow {
+          .gci-lightbox:not(.is-keyboard-input) .lightbox-hit-right:hover .lightbox-hit-arrow,
+          .gci-lightbox:not(.is-keyboard-input) .lightbox-hit-right:focus-visible .lightbox-hit-arrow {
             transform: translateX(3px) scale(1.06);
           }
 
@@ -1649,27 +1649,27 @@ export default function GriegConnectCarousel() {
               opacity: 0;
             }
 
-            .lightbox-overlay {
+            .gci-lightbox {
               padding: 20px;
             }
 
-            .lightbox-content {
+            .gci-lightbox .lightbox-content {
               width: min(96vw, 760px);
               height: min(84vh, 760px);
             }
 
-            .lightbox-indicator {
+            .gci-lightbox .lightbox-indicator {
               bottom: 20px;
               letter-spacing: 0.08em;
               font-size: 10pt;
             }
 
-            .lightbox-hit-left,
-            .lightbox-hit-right {
+            .gci-lightbox .lightbox-hit-left,
+            .gci-lightbox .lightbox-hit-right {
               width: 24vw;
             }
 
-            .lightbox-hit-center {
+            .gci-lightbox .lightbox-hit-center {
               left: 24vw;
               width: 52vw;
             }
@@ -1693,7 +1693,7 @@ export default function GriegConnectCarousel() {
               opacity: 0;
             }
 
-            .lightbox-hit-arrow {
+            .gci-lightbox .lightbox-hit-arrow {
               opacity: 0.82;
             }
           }
@@ -1722,16 +1722,16 @@ export default function GriegConnectCarousel() {
               animation: none;
             }
 
-            .lightbox-stage::before {
+            .gci-lightbox .lightbox-stage::before {
               animation: none;
             }
 
-            .lightbox-overlay,
-            .lightbox-content {
+            .gci-lightbox,
+            .gci-lightbox .lightbox-content {
               animation: none;
             }
 
-            .lightbox-indicator-bar {
+            .gci-lightbox .lightbox-indicator-bar {
               animation: none !important;
             }
           }

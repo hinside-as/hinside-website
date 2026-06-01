@@ -362,6 +362,7 @@ function PortfolioCard({ item, isCarouselDragging }: { item: PortfolioItem; isCa
       className="pc-card"
       aria-label={`${item.title} - ${item.subtitle}`}
       draggable={false}
+      data-no-link-style
       onClick={handleClick}
       {...(isExternalLink(item.href)
         ? { target: "_blank", rel: "noopener noreferrer" }
@@ -421,11 +422,11 @@ function PortfolioCard({ item, isCarouselDragging }: { item: PortfolioItem; isCa
       >
         <img className="pc-image" src={item.image} alt={item.title} loading="lazy" draggable={false} />
       </div>
+      <span aria-hidden="true" className="pc-card-cursor" ref={cursorRef} />
       <div className="pc-meta">
         <div className="pc-title" style={{ fontStyle: "normal" }}>{item.title}</div>
         <p className="pc-subtitle" style={{ fontStyle: "italic" }}>{item.subtitle}</p>
       </div>
-      <span aria-hidden="true" className="pc-card-cursor" ref={cursorRef} />
     </a>
   );
 }

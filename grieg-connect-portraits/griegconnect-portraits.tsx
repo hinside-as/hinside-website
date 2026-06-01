@@ -395,7 +395,7 @@ function Lightbox({
   };
 
   return (
-    <div className={`lightbox-overlay portraits-lightbox ${isUiActive ? "" : "is-ui-idle"} ${isKeyboardInputActive ? "is-keyboard-input" : ""}`}>
+    <div className={`portraits-lightbox ${isUiActive ? "" : "is-ui-idle"} ${isKeyboardInputActive ? "is-keyboard-input" : ""}`}>
       <button
         type="button"
         className="lightbox-hit lightbox-hit-left"
@@ -994,10 +994,10 @@ export default function GriegConnectCarousel() {
             background-repeat: repeat;
             mix-blend-mode: soft-light;
             opacity: 0.085;
-            animation: carouselNoiseShift 520ms steps(2, end) infinite;
+            animation: gcpCarouselNoiseShift 520ms steps(2, end) infinite;
           }
 
-          @keyframes carouselNoiseShift {
+          @keyframes gcpCarouselNoiseShift {
             0% {
               transform: translate3d(0, 0, 0);
             }
@@ -1208,10 +1208,10 @@ export default function GriegConnectCarousel() {
             isolation: isolate;
             transform: translateZ(0);
             will-change: opacity;
-            animation: fadeIn 200ms ease;
+            animation: gcpLightboxFadeIn 200ms ease;
           }
 
-          @keyframes fadeIn {
+          @keyframes gcpLightboxFadeIn {
             from {
               opacity: 0;
             }
@@ -1228,7 +1228,7 @@ export default function GriegConnectCarousel() {
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: scaleIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: gcpLightboxScaleIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
             z-index: 1;
             pointer-events: none;
@@ -1242,7 +1242,7 @@ export default function GriegConnectCarousel() {
             justify-content: center;
           }
 
-          @keyframes scaleIn {
+          @keyframes gcpLightboxScaleIn {
             from {
               opacity: 0;
               transform: scale(0.9);
@@ -1371,11 +1371,11 @@ export default function GriegConnectCarousel() {
           .portraits-lightbox .lightbox-indicator-notch {
             display: inline-block;
             letter-spacing: 0.1em;
-            animation: notchPulse 360ms cubic-bezier(0.22, 1, 0.36, 1);
+            animation: gcpLightboxNotchPulse 360ms cubic-bezier(0.22, 1, 0.36, 1);
             animation-fill-mode: both;
           }
 
-          @keyframes notchPulse {
+          @keyframes gcpLightboxNotchPulse {
             0% {
               opacity: 0.68;
             }

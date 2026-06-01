@@ -40,7 +40,13 @@ const CLOUDINARY_ILLUSTRATION_URLS: Record<number, string> = {
 
 const createCloudinaryIllustration = (src: string, id: string) => {
   return function Illustration() {
-    return <img src={src} alt={id} loading="lazy" decoding="async" draggable={false} />;
+    return (
+      <img
+        src={src}
+        alt={id}
+        draggable={false}
+      />
+    );
   };
 };
 type IllustrationItem = {
@@ -384,7 +390,6 @@ function Lightbox({
   if (currentIndex === null) return null;
 
   const item = items[currentIndex];
-  const currentPosition = currentIndex + 1;
   const loadingBarNotches = Array.from({ length: items.length }, (_, index) => {
     return {
       key: `notch-${index + 1}`,
@@ -406,7 +411,7 @@ function Lightbox({
   };
 
   return (
-    <div className={`lightbox-overlay value-feature-lightbox ${isUiActive ? "" : "is-ui-idle"} ${isKeyboardInputActive ? "is-keyboard-input" : ""}`}>
+    <div className={`value-feature-lightbox ${isUiActive ? "" : "is-ui-idle"} ${isKeyboardInputActive ? "is-keyboard-input" : ""}`}>
       <button
         type="button"
         className="lightbox-hit lightbox-hit-left"
@@ -476,7 +481,15 @@ function Lightbox({
   );
 }
 
-function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: IllustrationItem; isCarouselDragging: () => boolean; onOpen: () => void }) {
+function IllustrationCard({
+  item,
+  isCarouselDragging,
+  onOpen,
+}: {
+  item: IllustrationItem;
+  isCarouselDragging: () => boolean;
+  onOpen: () => void;
+}) {
   const cursorRef = useRef<HTMLSpanElement | null>(null);
   const blinkTimerRef = useRef<number | null>(null);
   const positionRafRef = useRef<number | null>(null);
@@ -685,7 +698,7 @@ function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: Illustra
   return (
     <button
       ref={cardRef}
-      className="vf-card"
+      className="vfi-card"
       aria-label={`View ${item.id}`}
       onClick={handleClick}
       onPointerEnter={() => {
@@ -701,7 +714,7 @@ function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: Illustra
     >
       <div
         ref={imageShellRef}
-        className="vf-image-shell"
+        className="vfi-image-shell"
         onPointerDown={(event) => {
           if (!isEyeCursorEnabled() || isCarouselDragging() || event.pointerType !== "mouse" || event.button !== 0) {
             return;
@@ -741,11 +754,11 @@ function IllustrationCard({ item, isCarouselDragging, onOpen }: { item: Illustra
           stopCursorTracking();
         }}
       >
-        <div className="vf-image">
+        <div className="vfi-image">
           <Component />
         </div>
       </div>
-      <span aria-hidden="true" className="vf-card-cursor" ref={cursorRef} />
+      <span aria-hidden="true" className="vfi-card-cursor" ref={cursorRef} />
     </button>
   );
 }
@@ -977,7 +990,7 @@ export default function GriegConnectCarousel() {
 
   return (
     <>
-      <section ref={sectionRef} className="vf-carousel-section value-feature-carousel-section" aria-label="Grieg Connect Illustrations">
+      <section ref={sectionRef} className="vfi-carousel-section value-feature-carousel-section" aria-label="Grieg Connect Illustrations">
         <style>{`
           .value-feature-carousel-section {
             position: relative;
@@ -985,12 +998,13 @@ export default function GriegConnectCarousel() {
             --card-size: 384px;
             width: 100%;
             height: 100%;
+            min-height: calc(var(--card-size) + (var(--section-vpad) * 2));
             overflow: visible;
             padding: var(--section-vpad) 0;
-            min-height: calc(var(--card-size) + (var(--section-vpad) * 2));
             box-sizing: border-box;
             display: flex;
             align-items: center;
+            justify-content: center;
             background: radial-gradient(120% 92% at 50% 50%, #161616 0%, #0a0a0a 52%, #040404 100%);
           }
 
@@ -1005,10 +1019,10 @@ export default function GriegConnectCarousel() {
             background-repeat: repeat;
             mix-blend-mode: soft-light;
             opacity: 0.085;
-            animation: carouselNoiseShift 520ms steps(2, end) infinite;
+            animation: vfiCarouselNoiseShift 520ms steps(2, end) infinite;
           }
 
-          @keyframes carouselNoiseShift {
+          @keyframes vfiCarouselNoiseShift {
             0% {
               transform: translate3d(0, 0, 0);
             }
@@ -1026,15 +1040,15 @@ export default function GriegConnectCarousel() {
             }
           }
 
-          .vf-carousel-mask {
+          .vfi-carousel-mask {
             pointer-events: none;
             position: absolute;
             inset: 0;
             z-index: 2;
-            background: linear-gradient(90deg, #050505 0%, rgba(5, 5, 5, 0) 8%, rgba(5, 5, 5, 0) 92%, #050505 100%);
+            background: linear-gradient(90deg, rgba(5, 5, 5, 0.95) 0%, rgba(5, 5, 5, 0) 8%, rgba(5, 5, 5, 0) 92%, rgba(5, 5, 5, 0.95) 100%);
           }
 
-          .vf-track {
+          .vfi-track {
             position: relative;
             z-index: 1;
             display: flex;
@@ -1044,7 +1058,7 @@ export default function GriegConnectCarousel() {
             padding: 0 clamp(16px, 4vw, 48px);
           }
 
-          .vf-viewport {
+          .vfi-viewport {
             width: 100%;
             overflow: visible;
             touch-action: pan-y;
@@ -1052,12 +1066,12 @@ export default function GriegConnectCarousel() {
             -webkit-user-select: none;
           }
 
-          .vf-set {
+          .vfi-set {
             display: flex;
             gap: clamp(18px, 2.6vw, 40px);
           }
 
-          .vf-card {
+          .vfi-card {
             position: relative;
             --glint-x: 50%;
             --glint-y: 30%;
@@ -1073,13 +1087,13 @@ export default function GriegConnectCarousel() {
             display: block;
           }
 
-          .vf-image-shell {
+          .vfi-image-shell {
             cursor: none;
             width: 100%;
             height: 100%;
           }
 
-          .vf-card-cursor {
+          .vfi-card-cursor {
             position: absolute;
             left: 0;
             top: 0;
@@ -1095,33 +1109,33 @@ export default function GriegConnectCarousel() {
             will-change: left, top, width, height, margin-left, margin-top, background-image;
           }
 
-          .vf-image-shell:hover ~ .vf-card-cursor,
-          .vf-image-shell:active ~ .vf-card-cursor,
-          .vf-image-shell:focus-visible ~ .vf-card-cursor {
+          .vfi-image-shell:hover ~ .vfi-card-cursor,
+          .vfi-image-shell:active ~ .vfi-card-cursor,
+          .vfi-image-shell:focus-visible ~ .vfi-card-cursor {
             opacity: 1;
           }
 
-          .vf-card.is-pointer-down .vf-card-cursor {
+          .vfi-card.is-pointer-down .vfi-card-cursor {
             opacity: 0 !important;
           }
 
-          .vf-carousel-section.is-carousel-dragging .vf-card-cursor {
+          .vfi-carousel-section.is-carousel-dragging .vfi-card-cursor {
             opacity: 0 !important;
           }
 
-          .vf-carousel-section.is-carousel-dragging .vf-viewport,
-          .vf-carousel-section.is-carousel-dragging .vf-card,
-          .vf-carousel-section.is-carousel-dragging .vf-image-shell {
+          .vfi-carousel-section.is-carousel-dragging .vfi-viewport,
+          .vfi-carousel-section.is-carousel-dragging .vfi-card,
+          .vfi-carousel-section.is-carousel-dragging .vfi-image-shell {
             cursor: grabbing !important;
           }
 
-          .vf-carousel-section.is-carousel-dragging .vf-image-shell,
-          .vf-carousel-section.is-carousel-dragging .vf-image,
-          .vf-carousel-section.is-carousel-dragging .vf-image-shell::after {
+          .vfi-carousel-section.is-carousel-dragging .vfi-image-shell,
+          .vfi-carousel-section.is-carousel-dragging .vfi-image,
+          .vfi-carousel-section.is-carousel-dragging .vfi-image-shell::after {
             transition: none !important;
           }
 
-          .vf-image-shell {
+          .vfi-image-shell {
             position: relative;
             overflow: hidden;
             background: transparent;
@@ -1130,7 +1144,7 @@ export default function GriegConnectCarousel() {
             border-radius: 8px;
           }
 
-          .vf-image-shell::after {
+          .vfi-image-shell::after {
             content: "";
             position: absolute;
             inset: 0;
@@ -1160,7 +1174,7 @@ export default function GriegConnectCarousel() {
             display: block;
           }
 
-          .value-feature-carousel-section .vf-image {
+          .value-feature-carousel-section .vfi-image {
             display: block;
             width: 100%;
             height: 100%;
@@ -1168,50 +1182,50 @@ export default function GriegConnectCarousel() {
             transition: filter 220ms ease;
           }
 
-          .value-feature-carousel-section .vf-image img {
+          .value-feature-carousel-section .vfi-image img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             object-position: center;
           }
 
-          .vf-image svg,
-          .vf-image > * {
+          .vfi-image svg,
+          .vfi-image > * {
             width: 100%;
             height: 100%;
             display: block;
           }
 
-          .value-feature-carousel-section .vf-image-shell:hover .vf-image,
-          .value-feature-carousel-section .vf-image-shell:active .vf-image,
-          .value-feature-carousel-section .vf-image-shell:focus-visible .vf-image {
+          .value-feature-carousel-section .vfi-image-shell:hover .vfi-image,
+          .value-feature-carousel-section .vfi-image-shell:active .vfi-image,
+          .value-feature-carousel-section .vfi-image-shell:focus-visible .vfi-image {
             filter: grayscale(0) saturate(1.04);
           }
 
-          .vf-image-shell:hover,
-          .vf-image-shell:active,
-          .vf-image-shell:focus-visible {
+          .vfi-image-shell:hover,
+          .vfi-image-shell:active,
+          .vfi-image-shell:focus-visible {
             background: transparent;
           }
 
-          .vf-image-shell:hover,
-          .vf-image-shell:focus-visible {
+          .vfi-image-shell:hover,
+          .vfi-image-shell:focus-visible {
             box-shadow: none;
           }
 
-          .vf-image-shell:hover::after,
-          .vf-image-shell:active::after,
-          .vf-image-shell:focus-visible::after {
+          .vfi-image-shell:hover::after,
+          .vfi-image-shell:active::after,
+          .vfi-image-shell:focus-visible::after {
             opacity: 0.78;
           }
 
-          .vf-card:focus-visible {
+          .vfi-card:focus-visible {
             outline: 2px solid rgba(255, 255, 255, 0.9);
             outline-offset: 6px;
           }
 
           /* Lightbox Styles */
-          .lightbox-overlay {
+          .value-feature-lightbox {
             position: fixed;
             inset: 0;
             z-index: 9999;
@@ -1226,10 +1240,10 @@ export default function GriegConnectCarousel() {
             isolation: isolate;
             transform: translateZ(0);
             will-change: opacity;
-            animation: fadeIn 200ms ease;
+            animation: vfiLightboxFadeIn 200ms ease;
           }
 
-          @keyframes fadeIn {
+          @keyframes vfiLightboxFadeIn {
             from {
               opacity: 0;
             }
@@ -1240,19 +1254,19 @@ export default function GriegConnectCarousel() {
 
 
 
-          .lightbox-content {
+          .value-feature-lightbox .lightbox-content {
             width: min(96vw, 1520px);
             height: min(92vh, 1080px);
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: scaleIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: vfiLightboxScaleIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
             z-index: 1;
             pointer-events: none;
           }
 
-          .lightbox-stage {
+          .value-feature-lightbox .lightbox-stage {
             width: 100%;
             height: 100%;
             display: flex;
@@ -1260,7 +1274,7 @@ export default function GriegConnectCarousel() {
             justify-content: center;
           }
 
-          @keyframes scaleIn {
+          @keyframes vfiLightboxScaleIn {
             from {
               opacity: 0;
               transform: scale(0.9);
@@ -1271,8 +1285,8 @@ export default function GriegConnectCarousel() {
             }
           }
 
-          .lightbox-stage svg,
-          .lightbox-stage > * {
+          .value-feature-lightbox .lightbox-stage svg,
+          .value-feature-lightbox .lightbox-stage > * {
             width: 100%;
             height: 100%;
             max-width: 100vw;
@@ -1282,7 +1296,7 @@ export default function GriegConnectCarousel() {
             pointer-events: none;
           }
 
-          .lightbox-hit {
+          .value-feature-lightbox .lightbox-hit {
             position: absolute;
             top: 0;
             bottom: 0;
@@ -1297,32 +1311,32 @@ export default function GriegConnectCarousel() {
             transition: background-color 220ms cubic-bezier(0.22, 1, 0.36, 1);
           }
 
-          .lightbox-hit:focus,
-          .lightbox-hit:focus-visible {
+          .value-feature-lightbox .lightbox-hit:focus,
+          .value-feature-lightbox .lightbox-hit:focus-visible {
             outline: none;
           }
 
-          .lightbox-hit-left {
+          .value-feature-lightbox .lightbox-hit-left {
             left: 0;
             width: 25vw;
             justify-content: flex-start;
             padding-left: clamp(12px, 2vw, 26px);
           }
 
-          .lightbox-hit-center {
+          .value-feature-lightbox .lightbox-hit-center {
             left: 25vw;
             width: 50vw;
             justify-content: center;
           }
 
-          .lightbox-hit-right {
+          .value-feature-lightbox .lightbox-hit-right {
             right: 0;
             width: 25vw;
             justify-content: flex-end;
             padding-right: clamp(12px, 2vw, 26px);
           }
 
-          .lightbox-indicator {
+          .value-feature-lightbox .lightbox-indicator {
             position: absolute;
             left: 50%;
             bottom: clamp(14px, 2.2vh, 28px);
@@ -1345,55 +1359,55 @@ export default function GriegConnectCarousel() {
               transform 440ms cubic-bezier(0.16, 1, 0.3, 1);
           }
 
-          .lightbox-overlay.is-ui-idle .lightbox-indicator {
+          .value-feature-lightbox.is-ui-idle .lightbox-indicator {
             opacity: 0.34;
           }
 
-          .lightbox-indicator-label,
-          .lightbox-indicator-separator,
-          .lightbox-indicator-glyph,
-          .lightbox-indicator-bar {
+          .value-feature-lightbox .lightbox-indicator-label,
+          .value-feature-lightbox .lightbox-indicator-separator,
+          .value-feature-lightbox .lightbox-indicator-glyph,
+          .value-feature-lightbox .lightbox-indicator-bar {
             font-variant-numeric: tabular-nums;
           }
 
-          .lightbox-indicator-label {
+          .value-feature-lightbox .lightbox-indicator-label {
             font-size: 0.78em;
             opacity: 0.84;
           }
 
-          .lightbox-indicator-number {
+          .value-feature-lightbox .lightbox-indicator-number {
             font-size: 0.82em;
           }
 
-          .lightbox-indicator-separator,
-          .lightbox-indicator-glyph {
+          .value-feature-lightbox .lightbox-indicator-separator,
+          .value-feature-lightbox .lightbox-indicator-glyph {
             opacity: 0.66;
           }
 
-          .lightbox-indicator-bar {
+          .value-feature-lightbox .lightbox-indicator-bar {
             display: inline-block;
             letter-spacing: 0.1em;
             text-shadow: 0 0 8px rgba(148, 220, 255, 0.14);
           }
 
-          .lightbox-indicator-bar-notch {
+          .value-feature-lightbox .lightbox-indicator-bar-notch {
             display: inline-block;
             opacity: 0.72;
             transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1);
           }
 
-          .lightbox-indicator-bar-notch.is-unwatched {
+          .value-feature-lightbox .lightbox-indicator-bar-notch.is-unwatched {
             opacity: 0.54;
           }
 
-          .lightbox-indicator-notch {
+          .value-feature-lightbox .lightbox-indicator-notch {
             display: inline-block;
             letter-spacing: 0.1em;
-            animation: notchPulse 360ms cubic-bezier(0.22, 1, 0.36, 1);
+            animation: vfiLightboxNotchPulse 360ms cubic-bezier(0.22, 1, 0.36, 1);
             animation-fill-mode: both;
           }
 
-          @keyframes notchPulse {
+          @keyframes vfiLightboxNotchPulse {
             0% {
               opacity: 0.68;
             }
@@ -1405,7 +1419,7 @@ export default function GriegConnectCarousel() {
             }
           }
 
-          .lightbox-hit-arrow {
+          .value-feature-lightbox .lightbox-hit-arrow {
             width: 32px;
             height: 56px;
             opacity: 0.35;
@@ -1417,179 +1431,155 @@ export default function GriegConnectCarousel() {
             filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
           }
 
-          .lightbox-overlay.is-ui-idle .lightbox-hit-arrow {
+          .value-feature-lightbox.is-ui-idle .lightbox-hit-arrow {
             opacity: 0;
             transform: scale(0.92);
             filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
           }
 
-          .lightbox-overlay.is-keyboard-input .lightbox-hit-arrow {
+          .value-feature-lightbox.is-keyboard-input .lightbox-hit-arrow {
             opacity: 0;
             transform: scale(0.92);
             filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
           }
 
-          .lightbox-hit-arrow svg {
+          .value-feature-lightbox .lightbox-hit-arrow svg {
             width: 100%;
             height: 100%;
             display: block;
           }
 
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit:hover .lightbox-hit-arrow,
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit:focus-visible .lightbox-hit-arrow {
+          .value-feature-lightbox:not(.is-keyboard-input) .lightbox-hit:hover .lightbox-hit-arrow,
+          .value-feature-lightbox:not(.is-keyboard-input) .lightbox-hit:focus-visible .lightbox-hit-arrow {
             opacity: 1;
             transform: scale(1.06);
             filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.36));
           }
 
-          .lightbox-hit:active .lightbox-hit-arrow {
+          .value-feature-lightbox .lightbox-hit:active .lightbox-hit-arrow {
             transform: scale(0.95);
           }
 
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit-left:hover .lightbox-hit-arrow,
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit-left:focus-visible .lightbox-hit-arrow {
+          .value-feature-lightbox:not(.is-keyboard-input) .lightbox-hit-left:hover .lightbox-hit-arrow,
+          .value-feature-lightbox:not(.is-keyboard-input) .lightbox-hit-left:focus-visible .lightbox-hit-arrow {
             transform: translateX(-3px) scale(1.06);
           }
 
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit-right:hover .lightbox-hit-arrow,
-          .lightbox-overlay:not(.is-keyboard-input) .lightbox-hit-right:focus-visible .lightbox-hit-arrow {
+          .value-feature-lightbox:not(.is-keyboard-input) .lightbox-hit-right:hover .lightbox-hit-arrow,
+          .value-feature-lightbox:not(.is-keyboard-input) .lightbox-hit-right:focus-visible .lightbox-hit-arrow {
             transform: translateX(3px) scale(1.06);
           }
 
           @media (max-width: 720px) {
             .value-feature-carousel-section {
               --section-vpad: 96px;
-              --card-size: 192px !important;
+              --card-size: min(52vw, 192px);
               padding: var(--section-vpad) 0;
             }
 
-            .vf-card {
+            .vfi-card {
               width: var(--card-size);
               height: var(--card-size);
             }
 
-            .vf-card-cursor {
+            .vfi-card-cursor {
               display: none !important;
             }
 
-            .vf-image-shell {
+            .vfi-image-shell {
               cursor: auto;
               box-shadow: none;
             }
 
-            .value-feature-carousel-section .vf-image {
+            .value-feature-carousel-section .vfi-image {
               filter: grayscale(0) saturate(1.04);
             }
 
-            .vf-image-shell::after {
+            .vfi-image-shell::after {
               opacity: 0;
             }
 
-            .lightbox-overlay {
+            .value-feature-lightbox {
               padding: 20px;
             }
 
-            .lightbox-content {
+            .value-feature-lightbox .lightbox-content {
               width: min(96vw, 760px);
               height: min(84vh, 760px);
             }
 
-            .lightbox-indicator {
+            .value-feature-lightbox .lightbox-indicator {
               bottom: 20px;
               letter-spacing: 0.08em;
               font-size: 10pt;
             }
 
-            .lightbox-hit-left,
-            .lightbox-hit-right {
+            .value-feature-lightbox .lightbox-hit-left,
+            .value-feature-lightbox .lightbox-hit-right {
               width: 24vw;
             }
 
-            .lightbox-hit-center {
+            .value-feature-lightbox .lightbox-hit-center {
               left: 24vw;
               width: 52vw;
             }
           }
 
           @media (hover: none), (pointer: coarse) {
-            .vf-card-cursor {
+            .vfi-card-cursor {
               display: none !important;
             }
 
-            .vf-image-shell {
+            .vfi-image-shell {
               cursor: auto;
               box-shadow: none;
             }
 
-            .value-feature-carousel-section .vf-image {
+            .value-feature-carousel-section .vfi-image {
               filter: grayscale(0) saturate(1.04);
             }
 
-            .vf-image-shell::after {
+            .vfi-image-shell::after {
               opacity: 0;
             }
 
-            .lightbox-hit-arrow {
+            .value-feature-lightbox .lightbox-hit-arrow {
               opacity: 0.82;
             }
           }
 
           @media (prefers-reduced-motion: reduce) {
-            .vf-carousel-section::before {
+            .vfi-carousel-section::before {
               animation: none;
               opacity: 0.05;
             }
 
-            .vf-track {
+            .vfi-track {
               transform: translate3d(0, 0, 0) !important;
             }
 
-            .vf-image {
+            .vfi-image {
               transition: filter 0s ease;
             }
 
-            .vf-image-shell {
+            .vfi-image-shell {
               transition: none;
             }
 
-            .lightbox-overlay,
-            .lightbox-content {
+            .value-feature-lightbox,
+            .value-feature-lightbox .lightbox-content {
               animation: none;
             }
 
-            .lightbox-indicator-bar {
+            .value-feature-lightbox .lightbox-indicator-bar {
               animation: none !important;
-            }
-          }
-
-          /* Prevent class-name collisions with griegconnect-icons styles */
-          .value-feature-carousel-section .vf-track,
-          .value-feature-carousel-section .vf-set {
-            gap: clamp(18px, 2.6vw, 40px) !important;
-          }
-
-          .value-feature-carousel-section .vf-card {
-            width: 384px !important;
-            height: 384px !important;
-          }
-
-          .value-feature-carousel-section .vf-image-shell::before,
-          .value-feature-lightbox .lightbox-stage::before {
-            content: none !important;
-            display: none !important;
-          }
-
-          @media (max-width: 720px) {
-            .value-feature-carousel-section .vf-card {
-              width: 192px !important;
-              height: 192px !important;
             }
           }
         `}</style>
 
         <div
           ref={viewportRef}
-          className="vf-viewport"
+          className="vfi-viewport"
           onClickCapture={(event) => {
             if (performance.now() < suppressClickUntilRef.current) {
               event.preventDefault();
@@ -1597,8 +1587,8 @@ export default function GriegConnectCarousel() {
             }
           }}
         >
-          <div ref={trackRef} className="vf-track">
-            <div ref={firstSetRef} className="vf-set">
+          <div ref={trackRef} className="vfi-track">
+            <div ref={firstSetRef} className="vfi-set">
               {ITEMS.map((item) => (
                 <IllustrationCard 
                   key={item.id} 
@@ -1609,7 +1599,7 @@ export default function GriegConnectCarousel() {
               ))}
             </div>
 
-            <div className="vf-set" aria-hidden="true">
+            <div className="vfi-set" aria-hidden="true">
               {doubledItems.slice(ITEMS.length).map((item, index) => (
                 <IllustrationCard 
                   key={`${item.id}-${index}`} 
@@ -1622,7 +1612,7 @@ export default function GriegConnectCarousel() {
           </div>
         </div>
 
-        <div className="vf-carousel-mask" aria-hidden="true" />
+        <div className="vfi-carousel-mask" aria-hidden="true" />
       </section>
 
       <Lightbox
