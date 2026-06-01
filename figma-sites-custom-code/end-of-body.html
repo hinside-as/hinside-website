@@ -170,3 +170,211 @@
     };
   })();
 </script>
+
+<script>
+  (function () {
+    var STATE_KEY = "__hinsideTextLinkState";
+    var LEGACY_STATE_KEYS = ["__hinsideAnchorMenuState"];
+    var STYLE_ID = "hinside-link-text-style";
+    var ACTIVE_CLASS = "hinside-link-active";
+    var OPACITY_IDLE = "1";
+    var OPACITY_ACTIVE = "0.8";
+    var TRANSITION_DURATION = "150ms";
+    var TRANSITION_EASING = "ease-out";
+    var BASE_FONT_PT = 14;
+    var BASE_UNDERLINE_PX = 0.5;
+    var UNDERLINE_OFFSET = "0.08em";
+    var INTERACTIVE_SELECTOR = [
+      "a[href]",
+      "button",
+      "[role='button']",
+      ".cursor-pointer"
+    ].join(",");
+
+    if (window[STATE_KEY] && typeof window[STATE_KEY].cleanup === "function") {
+      window[STATE_KEY].cleanup();
+    }
+
+    LEGACY_STATE_KEYS.forEach(function (key) {
+      if (window[key] && typeof window[key].cleanup === "function") {
+        window[key].cleanup();
+      }
+    });
+
+    function ensureStyle() {
+      var style = document.getElementById(STYLE_ID);
+      if (!style) {
+        style = document.createElement("style");
+        style.id = STYLE_ID;
+        document.head.appendChild(style);
+      }
+
+      style.textContent = [
+        INTERACTIVE_SELECTOR + " {",
+        "  cursor: pointer;",
+        "}",
+        "@media (prefers-reduced-motion: reduce) {",
+        "  " + INTERACTIVE_SELECTOR + " {",
+        "    transition-duration: 100ms !important;",
+        "    transition-timing-function: linear !important;",
+        "  }",
+        "}"
+      ].join("\\n");
+    }
+
+    function normalizeNode(node) {
+      if (!node) return null;
+      return node.nodeType === 3 ? node.parentElement : node;
+    }
+
+    function getInteractiveFromNode(node) {
+      node = normalizeNode(node);
+      if (!node || typeof node.closest !== "function") return null;
+
+      var interactive = node.closest(INTERACTIVE_SELECTOR);
+      if (!interactive) return null;
+      if (interactive.hasAttribute("data-no-link-style")) return null;
+      if (!(interactive.textContent || "").trim()) return null;
+      return interactive;
+    }
+
+    function getTextTarget(interactive) {
+      if (!interactive || typeof interactive.querySelector !== "function") {
+        return null;
+      }
+
+      var direct = interactive.querySelector(":scope > p, :scope > span, :scope > a, :scope > label");
+      if (direct) return direct;
+
+      var nested = interactive.querySelector("p, span, a, label");
+      if (nested) return nested;
+
+      return interactive;
+    }
+
+    function paintInteractive(interactive, isActive) {
+      var target = getTextTarget(interactive);
+      if (!target || !target.style) return;
+      trackTarget(target);
+
+      var computedFontPx = parseFloat(window.getComputedStyle(target).fontSize || "0") || 0;
+      var baseFontPx = BASE_FONT_PT * (96 / 72);
+      var underlinePx = baseFontPx > 0
+        ? (computedFontPx / baseFontPx) * BASE_UNDERLINE_PX
+        : BASE_UNDERLINE_PX;
+      var underlineThickness = underlinePx.toFixed(3).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1") + "px";
+
+      target.style.textDecoration = "none";
+      target.style.backgroundImage = "linear-gradient(currentColor, currentColor)";
+      target.style.backgroundRepeat = "no-repeat";
+      target.style.backgroundPosition = "0 calc(100% - " + UNDERLINE_OFFSET + ")";
+      target.style.backgroundSize =
+        (isActive ? "100%" : "0%") + " " + underlineThickness;
+      target.style.opacity = isActive ? OPACITY_ACTIVE : OPACITY_IDLE;
+      target.style.transitionProperty = "opacity, background-size";
+      target.style.transitionDuration = TRANSITION_DURATION;
+      target.style.transitionTimingFunction = TRANSITION_EASING;
+    }
+
+    var activeInteractive = null;
+    var touchedTargets = [];
+    var activateRafId = 0;
+
+    function trackTarget(target) {
+      if (!target) return;
+      if (touchedTargets.indexOf(target) >= 0) return;
+      touchedTargets.push(target);
+    }
+
+    function clearActive() {
+      if (activateRafId) {
+        window.cancelAnimationFrame(activateRafId);
+        activateRafId = 0;
+      }
+
+      if (!activeInteractive) return;
+      paintInteractive(activeInteractive, false);
+      activeInteractive.classList.remove(ACTIVE_CLASS);
+      activeInteractive = null;
+    }
+
+    function setActiveInteractive(interactive) {
+      if (!interactive) return;
+      if (activeInteractive === interactive) return;
+      clearActive();
+
+      // Prime baseline state first, then animate to active on next frame.
+      paintInteractive(interactive, false);
+      activeInteractive = interactive;
+
+      activateRafId = window.requestAnimationFrame(function () {
+        if (activeInteractive !== interactive) return;
+        paintInteractive(interactive, true);
+        interactive.classList.add(ACTIVE_CLASS);
+        activateRafId = 0;
+      });
+    }
+
+    function onMouseOver(event) {
+      var interactive = getInteractiveFromNode(event.target);
+      if (interactive) setActiveInteractive(interactive);
+    }
+
+    function onMouseOut(event) {
+      if (!activeInteractive) return;
+      var next = event.relatedTarget;
+      if (next && activeInteractive.contains(next)) return;
+      clearActive();
+    }
+
+    function onFocusIn(event) {
+      var interactive = getInteractiveFromNode(event.target);
+      if (interactive) setActiveInteractive(interactive);
+    }
+
+    function onFocusOut(event) {
+      var next = event.relatedTarget;
+      if (next && activeInteractive && activeInteractive.contains(next)) return;
+      clearActive();
+    }
+
+    function onPress(event) {
+      var interactive = getInteractiveFromNode(event.target);
+      if (interactive) setActiveInteractive(interactive);
+    }
+
+    ensureStyle();
+
+    document.addEventListener("mouseover", onMouseOver, true);
+    document.addEventListener("mouseout", onMouseOut, true);
+    document.addEventListener("focusin", onFocusIn, true);
+    document.addEventListener("focusout", onFocusOut, true);
+    document.addEventListener("pointerdown", onPress, true);
+    document.addEventListener("touchstart", onPress, true);
+
+    window[STATE_KEY] = {
+      cleanup: function () {
+        clearActive();
+        document.removeEventListener("mouseover", onMouseOver, true);
+        document.removeEventListener("mouseout", onMouseOut, true);
+        document.removeEventListener("focusin", onFocusIn, true);
+        document.removeEventListener("focusout", onFocusOut, true);
+        document.removeEventListener("pointerdown", onPress, true);
+        document.removeEventListener("touchstart", onPress, true);
+        touchedTargets.forEach(function (target) {
+          if (!target || !target.style) return;
+          target.style.textDecoration = "";
+          target.style.backgroundImage = "";
+          target.style.backgroundRepeat = "";
+          target.style.backgroundPosition = "";
+          target.style.backgroundSize = "";
+          target.style.opacity = "";
+          target.style.transitionProperty = "";
+          target.style.transitionDuration = "";
+          target.style.transitionTimingFunction = "";
+        });
+        touchedTargets = [];
+      }
+    };
+  })();
+</script>
