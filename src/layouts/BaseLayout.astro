@@ -11,9 +11,18 @@ type Props = {
   title: string;
   description: string;
   accent?: string;
+  initiallyHideHeader?: boolean;
+  headerScrollControlsVisibility?: boolean;
 };
 
-const { locale, title, description, accent } = Astro.props;
+const {
+  locale,
+  title,
+  description,
+  accent,
+  initiallyHideHeader = false,
+  headerScrollControlsVisibility = true,
+} = Astro.props;
 const t = useTranslations(locale);
 const canonicalPath = localizedPath(locale, Astro.url.pathname);
 const canonicalUrl = new URL(canonicalPath, Astro.site);
@@ -50,6 +59,8 @@ const navLinks = [
       menuLabel={t("nav.menu")}
       closeLabel={t("nav.close")}
       otherLocaleLabel={t("lang.switchTo")}
+      initiallyHidden={initiallyHideHeader}
+      scrollControlsVisibility={headerScrollControlsVisibility}
     />
     <main id="main-content">
       <slot />

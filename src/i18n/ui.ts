@@ -31,6 +31,9 @@ export const ui = {
     "case.client": "Kunde",
     "case.year": "År",
     "case.back": "Alle prosjekter",
+    "case.moreProjects": "Flere prosjekter",
+    "case.hideText": "Skjul tekst",
+    "case.showText": "Vis tekst",
   },
   en: {
     "nav.work": "Work",
@@ -60,6 +63,9 @@ export const ui = {
     "case.client": "Client",
     "case.year": "Year",
     "case.back": "All projects",
+    "case.moreProjects": "More projects",
+    "case.hideText": "Hide text",
+    "case.showText": "Show text",
   },
 } as const;
 

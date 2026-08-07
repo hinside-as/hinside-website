@@ -9,13 +9,35 @@ type Props = {
   menuLabel: string;
   closeLabel: string;
   otherLocaleLabel: string;
+  /** Case-study pages start with the header off-screen — set server-side
+   * so the very first paint already matches, rather than starting visible
+   * and having a client script hide it a moment later (a visible flash). */
+  initiallyHidden?: boolean;
+  /** False on case-study pages, which drive data-hidden themselves (the
+   * scroll-linked show/hide below doesn't apply there — those pages don't
+   * use native window scroll for their own navigation, and their own JS
+   * owns this attribute instead). */
+  scrollControlsVisibility?: boolean;
 };
 
-const { locale, links, menuLabel, closeLabel, otherLocaleLabel } = Astro.props;
+const {
+  locale,
+  links,
+  menuLabel,
+  closeLabel,
+  otherLocaleLabel,
+  initiallyHidden = false,
+  scrollControlsVisibility = true,
+} = Astro.props;
 const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
 ---
 
-<header class="site-header" data-site-header>
+<header
+  class="site-header"
+  data-site-header
+  data-hidden={initiallyHidden ? "true" : "false"}
+  data-scroll-controls-visibility={String(scrollControlsVisibility)}
+>
   <div class="site-header__brand">
     <BrandMark href={localizedPath(locale, "/")} />
   </div>
@@ -96,12 +118,15 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
   const header = document.querySelector<HTMLElement>("[data-site-header]");
   if (header) {
     let lastScrollY = window.scrollY;
+    const scrollControlsVisibility = header.dataset.scrollControlsVisibility !== "false";
 
     const onScroll = () => {
       const currentScrollY = window.scrollY;
       header.dataset.scrolled = String(currentScrollY > 4);
-      const isScrollingDown = currentScrollY > lastScrollY;
-      header.dataset.hidden = String(isScrollingDown && currentScrollY > 160);
+      if (scrollControlsVisibility) {
+        const isScrollingDown = currentScrollY > lastScrollY;
+        header.dataset.hidden = String(isScrollingDown && currentScrollY > 160);
+      }
       lastScrollY = currentScrollY;
     };
 

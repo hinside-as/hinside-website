@@ -1,10 +1,8 @@
 ---
 import { getCollection } from "astro:content";
-import { Image, getImage } from "astro:assets";
+import { getImage } from "astro:assets";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import VideoHero from "../../../components/VideoHero.astro";
-import AnchorMenu from "../../../components/AnchorMenu.astro";
-import GalleryCarousel from "../../../components/carousel/GalleryCarousel.tsx";
+import CaseStudyExperience, { type CaseStudySlide, type CaseStudyChapter } from "../../../components/CaseStudyExperience.tsx";
 import { getMediaImage } from "../../../lib/media";
 import { locales, useTranslations, localizedPath, type Locale } from "../../../i18n/utils";
 
@@ -21,41 +19,120 @@ export async function getStaticPaths() {
 const { locale } = Astro.params as { locale: Locale };
 const { entry } = Astro.props;
 const t = useTranslations(locale);
-const cover = getMediaImage(entry.data.cover);
 
-const heroPoster = entry.data.heroVideo ? getMediaImage(entry.data.heroVideo.poster) : null;
-
-const anchorItems = entry.data.sections.map((section) => ({
+const chapters: CaseStudyChapter[] = entry.data.sections.map((section) => ({
   id: section.id,
   label: section.heading[locale],
 }));
 
-const resolvedSections = await Promise.all(
-  entry.data.sections.map(async (section) => {
-    const media = section.media;
-    if (!media) return { section, media: null };
+// Flattens each content section into one or more full-bleed slides: a
+// "gallery" section (2+ images) becomes one slide per image, since the new
+// scrollytelling template shows exactly one visual per step. Only the first
+// slide of a section carries that section's heading/body — there's no
+// per-image copy in the schema, and inventing filler text for the rest
+// would read worse than leaving them as pure visual beats.
+// Media src strings come in two shapes (see CLAUDE.md's media pipeline
+// notes): a leading "/" means it's already a public/-relative URL (SVGs,
+// videos — served as-is, never processed by astro:assets); anything else is
+// a relative path into src/assets/media that needs getMediaImage + getImage.
+async function resolveImageSrc(src: string): Promise<string> {
+  if (src.startsWith("/")) return src;
+  const optimized = await getImage({ src: getMediaImage(src), width: 1920 });
+  return optimized.src;
+}
 
-    if (media.type === "image") {
-      const optimized = await getImage({ src: getMediaImage(media.src), width: 1200 });
-      return { section, media: { type: "image" as const, src: optimized.src, alt: media.alt[locale] } };
-    }
+const slides: CaseStudySlide[] = [];
+for (const section of entry.data.sections) {
+  const heading = section.heading[locale];
+  const body = section.body[locale];
+  const media = section.media;
 
-    if (media.type === "gallery") {
-      const items = await Promise.all(
-        media.items.map(async (item) => {
-          const optimized = await getImage({ src: getMediaImage(item.src), width: 800 });
-          return { src: optimized.src, alt: item.alt };
-        }),
-      );
-      return { section, media: { type: "gallery" as const, items } };
-    }
+  if (!media) {
+    slides.push({ chapterId: section.id, heading, body });
+    continue;
+  }
 
-    if (media.type === "carousel") {
-      return { section, media: { type: "carousel" as const, items: media.items, shape: media.shape } };
-    }
+  if (media.type === "image") {
+    const src = await resolveImageSrc(media.src);
+    slides.push({
+      chapterId: section.id,
+      heading,
+      body,
+      media: { type: "image", src, alt: media.alt[locale] },
+    });
+  } else if (media.type === "video") {
+    slides.push({
+      chapterId: section.id,
+      heading,
+      body,
+      media: { type: "video", src: media.src },
+    });
+  } else if (media.type === "gallery") {
+    const items = await Promise.all(
+      media.items.map(async (item) => ({ src: await resolveImageSrc(item.src), alt: item.alt })),
+    );
+    items.forEach((item, i) => {
+      slides.push({
+        chapterId: section.id,
+        heading: i === 0 ? heading : undefined,
+        body: i === 0 ? body : undefined,
+        media: { type: "image", src: item.src, alt: item.alt },
+      });
+    });
+  } else if (media.type === "carousel") {
+    // The large illustration/portrait/icon sets (currently only Grieg
+    // Connect) render as the actual drag carousel filling the slide, not a
+    // single representative image — same GalleryCarousel component used
+    // elsewhere on the site, just full-bleed here instead of column-width.
+    const items = await Promise.all(
+      media.items.map(async (item) => ({ src: await resolveImageSrc(item.src), alt: item.alt })),
+    );
+    slides.push({
+      chapterId: section.id,
+      heading,
+      body,
+      media: { type: "carousel", items, shape: media.shape },
+    });
+  }
+}
 
-    return { section, media: { type: "video" as const, src: media.src } };
-  }),
+// The project's hero video (if any) opens the experience — it replaces the
+// first slide's own image so the page doesn't need a separate, non-immersive
+// hero block before the split sidebar/slides layout begins.
+if (entry.data.heroVideo && slides.length > 0) {
+  const heroPoster = await getImage({ src: getMediaImage(entry.data.heroVideo.poster), width: 1920 });
+  slides[0] = {
+    ...slides[0],
+    media: { type: "video", src: entry.data.heroVideo.src, poster: heroPoster.src },
+  };
+}
+
+const credits = (entry.data.credits ?? []).map((credit) => ({
+  role: credit.role[locale],
+  name: credit.name,
+}));
+
+// Cross-promo slide at the end of the experience: every OTHER case study,
+// so there's always somewhere to go next rather than a dead end before the
+// footer. Same card shape/image pipeline as the homepage's own portfolio
+// carousel (src/pages/[locale]/index.astro) — deliberately not filtered to
+// `featured` only, unlike the homepage, since "discover what else exists"
+// should surface everything, not just the showcase picks.
+const allCaseStudies = await getCollection("case-studies");
+const otherProjects = await Promise.all(
+  allCaseStudies
+    .filter((other) => other.id !== entry.id)
+    .map(async (other) => {
+      const optimized = await getImage({ src: getMediaImage(other.data.cover), width: 800 });
+      return {
+        href: localizedPath(locale, `/work/${other.id}`),
+        title: other.data.title[locale],
+        subtitle: other.data.dek[locale],
+        image: optimized.src,
+        imageAlt: other.data.coverAlt[locale],
+        accent: other.data.accent,
+      };
+    }),
 );
 ---
 
@@ -64,223 +141,27 @@ const resolvedSections = await Promise.all(
   title={`${entry.data.title[locale]} — hinside`}
   description={entry.data.dek[locale]}
   accent={entry.data.accent}
+  initiallyHideHeader
+  headerScrollControlsVisibility={false}
 >
-  <article class="case-study">
-    <a class="case-study__back" href={`${localizedPath(locale, "/")}#work`}>
-      &larr; {t("case.back")}
-    </a>
-
-    {entry.data.heroVideo && heroPoster ? (
-      <VideoHero
-        videoSrc={entry.data.heroVideo.src}
-        poster={heroPoster}
-        posterAlt={entry.data.coverAlt[locale]}
-      />
-    ) : (
-      <Image
-        src={cover}
-        alt={entry.data.coverAlt[locale]}
-        widths={[480, 800, 1200]}
-        sizes="(min-width: 60rem) 60rem, 100vw"
-        class="case-study__cover"
-      />
-    )}
-
-    <div class="case-study__intro">
-      <h1 data-reveal>{entry.data.title[locale]}</h1>
-      <p class="case-study__dek" data-reveal>{entry.data.dek[locale]}</p>
-    </div>
-
-    <div class="case-study__body">
-      <aside class="case-study__nav">
-        <AnchorMenu items={anchorItems} />
-      </aside>
-
-      <div class="case-study__sections">
-        {resolvedSections.map(({ section, media }) => (
-          <section id={section.id} class="case-study__section">
-            <h2 data-reveal>{section.heading[locale]}</h2>
-            <div data-reveal>
-              {section.body[locale].map((paragraph) => (
-                <p>{paragraph}</p>
-              ))}
-            </div>
-
-            {media?.type === "image" && (
-              <img class="case-study__section-image" src={media.src} alt={media.alt} loading="lazy" data-reveal />
-            )}
-
-            {media?.type === "gallery" && (
-              <div class="case-study__gallery" data-reveal>
-                {media.items.map((item) => (
-                  <img src={item.src} alt={item.alt} loading="lazy" />
-                ))}
-              </div>
-            )}
-
-            {media?.type === "carousel" && (
-              <div class="case-study__carousel">
-                <GalleryCarousel items={media.items} shape={media.shape} client:visible />
-              </div>
-            )}
-
-            {media?.type === "video" && (
-              <video class="case-study__section-video" src={media.src} controls loop playsinline preload="metadata" data-reveal />
-            )}
-          </section>
-        ))}
-      </div>
-    </div>
-
-    <dl class="case-study__meta">
-      <div>
-        <dt>{t("case.client")}</dt>
-        <dd>{entry.data.client}</dd>
-      </div>
-      <div>
-        <dt>{t("case.year")}</dt>
-        <dd>{entry.data.year}</dd>
-      </div>
-      {entry.data.credits?.map((credit) => (
-        <div>
-          <dt>{credit.role[locale]}</dt>
-          <dd>{credit.name}</dd>
-        </div>
-      ))}
-    </dl>
-  </article>
+  <CaseStudyExperience
+    client:load
+    meta={{
+      title: entry.data.title[locale],
+      client: entry.data.client,
+      year: entry.data.year,
+      dek: entry.data.dek[locale],
+      credits,
+      backHref: `${localizedPath(locale, "/")}#work`,
+      backLabel: t("case.back"),
+      clientLabel: t("case.client"),
+      yearLabel: t("case.year"),
+      hideTextLabel: t("case.hideText"),
+      showTextLabel: t("case.showText"),
+    }}
+    chapters={chapters}
+    slides={slides}
+    otherProjects={otherProjects}
+    moreProjectsLabel={t("case.moreProjects")}
+  />
 </BaseLayout>
-
-<style>
-  .case-study {
-    max-width: var(--content-max-width);
-    margin-inline: auto;
-  }
-  .case-study__back {
-    display: inline-block;
-    margin: var(--space-4) 0 0 var(--space-4);
-    color: var(--color-fg-muted);
-    text-decoration: none;
-    font-size: var(--text-sm);
-    transition: color var(--duration-fast) var(--ease-standard);
-  }
-  .case-study__back:hover {
-    color: var(--accent, var(--color-fg));
-  }
-  .case-study__cover {
-    width: 100%;
-    height: auto;
-  }
-  .case-study__intro {
-    max-width: 52rem;
-    margin-inline: auto;
-    padding: var(--space-8) var(--space-4) 0;
-  }
-  .case-study h1 {
-    font-size: var(--text-3xl);
-    font-weight: var(--weight-regular);
-    letter-spacing: var(--tracking-tighter);
-    line-height: var(--leading-tight);
-    margin-bottom: var(--space-5);
-  }
-  .case-study__dek {
-    color: var(--color-fg-muted);
-    font-size: var(--text-lg);
-    max-width: 36ch;
-  }
-  .case-study__body {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-6);
-    max-width: 68rem;
-    margin-inline: auto;
-    padding: var(--space-9) var(--space-4);
-  }
-  .case-study__nav {
-    order: -1;
-  }
-  .case-study__sections {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-10);
-    min-width: 0;
-  }
-  .case-study__section {
-    position: relative;
-    min-width: 0;
-  }
-  .case-study__section h2 {
-    font-size: var(--text-2xl);
-    margin-bottom: var(--space-5);
-    scroll-margin-top: calc(var(--header-height) + var(--space-3));
-  }
-  .case-study__section p {
-    font-size: var(--text-lg);
-    line-height: var(--leading-normal);
-    max-width: 48rem;
-  }
-  .case-study__section p + p {
-    margin-top: var(--space-3);
-  }
-  .case-study__section-image {
-    width: 100%;
-    max-width: 48rem;
-    max-height: 32rem;
-    aspect-ratio: 4 / 3;
-    object-fit: contain;
-    background: var(--color-bg-raised);
-    margin-top: var(--space-6);
-  }
-  .case-study__section-video {
-    width: 100%;
-    max-width: 22rem;
-    height: auto;
-    margin-top: var(--space-6);
-    background: var(--color-bg-raised);
-  }
-  .case-study__gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-    gap: var(--space-3);
-    margin-top: var(--space-6);
-  }
-  .case-study__gallery img {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-  }
-  .case-study__carousel {
-    margin-top: var(--space-6);
-    min-width: 0;
-  }
-  .case-study__meta {
-    display: flex;
-    flex-wrap: wrap;
-    row-gap: var(--space-4);
-    column-gap: var(--space-7);
-    max-width: 68rem;
-    margin: 0 auto;
-    padding: 0 var(--space-4) var(--space-9);
-  }
-  .case-study__meta dt {
-    font-size: var(--text-xs);
-    color: var(--color-fg-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .case-study__meta dd {
-    margin: 0;
-  }
-
-  @media (min-width: 60rem) {
-    .case-study__body {
-      grid-template-columns: 12rem 1fr;
-    }
-    .case-study__nav {
-      order: 0;
-      position: sticky;
-      top: calc(var(--header-height) + var(--space-4));
-      align-self: start;
-    }
-  }
-</style>

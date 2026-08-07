@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { createPortal } from "react-dom";
 
 export type LightboxItem = {
   src: string;
@@ -96,7 +97,13 @@ export default function Lightbox({
     stage.style.setProperty("--lb-grid-y", `${event.clientY - bounds.top}px`);
   };
 
-  return (
+  // Portaled to document.body rather than rendered inline: this is
+  // position:fixed and expects to cover the true viewport, but any
+  // ancestor with a `transform` (even an identity translateY(0), which
+  // CaseStudyExperience's slide track always carries) establishes a new
+  // containing block for fixed descendants — without the portal, the
+  // lightbox would be confined to that ancestor's own box instead.
+  return createPortal(
     <div className={`carousel-lightbox${isUiIdle ? " is-idle" : ""}`}>
       <button type="button" className="carousel-lightbox__hit carousel-lightbox__hit--left" aria-label="Previous" onClick={goPrevious}>
         <span className="carousel-lightbox__arrow">{ARROW_LEFT}</span>
@@ -293,6 +300,7 @@ export default function Lightbox({
           }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body,
   );
 }
