@@ -1,0 +1,112 @@
+---
+import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/playfair-display";
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { useTranslations, localizedPath, type Locale } from "../i18n/utils";
+
+type Props = {
+  locale: Locale;
+  title: string;
+  description: string;
+  accent?: string;
+};
+
+const { locale, title, description, accent } = Astro.props;
+const t = useTranslations(locale);
+const canonicalPath = localizedPath(locale, Astro.url.pathname);
+const canonicalUrl = new URL(canonicalPath, Astro.site);
+
+const navLinks = [
+  { href: `${localizedPath(locale, "/")}#work`, label: t("nav.work") },
+  { href: `${localizedPath(locale, "/")}#studio`, label: t("nav.studio") },
+  { href: `${localizedPath(locale, "/")}#contact`, label: t("nav.contact") },
+];
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang="no" href={new URL(localizedPath("no", Astro.url.pathname), Astro.site)} />
+    <link rel="alternate" hreflang="en" href={new URL(localizedPath("en", Astro.url.pathname), Astro.site)} />
+    <link rel="alternate" hreflang="x-default" href={new URL(localizedPath("no", Astro.url.pathname), Astro.site)} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body style={accent ? `--accent: ${accent};` : undefined}>
+    <a class="visually-hidden" href="#main-content">Skip to content</a>
+    <Header
+      locale={locale}
+      links={navLinks}
+      menuLabel={t("nav.menu")}
+      closeLabel={t("nav.close")}
+      otherLocaleLabel={t("lang.switchTo")}
+    />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer locale={locale} />
+  </body>
+</html>
+
+<script>
+  const revealTargets = document.querySelectorAll<HTMLElement>("[data-reveal]");
+  if (revealTargets.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add("is-revealed");
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -10% 0px" },
+    );
+    revealTargets.forEach((el) => observer.observe(el));
+  } else {
+    revealTargets.forEach((el) => el.classList.add("is-revealed"));
+  }
+
+  // Scroll-linked parallax: [data-parallax="0.2"] elements drift vertically
+  // relative to how far their center sits from the viewport's own center.
+  // Small factor = slower/"further back", larger = faster/"closer".
+  // Writes a CSS custom property rather than `transform` directly so
+  // [data-reveal]'s own transform (see global.css) can compose with it
+  // instead of the two fighting over the same property.
+  const parallaxTargets = document.querySelectorAll<HTMLElement>("[data-parallax]");
+  if (parallaxTargets.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let ticking = false;
+    const updateParallax = () => {
+      const viewportHeight = window.innerHeight;
+      const viewportCenter = viewportHeight / 2;
+      parallaxTargets.forEach((el) => {
+        const factor = parseFloat(el.dataset.parallax ?? "0");
+        const rect = el.getBoundingClientRect();
+        const elementCenter = rect.top + rect.height / 2;
+        // Clamp the distance to one viewport height: once an element is
+        // well off-screen the effect should cap out, not keep growing
+        // unbounded the further the page scrolls past it.
+        const distance = Math.max(-viewportHeight, Math.min(viewportHeight, elementCenter - viewportCenter));
+        el.style.setProperty("--parallax-y", `${(distance * factor).toFixed(2)}px`);
+      });
+      ticking = false;
+    };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateParallax);
+    };
+    updateParallax();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+  }
+</script>

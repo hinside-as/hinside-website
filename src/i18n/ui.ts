@@ -1,0 +1,66 @@
+export const locales = ["no", "en"] as const;
+export type Locale = (typeof locales)[number];
+export const defaultLocale: Locale = "no";
+
+export const ui = {
+  no: {
+    "nav.work": "Arbeid",
+    "nav.studio": "Studio",
+    "nav.contact": "Kontakt",
+    "nav.menu": "Meny",
+    "nav.close": "Lukk",
+    "lang.switchTo": "English",
+    "home.hero.eyebrow": "Design- og utviklingsstudio",
+    "home.work.heading": "Utvalgte prosjekter",
+    "home.clients.intro":
+      "Kompetansen i Hinside er bygget på erfaring fra tidligere designstudioer og bidrag til prosjekter for noen av Norges sterkeste merkevarer.",
+    "home.contact.title": "La oss snakke sammen",
+    "home.contact.subtitle": "Jeg vil gjerne høre fra deg. Skriv noen ord under.",
+    "form.name": "Navn",
+    "form.namePlaceholder": "Hva skal jeg kalle deg?",
+    "form.email": "E-post",
+    "form.emailPlaceholder": "E-postadressen din...",
+    "form.subject": "Emne",
+    "form.subjectPlaceholder": "Hva gjelder henvendelsen?",
+    "form.message": "Melding",
+    "form.messagePlaceholder": "Fortell meg mer (jeg er lutter øre)...",
+    "form.submit": "Send melding",
+    "form.note": "Meldinger sendes til hei@hinside.as",
+    "form.success": "Takk! Meldingen er sendt — jeg svarer så snart jeg kan.",
+    "form.error": "Noe gikk galt. Send meg heller en e-post direkte på",
+    "case.client": "Kunde",
+    "case.year": "År",
+    "case.back": "Alle prosjekter",
+  },
+  en: {
+    "nav.work": "Work",
+    "nav.studio": "Studio",
+    "nav.contact": "Contact",
+    "nav.menu": "Menu",
+    "nav.close": "Close",
+    "lang.switchTo": "Norsk",
+    "home.hero.eyebrow": "Design & development studio",
+    "home.work.heading": "Selected work",
+    "home.clients.intro":
+      "The expertise within Hinside is built on experience from previous design studios and contributions to projects for some of Norway's strongest brands.",
+    "home.contact.title": "Let's talk",
+    "home.contact.subtitle": "I'd love to hear from you. Drop me a line below.",
+    "form.name": "Name",
+    "form.namePlaceholder": "What should I call you?",
+    "form.email": "Email",
+    "form.emailPlaceholder": "Your email address...",
+    "form.subject": "Subject",
+    "form.subjectPlaceholder": "The topic on your mind...",
+    "form.message": "Message",
+    "form.messagePlaceholder": "Tell me more (I'm all ears)...",
+    "form.submit": "Send message",
+    "form.note": "Messages will be sent to hei@hinside.as",
+    "form.success": "Thanks! Your message is on its way — I'll reply as soon as I can.",
+    "form.error": "Something went wrong. Email me directly instead at",
+    "case.client": "Client",
+    "case.year": "Year",
+    "case.back": "All projects",
+  },
+} as const;
+
+export type UiKey = keyof (typeof ui)["no"];

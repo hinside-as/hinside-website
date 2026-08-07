@@ -1,0 +1,88 @@
+---
+import BrandMark from "./BrandMark.astro";
+import { localizedPath, type Locale } from "../i18n/utils";
+
+type Props = {
+  locale: Locale;
+};
+
+const { locale } = Astro.props;
+
+const socials = [
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/hinside" },
+  { label: "Instagram", href: "https://www.instagram.com/hinsidedesign" },
+  { label: "TikTok", href: "https://www.tiktok.com/hinsidedesign" },
+  { label: "YouTube", href: "https://www.youtube.com/@hinsidedesign" },
+];
+---
+
+<footer class="site-footer">
+  <div class="site-footer__brand">
+    <div class="site-footer__mark">
+      <BrandMark href={localizedPath(locale, "/")} />
+    </div>
+  </div>
+
+  <div class="site-footer__contact">
+    <a href="mailto:hei@hinside.as">hei@hinside.as</a>
+    <a href="tel:+4746661240">+47 466 61 240</a>
+    <span>Verkstedveien 13</span>
+    <a href="https://virksomhet.brreg.no/nb/oppslag/enheter/937170602" target="_blank" rel="noopener noreferrer">
+      937 170 602 MVA
+    </a>
+  </div>
+
+  <div class="site-footer__socials">
+    {socials.map((social) => (
+      <a href={social.href} target="_blank" rel="noopener noreferrer">{social.label}</a>
+    ))}
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    padding: var(--space-6) var(--space-4);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-fg-muted);
+    font-size: var(--text-sm);
+  }
+  .site-footer a {
+    color: var(--color-fg);
+    text-decoration: none;
+    opacity: 1;
+    transition: opacity var(--duration-fast) var(--ease-standard);
+  }
+  .site-footer a:hover,
+  .site-footer a:focus-visible {
+    opacity: 0.75;
+  }
+  .site-footer__brand {
+    display: flex;
+    align-items: center;
+  }
+  .site-footer__mark {
+    width: var(--brand-mark-width-sm);
+    height: var(--brand-mark-height-sm);
+  }
+  @media (min-width: 48rem) {
+    .site-footer__mark {
+      width: var(--brand-mark-width);
+      height: var(--brand-mark-height);
+    }
+  }
+  .site-footer__contact,
+  .site-footer__socials {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  @media (min-width: 48rem) {
+    .site-footer {
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: start;
+    }
+  }
+</style>

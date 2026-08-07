@@ -1,0 +1,544 @@
+{
+  "title": {
+    "no": "Grieg Connect",
+    "en": "Grieg Connect"
+  },
+  "dek": {
+    "no": "Et skalerbart designfundament for maritim programvare, som knytter sammen produktdesign, visuell identitet og kommunikasjon på tvers av Grieg Connect-økosystemet.",
+    "en": "A scalable design foundation for maritime software, connecting product design, visual identity and communication across the Grieg Connect ecosystem."
+  },
+  "client": "Grieg Connect",
+  "year": 2025,
+  "accent": "#126CB2",
+  "cover": "projects/grieg-connect/cover.png",
+  "coverAlt": {
+    "no": "Skjermbilde av Grieg Connect-plattformen som viser et fartøy valgt i havneoversikten",
+    "en": "Screenshot of the Grieg Connect platform showing a vessel selected in the port overview"
+  },
+  "heroVideo": {
+    "src": "/media/projects/grieg-connect/video/hero-loop.mp4",
+    "poster": "projects/grieg-connect/video-posters/hero-poster.jpg"
+  },
+  "sections": [
+    {
+      "id": "context",
+      "heading": {
+        "no": "Kontekst",
+        "en": "Context"
+      },
+      "body": {
+        "no": [
+          "Grieg Connect utvikler digitale verktøy for havner, terminaler og maritim logistikk. Som Head of Design jobbet jeg på tvers av produkter som Plan, Port, Predict, Security, Terminal og Traffic. Utfordringen var å skape et tydeligere designspråk på tvers av en voksende produktportefølje, samtidig som hvert produkts brukere, arbeidsflyter og tekniske rammer ble ivaretatt."
+        ],
+        "en": [
+          "Grieg Connect develops digital tools for ports, terminals and maritime logistics. As Head of Design, I worked across products including Plan, Port, Predict, Security, Terminal and Traffic. The challenge was to create a clearer design language across a growing product portfolio, while respecting each product's users, workflows and technical constraints."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/grieg-connect/sections/section-context-products.png",
+        "alt": {
+          "no": "Ikonoversikt over Grieg Connect-produktene Plan, Port, Security, Terminal og Traffic",
+          "en": "Icon overview of the Grieg Connect products Plan, Port, Security, Terminal and Traffic"
+        }
+      }
+    },
+    {
+      "id": "strategy",
+      "heading": {
+        "no": "Strategi",
+        "en": "Strategy"
+      },
+      "body": {
+        "no": [
+          "Strategien var å bygge et felles designfundament som kunne skalere på tvers av flere produkter uten å bli for rigid. Vi jobbet med UX/UI, komponenter, visuelle systemer, ikonografi og produktkommunikasjon, med fokus på klarhet, konsistens og teknisk realisme. Målet var å løse problemer én gang, og deretter gjenbruke gode mønstre på tvers av det bredere økosystemet."
+        ],
+        "en": [
+          "The strategy was to build a shared design foundation that could scale across several products without becoming too rigid. We worked with UX/UI, components, visual systems, iconography and product communication, focusing on clarity, consistency and technical realism. The goal was to solve problems once, then reuse good patterns across the wider ecosystem."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/grieg-connect/sections/section-strategy-port-vessel.png",
+        "alt": {
+          "no": "Skjermbilde av Port-produktet med et fartøy valgt og detaljer i sidepanelet",
+          "en": "Screenshot of the Port product with a vessel selected and details in the side panel"
+        }
+      }
+    },
+    {
+      "id": "result",
+      "heading": {
+        "no": "Resultat",
+        "en": "Result"
+      },
+      "body": {
+        "no": [
+          "Arbeidet skapte et fundament der mønstre utviklet for ett produkt kunne komme hele økosystemet til gode. Dette gjorde produktutviklingen mer effektiv, reduserte gjentatt designarbeid og forbedret konsistensen. Internt bidro det sterkere designspråket også til økt trivsel, stolthet og trygghet blant ansatte, ved å gi teamene en mer profesjonell og gjenkjennelig produktopplevelse å representere."
+        ],
+        "en": [
+          "The work created a foundation where patterns developed for one product could benefit the entire ecosystem. This made product development more efficient, reduced repeated design effort and improved consistency. Internally, the stronger design language also helped increase employee satisfaction, pride and confidence by giving teams a more professional and recognizable product experience to represent."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/grieg-connect/sections/section-result-port-details.png",
+        "alt": {
+          "no": "Skjermbilde av Port-produktet med utvidet detaljvisning for et fartøy",
+          "en": "Screenshot of the Port product with an expanded detail view for a vessel"
+        }
+      }
+    },
+    {
+      "id": "visualising-product-value",
+      "heading": {
+        "no": "Å visualisere produktverdi",
+        "en": "Visualising product value"
+      },
+      "body": {
+        "no": [
+          "Vi laget et omfattende sett med verdi- og funksjonsillustrasjoner for å gjøre komplekse programvareegenskaper lettere å forstå. Hver illustrasjon fokuserte på brukergevinsten bak en spesifikk funksjon, og hjalp kundene med å se hvilke problemer programvaren løste og hvorfor det betydde noe for driften deres. Illustrasjonene ble brukt i onboarding, på nettsiden, i presentasjoner og på rollup-bannere."
+        ],
+        "en": [
+          "We created a considerable set of value and feature illustrations to make complex software capabilities easier to understand. Each illustration focused on the user benefit behind a specific feature, helping customers see what problems the software solved and why it mattered to their operations. The illustrations were used in onboarding, on the website, in presentations and on roll-up banners."
+        ]
+      },
+      "media": {
+        "type": "carousel",
+        "items": [
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-01.svg",
+            "alt": "Grieg Connect value illustration 01"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-02.svg",
+            "alt": "Grieg Connect value illustration 02"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-03.svg",
+            "alt": "Grieg Connect value illustration 03"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-04.svg",
+            "alt": "Grieg Connect value illustration 04"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-05.svg",
+            "alt": "Grieg Connect value illustration 05"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-06.svg",
+            "alt": "Grieg Connect value illustration 06"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-07.svg",
+            "alt": "Grieg Connect value illustration 07"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-08.svg",
+            "alt": "Grieg Connect value illustration 08"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-09.svg",
+            "alt": "Grieg Connect value illustration 09"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-10.svg",
+            "alt": "Grieg Connect value illustration 10"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-11.svg",
+            "alt": "Grieg Connect value illustration 11"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-12.svg",
+            "alt": "Grieg Connect value illustration 12"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-13.svg",
+            "alt": "Grieg Connect value illustration 13"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-14.svg",
+            "alt": "Grieg Connect value illustration 14"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-15.svg",
+            "alt": "Grieg Connect value illustration 15"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-16.svg",
+            "alt": "Grieg Connect value illustration 16"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-17.svg",
+            "alt": "Grieg Connect value illustration 17"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-18.svg",
+            "alt": "Grieg Connect value illustration 18"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-19.svg",
+            "alt": "Grieg Connect value illustration 19"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-20.svg",
+            "alt": "Grieg Connect value illustration 20"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-21.svg",
+            "alt": "Grieg Connect value illustration 21"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-22.svg",
+            "alt": "Grieg Connect value illustration 22"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-23.svg",
+            "alt": "Grieg Connect value illustration 23"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-24.svg",
+            "alt": "Grieg Connect value illustration 24"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-25.svg",
+            "alt": "Grieg Connect value illustration 25"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-26.svg",
+            "alt": "Grieg Connect value illustration 26"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-27.svg",
+            "alt": "Grieg Connect value illustration 27"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-28.svg",
+            "alt": "Grieg Connect value illustration 28"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-29.svg",
+            "alt": "Grieg Connect value illustration 29"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-30.svg",
+            "alt": "Grieg Connect value illustration 30"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-31.svg",
+            "alt": "Grieg Connect value illustration 31"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-32.svg",
+            "alt": "Grieg Connect value illustration 32"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-33.svg",
+            "alt": "Grieg Connect value illustration 33"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-34.svg",
+            "alt": "Grieg Connect value illustration 34"
+          },
+          {
+            "src": "/media/projects/grieg-connect/illustrations/illustration-35.svg",
+            "alt": "Grieg Connect value illustration 35"
+          }
+        ],
+        "shape": "square"
+      }
+    },
+    {
+      "id": "a-human-face-for-the-brand",
+      "heading": {
+        "no": "Et menneskelig ansikt for merkevaren",
+        "en": "A human face for the brand"
+      },
+      "body": {
+        "no": [
+          "Vi utviklet et eget illustrert portrettsystem i samarbeid med Pablo Lobato. Hans geometriske, kubist-inspirerte stil ga Grieg Connect et tydeligere menneskelig uttrykk. Portrettene løste også et praktisk skaleringsproblem, ved å gjøre det enklere å produsere portretter av nye ansatte på tvers av flere kontorer. De ble brukt i markedsføring, intern planlegging, presentasjoner og e-postsignaturer."
+        ],
+        "en": [
+          "We developed a custom illustrated portrait system in collaboration with Pablo Lobato. His geometric, cubist-inspired style gave Grieg Connect a more distinctive human expression. The portraits also solved a practical scaling problem, making new employee portraits easier to produce across multiple offices. They were used in marketing, internal planning, presentations and email signatures."
+        ]
+      },
+      "media": {
+        "type": "carousel",
+        "items": [
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-01.svg",
+            "alt": "Grieg Connect team portrait 01"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-02.svg",
+            "alt": "Grieg Connect team portrait 02"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-03.svg",
+            "alt": "Grieg Connect team portrait 03"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-04.svg",
+            "alt": "Grieg Connect team portrait 04"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-05.svg",
+            "alt": "Grieg Connect team portrait 05"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-06.svg",
+            "alt": "Grieg Connect team portrait 06"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-07.svg",
+            "alt": "Grieg Connect team portrait 07"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-08.svg",
+            "alt": "Grieg Connect team portrait 08"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-09.svg",
+            "alt": "Grieg Connect team portrait 09"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-10.svg",
+            "alt": "Grieg Connect team portrait 10"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-11.svg",
+            "alt": "Grieg Connect team portrait 11"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-12.svg",
+            "alt": "Grieg Connect team portrait 12"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-13.svg",
+            "alt": "Grieg Connect team portrait 13"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-14.svg",
+            "alt": "Grieg Connect team portrait 14"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-15.svg",
+            "alt": "Grieg Connect team portrait 15"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-16.svg",
+            "alt": "Grieg Connect team portrait 16"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-17.svg",
+            "alt": "Grieg Connect team portrait 17"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-18.svg",
+            "alt": "Grieg Connect team portrait 18"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-19.svg",
+            "alt": "Grieg Connect team portrait 19"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-20.svg",
+            "alt": "Grieg Connect team portrait 20"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-21.svg",
+            "alt": "Grieg Connect team portrait 21"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-22.svg",
+            "alt": "Grieg Connect team portrait 22"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-23.svg",
+            "alt": "Grieg Connect team portrait 23"
+          },
+          {
+            "src": "/media/projects/grieg-connect/portraits/portrait-24.svg",
+            "alt": "Grieg Connect team portrait 24"
+          }
+        ],
+        "shape": "circle"
+      }
+    },
+    {
+      "id": "identity-in-every-detail",
+      "heading": {
+        "no": "Identitet i hver detalj",
+        "en": "Identity in every detail"
+      },
+      "body": {
+        "no": [
+          "Vi utviklet et omfattende, pikselperfekt ikonsystem for applikasjonene, med over 250 egendesignede ikoner. Ved å designe våre egne ikoner i stedet for å bruke generiske biblioteker, førte vi identiteten helt ned i de minste delene av produktopplevelsen. Ikonene støttet navigasjon, dokumentasjon, manualer, presentasjoner, trykte medier og andre merkevaretouchpoints."
+        ],
+        "en": [
+          "We developed a large pixel-perfect icon system for the applications, with more than 250 custom icons. By designing our own icons instead of using generic libraries, we carried the identity into the smallest parts of the product experience. The icons supported navigation, documentation, manuals, presentations, printed media and other brand touchpoints."
+        ]
+      },
+      "media": {
+        "type": "carousel",
+        "items": [
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-01.svg",
+            "alt": "Grieg Connect icon 01"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-02.svg",
+            "alt": "Grieg Connect icon 02"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-03.svg",
+            "alt": "Grieg Connect icon 03"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-04.svg",
+            "alt": "Grieg Connect icon 04"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-05.svg",
+            "alt": "Grieg Connect icon 05"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-06.svg",
+            "alt": "Grieg Connect icon 06"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-07.svg",
+            "alt": "Grieg Connect icon 07"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-08.svg",
+            "alt": "Grieg Connect icon 08"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-09.svg",
+            "alt": "Grieg Connect icon 09"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-10.svg",
+            "alt": "Grieg Connect icon 10"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-11.svg",
+            "alt": "Grieg Connect icon 11"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-12.svg",
+            "alt": "Grieg Connect icon 12"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-13.svg",
+            "alt": "Grieg Connect icon 13"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-14.svg",
+            "alt": "Grieg Connect icon 14"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-15.svg",
+            "alt": "Grieg Connect icon 15"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-16.svg",
+            "alt": "Grieg Connect icon 16"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-17.svg",
+            "alt": "Grieg Connect icon 17"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-18.svg",
+            "alt": "Grieg Connect icon 18"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-19.svg",
+            "alt": "Grieg Connect icon 19"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-20.svg",
+            "alt": "Grieg Connect icon 20"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-21.svg",
+            "alt": "Grieg Connect icon 21"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-22.svg",
+            "alt": "Grieg Connect icon 22"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-23.svg",
+            "alt": "Grieg Connect icon 23"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-24.svg",
+            "alt": "Grieg Connect icon 24"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-25.svg",
+            "alt": "Grieg Connect icon 25"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-26.svg",
+            "alt": "Grieg Connect icon 26"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-27.svg",
+            "alt": "Grieg Connect icon 27"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-28.svg",
+            "alt": "Grieg Connect icon 28"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-29.svg",
+            "alt": "Grieg Connect icon 29"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-30.svg",
+            "alt": "Grieg Connect icon 30"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-31.svg",
+            "alt": "Grieg Connect icon 31"
+          },
+          {
+            "src": "/media/projects/grieg-connect/icons/icon-32.svg",
+            "alt": "Grieg Connect icon 32"
+          }
+        ],
+        "shape": "icon"
+      }
+    }
+  ],
+  "credits": [
+    {
+      "role": {
+        "no": "Head of design",
+        "en": "Head of design"
+      },
+      "name": "Sindre Martin Dahl"
+    },
+    {
+      "role": {
+        "no": "Interaksjonsdesigner",
+        "en": "Interaction designer"
+      },
+      "name": "Nikita Manko"
+    },
+    {
+      "role": {
+        "no": "Portrettillustratør",
+        "en": "Portrait illustrator"
+      },
+      "name": "Pablo Lobato"
+    }
+  ],
+  "featured": true
+}

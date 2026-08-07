@@ -1,0 +1,181 @@
+{
+  "title": {
+    "no": "Samspill",
+    "en": "Samspill"
+  },
+  "dek": {
+    "no": "Et gjenkjennelig visuelt identitetssystem for en felles VM-opplevelse, som knytter sammen reklame, bevegelse, digital skilting og stemningen i hallen.",
+    "en": "A recognisable visual identity for a shared World Cup experience, connecting advertising, motion, digital signage and venue atmosphere."
+  },
+  "client": "Braatthallen",
+  "year": 2026,
+  "accent": "#7ED321",
+  "cover": "projects/samspill/cover.png",
+  "coverAlt": {
+    "no": "Abstrakt rasterillustrasjon i Samspills grønne identitetssystem",
+    "en": "Abstract halftone graphic in Samspill's green identity system"
+  },
+  "heroVideo": {
+    "src": "/media/projects/samspill/video/hero-loop.mp4",
+    "poster": "projects/samspill/video-posters/hero-poster.jpg"
+  },
+  "sections": [
+    {
+      "id": "context",
+      "heading": { "no": "Kontekst", "en": "Context" },
+      "body": {
+        "no": [
+          "Braatthallen trengte et sterkt og gjenkjennelig visuelt konsept for SAMSPILL: VM 2026, en felles fotballopplevelse sentrert rundt storskjerm, liveatmosfære og det å se kampen sammen. Identiteten måtte fungere på tvers av trykk, digitale flater, annonsering i sosiale medier og skjermer i hallen, samtidig som den ga arrangementet et tydelig og profesjonelt uttrykk."
+        ],
+        "en": [
+          "Braatthallen needed a strong and recognisable visual concept for SAMSPILL: World Cup 2026, a shared football experience centred around a large screen, live atmosphere and the act of watching together. The identity had to work across print, digital surfaces, social media advertising and in-arena screens, while giving the event a distinct and professional presence."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/samspill/sections/poster-context.png",
+        "alt": {
+          "no": "SAMSPILL: VM 2026-plakat med grønn rasterillustrasjon av jublende publikum",
+          "en": "SAMSPILL: World Cup 2026 poster with a green halftone illustration of a cheering crowd"
+        }
+      }
+    },
+    {
+      "id": "strategy",
+      "heading": { "no": "Strategi", "en": "Strategy" },
+      "body": {
+        "no": [
+          "Den visuelle retningen ble bygget rundt noen enkle assosiasjoner: gressets grønnfarge, ballens runde form og storskjermenes oppdelte struktur. Disse elementene ble til et fleksibelt grafisk språk som føltes energisk, digitalt og sosialt. Navnet SAMSPILL bar med seg kjerneideen — interplay, lagspill og det å spille sammen — som forankret konseptet i både fotball og felles opplevelse."
+        ],
+        "en": [
+          "The visual direction was built around a few simple associations: the green of grass, the circular form of the ball and the segmented structure of large digital screens. These elements became a flexible graphic language that felt energetic, digital and social. The name SAMSPILL carried the core idea — interplay, team play and playing together — making the concept feel rooted in both football and shared experience."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/samspill/sections/poster-strategy.png",
+        "alt": {
+          "no": "SAMSPILL: VM 2026-plakat, alternativ rasterillustrasjon",
+          "en": "SAMSPILL: World Cup 2026 poster, alternate halftone illustration"
+        }
+      }
+    },
+    {
+      "id": "result",
+      "heading": { "no": "Resultat", "en": "Result" },
+      "body": {
+        "no": [
+          "Resultatet var et gjenkjennelig visuelt språk brukt gjennom hele arrangementets reise, fra annonser i sosiale medier, lokale plakater og nettsiden til billettsalg, menyer og digital skilting i hallen. De samme prinsippene ble også utvidet til lysriggen i arenaen, noe som gjorde opplevelsen mer helhetlig og stemningsfull. Utover det synlige resultatet ga arbeidet produksjonsteamet en tydeligere retning og større trygghet fra planlegging til gjennomføring."
+        ],
+        "en": [
+          "The result was a distinct visual language applied across the full event journey, from social media ads, local posters and the website to ticket sales, menus and digital signage at the venue. The same principles were also extended into the arena lighting, helping the event feel more unified and atmospheric. Beyond the visible outputs, the work gave the production team a clearer direction and greater confidence from planning to execution."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/samspill/sections/poster-result.png",
+        "alt": {
+          "no": "SAMSPILL: VM 2026-plakat, tredje rasterillustrasjon",
+          "en": "SAMSPILL: World Cup 2026 poster, third halftone illustration"
+        }
+      }
+    },
+    {
+      "id": "identity-in-motion",
+      "heading": { "no": "Identitet i bevegelse", "en": "Identity in motion" },
+      "body": {
+        "no": [
+          "En 20 sekunder lang reklamefilm oversatte identiteten til et tydelig, mobilførst bevegelsesuttrykk. Bygget rundt en enkel femtakts rytme tegner en sammenhengende linje en fotball, blir til midtsirkelen, utvider seg til en hel bane og forvandles til en breddeformat-skjerm. Filmen bygger seg opp mot Braatthallen med jublende publikum, markert lyddesign, konfetti, subtil filmkorn og en samlet grønn avslutning."
+        ],
+        "en": [
+          "A 20-second promotional film translated the identity into a clear, mobile-first motion piece. Built around a simple five-beat rhythm, a continuous line sketches a football, becomes the midfield circle, expands into a full pitch and transforms into a widescreen display. The film builds toward Braatthallen with cheering crowds, punchy sound design, confetti, subtle film grain and a unified green finish."
+        ]
+      },
+      "media": {
+        "type": "video",
+        "src": "/media/projects/samspill/video/identity-in-motion.mp4"
+      }
+    },
+    {
+      "id": "playful-brand-extension",
+      "heading": { "no": "En lekende merkevareutvidelse", "en": "A playful brand extension" },
+      "body": {
+        "no": [
+          "Som en del av arrangementsopplevelsen ble identiteten utvidet til et eget ølkonsept kalt Sampils — en lekende omrokkering av SAMSPILL. Etikettdesignet oversatte arrangementets kjerneelementer til et fysisk objekt gjestene kunne holde, dele og kjenne igjen i hallen. Dette gjorde identiteten mer håndgripelig, og løftet det visuelle språket fra noe man så på plakater og skjermer til en del av den sosiale opplevelsen selv."
+        ],
+        "en": [
+          "As part of the event experience, the identity was extended into a custom beer concept named Sampils — a playful rearrangement of SAMSPILL. The label design translated the event's core elements into a physical object guests could hold, share and recognise at the venue. This made the identity more tangible, turning the visual language from something seen on posters and screens into part of the social experience itself."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/samspill/sections/sampils-bottle.png",
+        "alt": {
+          "no": "Sampils-ølflaske med etikett i SAMSPILL-identitetens grønnfarge",
+          "en": "Sampils beer bottle with a label in the SAMSPILL identity's green"
+        }
+      }
+    },
+    {
+      "id": "built-for-every-format",
+      "heading": { "no": "Bygget for alle formater", "en": "Built for every format" },
+      "body": {
+        "no": [
+          "Det visuelle systemet ble designet for å skalere på tvers av formater, fra smale mobilplasseringer til store horisontale reklameskjermer. De enkle byggeklossene — fet typografi, runde former, fotballgrønt og skjerminspirert oppdeling — gjorde det mulig å bevare gjenkjennelsen samtidig som komposisjonen tilpasset seg ulike bildeforhold. Reklameskilt-mockupen viser hvordan identiteten kan utvides til et stort, offentlig format uten å miste klarhet eller gjennomslagskraft."
+        ],
+        "en": [
+          "The visual system was designed to scale across formats, from narrow mobile placements to large horizontal advertising screens. Its simple building blocks — bold typography, circular forms, football green and screen-inspired segmentation — made it possible to preserve recognition while adapting the composition to different aspect ratios. The billboard mockup shows how the identity can expand into a large public-facing format without losing clarity or impact."
+        ]
+      },
+      "media": {
+        "type": "gallery",
+        "items": [
+          {
+            "src": "projects/samspill/sections/billboard-mockup.png",
+            "alt": "Billboard mockup of the SAMSPILL identity at dusk"
+          },
+          {
+            "src": "projects/samspill/sections/widescreen-display.png",
+            "alt": "Widescreen display graphic showing the pitch-to-screen transformation"
+          }
+        ]
+      }
+    },
+    {
+      "id": "from-information-to-atmosphere",
+      "heading": { "no": "Fra informasjon til stemning", "en": "From information to atmosphere" },
+      "body": {
+        "no": [
+          "Skjermene i hallen ble designet som en del av identiteten, ikke bare som informasjonsflater. Programoversikter, menyer og kampinformasjon brukte samme fete typografi, høye kontrast, fotballgrønt og prikkbaserte visuelle språk som resten av arrangementet. Sammen bidro de til å veilede publikum samtidig som de gjorde arenaopplevelsen mer helhetlig, gjenkjennelig og gjennomtenkt."
+        ],
+        "en": [
+          "The venue screens were designed as part of the identity, not just as information surfaces. Program schedules, menus and match information used the same bold typography, high contrast, football green and dot-based visual language as the rest of the event. Together, they helped guide the audience while making the arena experience feel more unified, recognisable and intentional."
+        ]
+      },
+      "media": {
+        "type": "gallery",
+        "items": [
+          {
+            "src": "projects/samspill/sections/signage-food-menu.png",
+            "alt": "Digital signage screen showing the venue food menu"
+          },
+          {
+            "src": "projects/samspill/sections/signage-program-schedule.png",
+            "alt": "Digital signage screen showing the match-day program schedule"
+          }
+        ]
+      }
+    }
+  ],
+  "credits": [
+    {
+      "role": { "no": "Prosjektleder, kunde", "en": "Project lead, client side" },
+      "name": "Elise Lindvåg Solemdal"
+    },
+    {
+      "role": { "no": "Konsept, visuell retning og design", "en": "Concept, visual direction and design" },
+      "name": "Sindre Martin Dahl"
+    }
+  ],
+  "featured": true
+}

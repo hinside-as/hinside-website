@@ -1,0 +1,114 @@
+:root {
+  /* Greyscale — the base palette for the whole site. Tuned for a dark
+     surface first: near-black rather than pure #000, off-white text
+     rather than pure #fff, so contrast stays confident without glare. */
+  --color-black: #08090a;
+  --color-grey-900: #131416;
+  --color-grey-800: #1c1d20;
+  --color-grey-700: #2b2d31;
+  --color-grey-500: #6b6e76;
+  --color-grey-300: #a8abb3;
+  --color-grey-100: #e8e9eb;
+  --color-white: #f7f7f8;
+
+  /* Deliberate accent — the one spot of colour, overridable per section/case study */
+  --color-accent: #ff4d1c;
+  --color-accent-muted: color-mix(in srgb, var(--color-accent) 35%, transparent);
+
+  /* Semantic surface roles, built from the greyscale + accent above.
+     Dark is the default reading of the brand; data-theme="light" flips it. */
+  --color-bg: var(--color-black);
+  --color-bg-raised: var(--color-grey-900);
+  --color-fg: var(--color-white);
+  --color-fg-muted: var(--color-grey-300);
+  --color-border: var(--color-grey-700);
+  --color-border-strong: var(--color-grey-500);
+
+  /* Typography — quiet technical mono for body copy (matching the studio's
+     ASCII-driven identity: the interactive wordmark, the isometric
+     case-study artwork), contrasted by a high-contrast serif for display/
+     headings — per STYLE.md, editorial elegance rather than a kinetic
+     variable font. */
+  --font-body: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+  --font-display: "Playfair Display Variable", "Playfair Display", Georgia, "Times New Roman", serif;
+
+  /* Fluid scale: headlines carry the visual weight, so they scale
+     confidently with viewport rather than jumping at fixed breakpoints. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.5rem, 1.3rem + 0.9vw, 2.1rem);
+  --text-2xl: clamp(2rem, 1.4rem + 2.6vw, 3.75rem);
+  --text-3xl: clamp(2.75rem, 1.6rem + 5vw, 6.5rem);
+  --text-4xl: clamp(3.5rem, 1.8rem + 8vw, 10rem);
+
+  /* JetBrains Mono Variable's weight axis — used deliberately for
+     hierarchy (thin eyebrows and dek text against heavy headlines)
+     rather than defaulting everything to one weight. */
+  --weight-thin: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  --leading-tight: 1.02;
+  --leading-snug: 1.2;
+  --leading-normal: 1.6;
+  --tracking-tight: -0.02em;
+  --tracking-tighter: -0.04em;
+
+  /* Spacing scale — generous on the high end so rhythm between sections
+     comes from proximity/whitespace, not separator lines. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --space-6: 4rem;
+  --space-7: 6rem;
+  --space-8: 9rem;
+  --space-9: 13rem;
+  --space-10: 17rem;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Snappier ease-out for small, physical hover feedback (logo/card zoom) —
+     distinct from --ease-standard's symmetric in-out, which reads too even
+     for a quick "lift" gesture. */
+  --ease-out-expressive: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 600ms;
+
+  /* Layout */
+  --header-height: 4.5rem;
+  --content-max-width: 90rem;
+
+  /* Brand mark size — the wordmark's native pixel-block art is a 112×13
+     viewBox, so it's sized as exact integer multiples of that (2x / 1x)
+     rather than an arbitrary rem value, or block edges land on
+     sub-pixels and anti-alias into a soft blur instead of staying crisp.
+     Shared by the header and footer so both stay identical. */
+  --brand-mark-width: 224px;
+  --brand-mark-height: 26px;
+  --brand-mark-width-sm: 112px;
+  --brand-mark-height-sm: 13px;
+}
+
+:root[data-theme="light"] {
+  --color-bg: var(--color-white);
+  --color-bg-raised: var(--color-grey-100);
+  --color-fg: var(--color-black);
+  --color-fg-muted: var(--color-grey-500);
+  --color-border: var(--color-grey-300);
+  --color-border-strong: var(--color-grey-500);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}

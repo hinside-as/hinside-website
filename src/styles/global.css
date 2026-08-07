@@ -1,0 +1,114 @@
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-thin);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-tight);
+  font-weight: var(--weight-medium);
+}
+
+/* Falls back to a neutral grey, not the brand accent — STYLE.md is
+   explicit that the studio site itself carries no brand accent color;
+   only case-study pages get one, via --accent (set per-project). */
+::selection {
+  background: var(--accent, var(--color-grey-300));
+  color: var(--color-black);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Scroll-linked parallax drift — BaseLayout's script writes --parallax-y
+   on [data-parallax] elements as the page scrolls (and never touches it
+   under reduced motion, where it just stays at the 0px fallback below).
+   This is a plain, unconditional rule rather than living inside the
+   reveal media query, because [data-reveal] below needs to layer its own
+   entrance transform on top of the same variable — see the comment
+   there for why that composition matters. */
+[data-parallax] {
+  transform: translateY(var(--parallax-y, 0px));
+}
+
+/* Scroll-driven reveals — a purposeful entrance for headings, copy and
+   images as they enter the viewport. Gated entirely inside the
+   no-preference media query so reduced-motion users simply see the
+   final state with no transition, no JS branching required. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    opacity: 0;
+    /* Composed with --parallax-y (not just a flat offset) so an element
+       that's both revealing in AND parallax-drifting doesn't fight
+       itself: this is the only rule setting `transform` on such an
+       element, combining the entrance distance with whatever scroll
+       offset the parallax script has already written. */
+    transform: translateY(calc(2rem + var(--parallax-y, 0px)));
+    transition:
+      opacity var(--duration-slow) var(--ease-standard),
+      transform var(--duration-slow) var(--ease-standard);
+  }
+  [data-reveal].is-revealed {
+    opacity: 1;
+    transform: translateY(var(--parallax-y, 0px));
+  }
+  [data-reveal-group] > [data-reveal]:nth-child(1) {
+    transition-delay: 0ms;
+  }
+  [data-reveal-group] > [data-reveal]:nth-child(2) {
+    transition-delay: 90ms;
+  }
+  [data-reveal-group] > [data-reveal]:nth-child(3) {
+    transition-delay: 180ms;
+  }
+  [data-reveal-group] > [data-reveal]:nth-child(4) {
+    transition-delay: 270ms;
+  }
+}

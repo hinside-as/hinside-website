@@ -1,0 +1,144 @@
+---
+import BrandMark from "./BrandMark.astro";
+import SiteNav, { type NavLink } from "./SiteNav.tsx";
+import { localizedPath, otherLocale, type Locale } from "../i18n/utils";
+
+type Props = {
+  locale: Locale;
+  links: NavLink[];
+  menuLabel: string;
+  closeLabel: string;
+  otherLocaleLabel: string;
+};
+
+const { locale, links, menuLabel, closeLabel, otherLocaleLabel } = Astro.props;
+const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
+---
+
+<header class="site-header" data-site-header>
+  <div class="site-header__brand">
+    <BrandMark href={localizedPath(locale, "/")} />
+  </div>
+  <SiteNav
+    links={links}
+    menuLabel={menuLabel}
+    closeLabel={closeLabel}
+    otherLocaleHref={otherHref}
+    otherLocaleLabel={otherLocaleLabel}
+    client:load
+  />
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: var(--space-4);
+    background: var(--color-bg);
+    transition:
+      transform var(--duration-base) var(--ease-standard),
+      background var(--duration-base) var(--ease-standard),
+      box-shadow var(--duration-base) var(--ease-standard);
+  }
+  /* The blur/glass layer lives on ::before rather than directly on
+     .site-header. backdrop-filter (like transform or filter) makes an
+     element establish a new containing block for any position:fixed
+     descendant — and the mobile menu's fullscreen panel is exactly that,
+     nested inside this header. Putting backdrop-filter on .site-header
+     itself silently confined that panel to the header's own small box
+     instead of the viewport, any time the header had scrolled even 4px
+     before the menu opened (i.e. almost always) — a pseudo-element has
+     no descendants of its own, so it can't break anything. */
+  .site-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0;
+    background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: opacity var(--duration-base) var(--ease-standard);
+  }
+  /* Once scrolled, the header detaches from the hero/content beneath it
+     and floats above it — a blurred glass background (matching the
+     mobile menu panel's own treatment) plus a soft shadow reads as
+     "floating" better than a hard separator line would. */
+  .site-header[data-scrolled="true"] {
+    background: transparent;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  }
+  .site-header[data-scrolled="true"]::before {
+    opacity: 1;
+  }
+  .site-header[data-hidden="true"] {
+    transform: translateY(-100%);
+  }
+  .site-header__brand {
+    width: var(--brand-mark-width-sm);
+    height: var(--brand-mark-height-sm);
+    flex: 0 0 auto;
+  }
+  @media (min-width: 48rem) {
+    .site-header__brand {
+      width: var(--brand-mark-width);
+      height: var(--brand-mark-height);
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>("[data-site-header]");
+  if (header) {
+    let lastScrollY = window.scrollY;
+
+    const onScroll = () => {
+      const currentScrollY = window.scrollY;
+      header.dataset.scrolled = String(currentScrollY > 4);
+      const isScrollingDown = currentScrollY > lastScrollY;
+      header.dataset.hidden = String(isScrollingDown && currentScrollY > 160);
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    // Eased scroll for the nav's own same-page section links — a
+    // controlled curve in the spirit of --ease-standard, rather than
+    // leaving it to each browser's differing native smooth-scroll feel.
+    const SCROLL_DURATION_MS = 600;
+    const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const navLinks = header.querySelectorAll<HTMLAnchorElement>("a[data-nav-hash]");
+    navLinks.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const hash = link.dataset.navHash;
+        const target = hash ? document.getElementById(hash) : null;
+        if (!target) return;
+        event.preventDefault();
+
+        const scrollMarginTop = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+        const startY = window.scrollY;
+        const targetY = startY + target.getBoundingClientRect().top - scrollMarginTop;
+
+        if (prefersReducedMotion()) {
+          window.scrollTo(0, targetY);
+          return;
+        }
+
+        const startTime = performance.now();
+        const step = (now: number) => {
+          const progress = Math.min((now - startTime) / SCROLL_DURATION_MS, 1);
+          window.scrollTo(0, startY + (targetY - startY) * easeInOutCubic(progress));
+          if (progress < 1) window.requestAnimationFrame(step);
+        };
+        window.requestAnimationFrame(step);
+      });
+    });
+  }
+</script>

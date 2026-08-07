@@ -1,0 +1,47 @@
+---
+import { HINSIDE_MARK_SLATS, VIEWBOX_WIDTH, VIEWBOX_HEIGHT } from "../lib/hinside-mark-geometry";
+
+type Props = {
+  href: string;
+};
+
+const { href } = Astro.props;
+---
+
+<a class="brand-mark" href={href} aria-label="hinside">
+  <svg
+    class="brand-mark__svg"
+    viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+    preserveAspectRatio="xMidYMid meet"
+    shape-rendering="crispEdges"
+    fill="none"
+    aria-hidden="true"
+  >
+    {HINSIDE_MARK_SLATS.map((slat) => (
+      <rect x={slat.x} y={slat.y} width={slat.w} height="1" />
+    ))}
+  </svg>
+</a>
+
+<style>
+  .brand-mark {
+    display: block;
+    width: 100%;
+  }
+  .brand-mark__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .brand-mark__svg rect {
+    fill: var(--color-fg);
+  }
+  .brand-mark {
+    opacity: 1;
+    transition: opacity var(--duration-fast) var(--ease-standard);
+  }
+  .brand-mark:hover,
+  .brand-mark:focus-visible {
+    opacity: 0.75;
+  }
+</style>
