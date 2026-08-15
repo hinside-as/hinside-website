@@ -14,7 +14,23 @@ export type PortfolioItem = {
 };
 
 const BASE_SPEED = 42;
-const HOVER_SPEED = 12;
+// A slow drift, not a full stop — hovering eases the track down toward
+// this rather than to 0, via the same exponential damping curve
+// useDragCarousel already applies everywhere (no separate animation
+// system, no gesture interception — this is still native pointer/wheel
+// input driving a physically-damped velocity, same as before). Kept
+// deliberately slow: .pc-meta's backdrop-filter: blur has to resample
+// whatever's moving behind it every frame, and a fast hover speed here
+// previously showed up as a visible flicker at the panel's edge — see the
+// transition-delay on .pc-meta below, which gives this speed change time
+// to actually settle before the blurred panel becomes prominent. Raised
+// slightly from an earlier, even slower value: useDragCarousel's transform
+// rounds to whole pixels every frame (see its own comment), so a target
+// this close to 0 advanced well under a pixel per frame and only "moved"
+// once every dozen-odd frames — visibly jaggy, stepping rather than
+// gliding. Still well below BASE_SPEED, just no longer slow enough to
+// under-run the pixel grid.
+const HOVER_SPEED = 9;
 
 export default function PortfolioCarousel({ items }: { items: PortfolioItem[] }) {
   const isDraggingForCursorRef = useRef(false);
@@ -29,8 +45,6 @@ export default function PortfolioCarousel({ items }: { items: PortfolioItem[] })
     <section className="pc-carousel-section" aria-label="Portfolio carousel">
       <div
         className={`pc-viewport${isGrabbing ? " is-grabbing" : ""}`}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
         onClickCapture={onClickCapture}
       >
         <div ref={trackRef} className="pc-track">
@@ -43,6 +57,14 @@ export default function PortfolioCarousel({ items }: { items: PortfolioItem[] })
               aria-hidden={index >= items.length}
               tabIndex={index >= items.length ? -1 : 0}
               draggable={false}
+              // Per-card, not on the padded outer viewport (see
+              // useDragCarousel's own hoverCountRef comment) — the
+              // viewport's box included the track's cursor-headroom
+              // padding, so hovering visually-empty space around a card
+              // already slowed the carousel down before the pointer
+              // reached the card itself.
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
               style={item.accent ? ({ "--accent": item.accent } as CSSProperties) : undefined}
             >
               <div className="pc-image-frame">
@@ -58,7 +80,6 @@ export default function PortfolioCarousel({ items }: { items: PortfolioItem[] })
           ))}
         </div>
       </div>
-      <div className="pc-carousel-mask" aria-hidden="true" />
 
       <style>{`
         .pc-carousel-section {
@@ -79,13 +100,6 @@ export default function PortfolioCarousel({ items }: { items: PortfolioItem[] })
           z-index: 0;
           pointer-events: none;
           background-image: radial-gradient(120% 90% at 50% 50%, var(--color-bg-raised), var(--color-bg));
-        }
-        .pc-carousel-mask {
-          pointer-events: none;
-          position: absolute;
-          inset: 0;
-          z-index: 2;
-          background: linear-gradient(90deg, var(--color-bg) 0%, transparent 8%, transparent 92%, var(--color-bg) 100%);
         }
         .pc-viewport {
           position: relative;
@@ -160,7 +174,6 @@ export default function PortfolioCarousel({ items }: { items: PortfolioItem[] })
         .pc-subtitle {
           margin: 0;
           font-size: var(--text-sm);
-          font-style: italic;
           color: var(--color-fg-muted);
         }
         .pc-card:focus-visible {
@@ -171,6 +184,98 @@ export default function PortfolioCarousel({ items }: { items: PortfolioItem[] })
           .pc-image {
             transition: none;
             filter: grayscale(0) saturate(1.04);
+          }
+          /* .pc-title's own accent color is otherwise only a :hover/
+             :focus-visible state (see above) — there's no hover on a
+             touch device to ever trigger it, so without this override the
+             title just sits at the plain --color-fg permanently. Always-
+             on here matches the image's own always-color treatment right
+             above: touch gets the "revealed" state by default instead of
+             a state it can never reach. */
+          .pc-title {
+            color: var(--accent, var(--color-fg));
+            transition: none;
+          }
+        }
+        /* Desktop-only (real hover + fine pointer, matching the inverse of
+           the touch override above): the title/subtitle/meta block moves
+           from sitting below the image (the base/mobile layout, untouched)
+           to overlaying its bottom edge, hidden until hover/focus.
+           Hidden via opacity + a small translateY, not a full
+           translateY(100%)-off-the-bottom slide — .pc-meta is absolutely
+           positioned (removed from flow), so .pc-card's height at this
+           breakpoint is just the image's; a full-height slide-out would
+           rest one whole panel-height below the card, overlapping
+           whatever sits in the track's gap after it (or the next card
+           outright, since the panel is taller than the inter-card gap),
+           and clipping it with overflow:hidden would also clip
+           EyeCursorItem's own cursor sprite, which deliberately extends
+           past the image's box (see .pc-track's padding comment above —
+           same root cause, different symptom). A small offset plus
+           opacity avoids needing to clip anything, while still reading as
+           the text rising into place on hover.
+
+           min-width: 721px on top of the hover/pointer check (mirroring
+           the touch override's own max-width: 720px) matters for a
+           different reason than device detection: a mouse user who's just
+           narrowed their desktop browser window still reports
+           hover:hover/pointer:fine, so without this the overlay would
+           apply at "mobile" widths too, hiding the text below a narrow
+           card entirely with no hover to reveal it (nothing to hover on a
+           touch device, but also easy to trigger by simply resizing a
+           desktop window). Tying it to the same 720px breakpoint the
+           image-filter override already uses keeps "mobile" meaning the
+           same width consistently across this component. */
+        @media (min-width: 721px) and (hover: hover) and (pointer: fine) {
+          /* Restores the same 32px cursor-sprite clearance at the bottom
+             edge that the top edge already has (see .pc-track's own
+             comment) — previously provided for free by .pc-meta's normal-
+             flow height below the image, which this overlay treatment
+             removes. */
+          .pc-track {
+            padding-bottom: 32px;
+          }
+          /* pointer-events: none unconditionally (not just while hidden)
+             — this panel has no interactive content of its own, the whole
+             .pc-card is already the link, and EyeCursorItem's hover
+             tracking underneath needs pointermove/pointerenter/leave to
+             keep reaching .eye-cursor-item__shell uninterrupted. Toggling
+             this to auto once revealed (an earlier version did, treating
+             "visible" and "interactive" as the same thing) made the panel
+             itself start capturing pointer events the moment it faded in,
+             which reads to the shell underneath as the pointer leaving it
+             — the eye cursor would blink out the instant it crossed into
+             the text panel's own area, exactly backwards from "stays
+             visible while hovering the card." */
+          .pc-meta {
+            position: absolute;
+            inset-inline: 0;
+            bottom: 0;
+            margin-top: 0;
+            padding: var(--space-4) var(--space-3) var(--space-3);
+            background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(0.5rem);
+            transition:
+              transform var(--duration-fast) var(--ease-standard),
+              opacity var(--duration-fast) var(--ease-standard);
+          }
+          .pc-card:hover .pc-meta,
+          .pc-card:focus-visible .pc-meta {
+            opacity: 1;
+            transform: translateY(0);
+            /* Delay applies only in this direction — a transition's timing
+               comes from the rule being transitioned *into*, so leaving
+               (back to the base .pc-meta rule above, which has no delay)
+               still hides immediately. The delay gives the track's now-fast
+               hover deceleration (see useDragCarousel) a moment to actually
+               settle before the panel's own backdrop-filter starts
+               rendering over it — without it, the blur could still catch a
+               few frames of real motion right as it appears. */
+            transition-delay: 100ms;
           }
         }
       `}</style>

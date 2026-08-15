@@ -1,12 +1,8 @@
 import { useState, type FormEvent } from "react";
 
 type Labels = {
-  name: string;
-  namePlaceholder: string;
   email: string;
   emailPlaceholder: string;
-  subject: string;
-  subjectPlaceholder: string;
   message: string;
   messagePlaceholder: string;
   submit: string;
@@ -59,16 +55,8 @@ export default function ContactForm({ labels }: { labels: Labels }) {
         <input type="text" name="company" tabIndex={-1} autoComplete="off" />
       </label>
       <label>
-        <span>{labels.name}</span>
-        <input type="text" name="name" placeholder={labels.namePlaceholder} required />
-      </label>
-      <label>
         <span>{labels.email}</span>
         <input type="email" name="email" placeholder={labels.emailPlaceholder} required />
-      </label>
-      <label>
-        <span>{labels.subject}</span>
-        <input type="text" name="subject" placeholder={labels.subjectPlaceholder} required />
       </label>
       <label>
         <span>{labels.message}</span>
@@ -117,6 +105,11 @@ export default function ContactForm({ labels }: { labels: Labels }) {
           border: 1px solid var(--color-border);
           padding: var(--space-3);
           resize: vertical;
+          transition: border-color var(--duration-base) var(--ease-standard);
+        }
+        .contact-form input:hover,
+        .contact-form textarea:hover {
+          border-color: var(--color-border-strong);
         }
         .contact-form input:focus,
         .contact-form textarea:focus {
@@ -131,10 +124,11 @@ export default function ContactForm({ labels }: { labels: Labels }) {
           border: none;
           padding: var(--space-3) var(--space-4);
           cursor: pointer;
-          transition: opacity var(--duration-fast) var(--ease-standard);
+          opacity: 0.85;
+          transition: opacity var(--duration-base) var(--ease-standard);
         }
         .contact-form button:hover {
-          opacity: 0.85;
+          opacity: 1;
         }
         .contact-form button:disabled {
           opacity: 0.5;

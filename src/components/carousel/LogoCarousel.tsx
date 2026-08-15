@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useDragCarousel } from "../../hooks/useDragCarousel";
+import { ARROW_FRAMES, ARROW_REMINDER_SEQUENCE, ARROW_REMINDER_TIMINGS_MS } from "./arrow-frames";
 
 export type LogoCarouselItem = {
   src: string;
@@ -8,36 +9,12 @@ export type LogoCarouselItem = {
   height: number;
 };
 
-const ARROW_SHORT_URI = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="80" height="56" viewBox="0 0 80 56" fill="none">
-  <path d="M56 56H48V48H56V56Z" fill="white"/>
-  <path d="M64 48H56V40H64V48Z" fill="white"/>
-  <path d="M72 24H80V32H72V40H64V32H0V24H64V16H72V24Z" fill="white"/>
-  <path d="M64 16H56V8H64V16Z" fill="white"/>
-  <path d="M56 8H48V0H56V8Z" fill="white"/>
-</svg>`)}`;
-const ARROW_LONG_URI = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="88" height="56" viewBox="0 0 88 56" fill="none">
-  <path d="M64 56H56V48H64V56Z" fill="white"/>
-  <path d="M72 48H64V40H72V48Z" fill="white"/>
-  <path d="M80 24H88V32H80V40H72V32H0V24H72V16H80V24Z" fill="white"/>
-  <path d="M72 16H64V8H72V16Z" fill="white"/>
-  <path d="M64 8H56V0H64V8Z" fill="white"/>
-</svg>`)}`;
-const ARROW_LONGEST_URI = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="96" height="56" viewBox="0 0 96 56" fill="none">
-  <path d="M72 56H64V48H72V56Z" fill="white"/>
-  <path d="M80 48H72V40H80V48Z" fill="white"/>
-  <path d="M88 24H96V32H88V40H80V32H0V24H80V16H88V24Z" fill="white"/>
-  <path d="M80 16H72V8H80V16Z" fill="white"/>
-  <path d="M72 8H64V0H72V8Z" fill="white"/>
-</svg>`)}`;
+// Multiplies every logo's own calibrated height (see clients.ts) uniformly,
+// rather than editing those per-logo values directly — keeps each mark's
+// relative proportion to the others intact while scaling the whole
+// carousel up.
+const LOGO_SCALE = 1.3;
 
-const ARROW_FRAMES = [
-  { src: ARROW_SHORT_URI, width: 80, height: 56, hotX: 48, hotY: 28 },
-  { src: ARROW_LONG_URI, width: 88, height: 56, hotX: 48, hotY: 28 },
-  { src: ARROW_LONGEST_URI, width: 96, height: 56, hotX: 48, hotY: 28 },
-] as const;
-
-const ARROW_REMINDER_SEQUENCE = [0, 1, 2, 1, 0, 1, 2, 1, 0] as const;
-const ARROW_REMINDER_TIMINGS_MS = [0, 90, 170, 250, 330, 430, 510, 590, 680] as const;
 const ARROW_REMINDER_INITIAL_DELAY_MS = 380;
 const ARROW_REMINDER_NEXT_DELAY_MIN_MS = 5200;
 const ARROW_REMINDER_NEXT_DELAY_RANGE_MS = 2600;
@@ -46,9 +23,14 @@ export default function LogoCarousel({ items }: { items: LogoCarouselItem[] }) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const cursorRef = useRef<HTMLSpanElement | null>(null);
   const loopItems = useMemo(() => [...items, ...items], [items]);
+  // Matches PortfolioCarousel's own speeds exactly (see that component) —
+  // every carousel on the site shares useDragCarousel's physics engine
+  // already, and now the same base/hover speeds too, so they feel the
+  // same drifting past and the same easing down on hover instead of each
+  // having its own hand-tuned pace.
   const { trackRef, isGrabbing, onMouseEnter, onMouseLeave, onClickCapture } = useDragCarousel({
-    baseSpeed: 24,
-    hoverSpeed: 6,
+    baseSpeed: 42,
+    hoverSpeed: 9,
   });
 
   // Single viewport-level "growing arrow" cursor that tracks the pointer
@@ -82,6 +64,13 @@ export default function LogoCarousel({ items }: { items: LogoCarouselItem[] }) {
       cursor.style.width = `${frame.width}px`;
       cursor.style.height = `${frame.height}px`;
       cursor.style.backgroundImage = `url("${frame.src}")`;
+      // Same treatment as EyeCursorItem's own cursor sprite (see that
+      // component): masking to the same artwork used as the background
+      // keeps mix-blend-mode/backdrop-filter below confined to the arrow's
+      // actual silhouette instead of its whole (mostly-transparent)
+      // bounding box.
+      cursor.style.maskImage = `url("${frame.src}")`;
+      cursor.style.setProperty("-webkit-mask-image", `url("${frame.src}")`);
     };
 
     const syncPosition = () => {
@@ -159,8 +148,6 @@ export default function LogoCarousel({ items }: { items: LogoCarouselItem[] }) {
     <div
       className={`logo-carousel${isGrabbing ? " is-grabbing" : ""}`}
       ref={viewportRef}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
       onClickCapture={onClickCapture}
     >
       <div className="logo-carousel__mask">
@@ -176,8 +163,19 @@ export default function LogoCarousel({ items }: { items: LogoCarouselItem[] }) {
               aria-hidden={index >= items.length}
               tabIndex={index >= items.length ? -1 : 0}
               onDragStart={(event) => event.preventDefault()}
+              // Per-item, not on the outer viewport (see useDragCarousel's
+              // own hoverCountRef comment) — the track's own headroom
+              // padding otherwise counted as "hovering the carousel"
+              // before the pointer reached an actual logo. Separate from
+              // viewportRef's own native pointermove/pointerleave
+              // listeners above, which drive the custom arrow cursor's
+              // position/visibility and stay on the outer viewport —
+              // that's a different concern from the drag-speed slowdown
+              // these two props control.
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
             >
-              <img src={item.src} alt={item.alt} draggable={false} style={{ height: `${item.height}rem` }} />
+              <img src={item.src} alt={item.alt} draggable={false} style={{ height: `${item.height * LOGO_SCALE}rem` }} />
             </a>
           ))}
         </div>
@@ -211,10 +209,11 @@ export default function LogoCarousel({ items }: { items: LogoCarouselItem[] }) {
           align-items: center;
           gap: var(--space-8);
           width: max-content;
-          /* Headroom for the hover zoom below: at the tallest logo (5rem),
-             a 1.04 scale + 1px lift needs a few px more than its own box,
-             which would otherwise clip against .logo-carousel__mask. */
-          padding-block: 6px;
+          /* Headroom for the hover zoom below: at the tallest logo
+             (5rem * LOGO_SCALE), a 1.04 scale + 1px lift needs a few px
+             more than its own box, which would otherwise clip against
+             .logo-carousel__mask. */
+          padding-block: 8px;
           will-change: transform;
         }
         .logo-carousel__item {
@@ -252,7 +251,24 @@ export default function LogoCarousel({ items }: { items: LogoCarouselItem[] }) {
           background-repeat: no-repeat;
           background-position: center;
           background-size: contain;
+          mask-repeat: no-repeat;
+          mask-position: center;
+          mask-size: contain;
+          -webkit-mask-repeat: no-repeat;
+          -webkit-mask-position: center;
+          -webkit-mask-size: contain;
           opacity: 0;
+          /* Same reasoning as EyeCursorItem's own cursor (see that
+             component's comments in full): the arrow sprite is solid
+             white on transparent, so difference blending self-inverts it
+             to black over light logos and keeps it white over dark ones.
+             backdrop-filter: grayscale(1) desaturates just the small patch
+             behind the arrow before that blend runs, so the result always
+             stays black/white/gray instead of tinting toward whatever hue
+             the logo underneath happens to be. */
+          backdrop-filter: grayscale(1);
+          -webkit-backdrop-filter: grayscale(1);
+          mix-blend-mode: difference;
           transition: opacity 120ms var(--ease-standard);
         }
 

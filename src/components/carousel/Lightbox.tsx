@@ -189,9 +189,13 @@ export default function Lightbox({
           width: min(70vw, 32rem);
           height: min(70vw, 32rem);
         }
+        /* The pixel-grid overlay (.carousel-lightbox__grid below) is inset:0
+           on this same stage with a percentage-based background-size (100%
+           / 24), so it scales with whatever size is set here automatically
+           — no separate adjustment needed if this changes again. */
         .carousel-lightbox__stage--icon {
-          width: min(60vw, 28rem);
-          height: min(60vw, 28rem);
+          width: min(70vw, 34rem);
+          height: min(70vw, 34rem);
         }
         .carousel-lightbox__image {
           width: 100%;

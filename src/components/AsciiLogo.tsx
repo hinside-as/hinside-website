@@ -5,6 +5,11 @@ const SCRAMBLE_INTERVAL_MS = 220;
 const IDLE_LOOP_SPEED = 0.00048;
 const SCRAMBLE_GLYPHS = "█▓▒░";
 const IDLE_GRADIENT_GLYPHS = "▏▎▍▌▋▊▉█▉▊▋▌▍▎▏";
+// Extra viewBox-unit gap added between adjacent rows at full scramble
+// (scaled by scrambleStrength, see rowCenterFactor below) — 0 when
+// gathered, so the legible idle mark keeps its original, tightly packed
+// row spacing.
+const ROW_SPREAD_MAX = 3.5;
 
 /**
  * The homepage's ASCII-interactive rendering of the hinside wordmark,
@@ -12,14 +17,19 @@ const IDLE_GRADIENT_GLYPHS = "▏▎▍▌▋▊▉█▉▊▋▌▍▎▏";
  * mark is an SVG <text> filled with a stretched ASCII glyph strip
  * (textLength/lengthAdjust makes a handful of characters span the
  * block's exact width), driven by a spring/damping physics simulation
- * that reacts to scroll velocity and pointer proximity, with a
- * row-collision pass so adjacent slats don't overlap.
+ * with a row-collision pass so adjacent slats don't overlap.
+ *
+ * Scrambled by default; gathers into its legible idle form only once the
+ * pointer comes near the center of the page (a page-level read, not
+ * scroll position and not hover over the mark itself — see pagePointer in
+ * the effect below). Touch devices have no pointer to read, so instead
+ * get a one-time, fixed-duration reveal from scrambled to gathered each
+ * time the mark scrolls into view (MOBILE_GATHER_MS).
  *
  * Distinct from BrandMark.astro, which renders the same geometry as a
  * plain static mark for the header/footer chrome — this piece is
- * deliberately reserved for the homepage body, since its "bleed" effect
- * (the mark growing beyond its own box under scroll/hover energy) needs
- * room that a shared header/footer row can't give it.
+ * deliberately reserved for the homepage body, which gives it the room to
+ * fill most of its slide's width.
  */
 export default function AsciiLogo() {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -50,6 +60,22 @@ export default function AsciiLogo() {
     return [...groups.values()];
   }, []);
 
+  // Per-slat distance (in row steps) from the mark's own vertical center
+  // row — 0 for a center row, ±1 for its immediate neighbors, and so on.
+  // Multiplying this by a scramble-driven spread (see ROW_SPREAD_MAX)
+  // pushes rows apart symmetrically from the middle rather than shifting
+  // the whole mark up or down.
+  const rowCenterFactor = useMemo(() => {
+    const rowYValues = [...new Set(SLATS.map((slat) => slat.y))].sort((a, b) => a - b);
+    const rowIndexByY = new Map(rowYValues.map((y, index) => [y, index]));
+    const center = (rowYValues.length - 1) / 2;
+    const factor = new Float32Array(SLATS.length);
+    for (let i = 0; i < SLATS.length; i += 1) {
+      factor[i] = (rowIndexByY.get(SLATS[i].y) ?? 0) - center;
+    }
+    return factor;
+  }, []);
+
   useEffect(() => {
     const svg = svgRef.current;
     const stage = stageRef.current;
@@ -72,7 +98,7 @@ export default function AsciiLogo() {
       freq[i] = 0.9 + (i % 7) * 0.08;
     }
 
-    const hover = { active: false, x: VIEWBOX_WIDTH * 0.5 };
+    const hover = { active: false, y: VIEWBOX_HEIGHT * 0.5 };
 
     let rafId = 0;
     let isRunning = false;
@@ -82,10 +108,37 @@ export default function AsciiLogo() {
     let lastActiveState = false;
     let glyphCycle = 0;
 
+    // Gather signal is page-level mouse proximity to the viewport's own
+    // vertical center, not proximity/hover over the mark itself —
+    // deliberately page-wide (a window listener, not one scoped to `svg`)
+    // since the ask is "gather when the mouse is near the center of the
+    // page," a different, coarser input than the existing per-slat `hover`
+    // above (which still separately drives the fine-grained lean-toward-
+    // cursor attraction physics only while the pointer is actually over
+    // the mark). Vertical-only on purpose: horizontal cursor position
+    // shouldn't move the needle on scattered vs. gathered at all, only how
+    // close the pointer is to the page's own vertical middle. No pointer
+    // on the page (touch devices, or before the first pointermove) reads
+    // as maximally scrambled, not gathered.
+    const pagePointer = { y: 0, active: false };
+    const isTouchDevice = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    // Fraction of the viewport's own height treated as "near the vertical
+    // center" — a deliberate band, not the whole screen, so the gather
+    // reads as a distinct zone rather than fading in from every edge.
+    const GATHER_RADIUS_FACTOR = 0.32;
+    const MOBILE_GATHER_MS = 2000;
+    let mobileRevealStartedAt = 0;
+
+    const onPagePointerMove = (event: PointerEvent) => {
+      pagePointer.y = event.clientY;
+      pagePointer.active = true;
+    };
     const onPointerMove = (event: PointerEvent) => {
       const bounds = svg.getBoundingClientRect();
-      const ratio = (event.clientX - bounds.left) / Math.max(bounds.width, 1);
-      hover.x = ratio * VIEWBOX_WIDTH;
+      // Vertical only, by design — see the hoverForce comment below for why
+      // horizontal cursor position no longer feeds this at all.
+      const ratio = (event.clientY - bounds.top) / Math.max(bounds.height, 1);
+      hover.y = ratio * VIEWBOX_HEIGHT;
       hover.active = true;
     };
     const onPointerEnter = () => {
@@ -95,6 +148,7 @@ export default function AsciiLogo() {
       hover.active = false;
     };
 
+    if (!isTouchDevice) window.addEventListener("pointermove", onPagePointerMove, { passive: true });
     svg.addEventListener("pointermove", onPointerMove);
     svg.addEventListener("pointerenter", onPointerEnter);
     svg.addEventListener("pointerleave", onPointerLeave);
@@ -103,15 +157,28 @@ export default function AsciiLogo() {
       const dt = Math.min((now - lastTime) / 1000, 0.033);
       lastTime = now;
 
-      // Signal-to-noise: legible when the mark is the visual focus of the
-      // viewport (centered), scrambled when it's arriving/leaving at the
-      // top or bottom edge — a scroll-*position* read, not scroll speed.
-      // 1 = perfectly centered, 0 = its center coincides with either edge.
-      const rect = svg.getBoundingClientRect();
-      const viewportCenter = window.innerHeight / 2;
-      const elementCenter = rect.top + rect.height / 2;
-      const focus = Math.max(0, 1 - Math.abs(elementCenter - viewportCenter) / viewportCenter);
-      const activity = Math.max(hover.active ? 1 : 0, 1 - focus);
+      // Signal-to-noise: scrambled by default, gathering into legible form
+      // only once the mouse comes near the page's own center — a page-
+      // level pointer-position read (see pagePointer above), not scroll
+      // position and not hover over the mark itself. activity is scramble
+      // *target*: 1 (fully scrambled) far from center or with no pointer
+      // at all, easing toward 0 (gathered) as the pointer nears the middle
+      // of the viewport.
+      let activity: number;
+      if (isTouchDevice) {
+        // No pointer to read on touch — a one-time, fixed-duration reveal
+        // instead: fully scrambled the instant this slide becomes visible
+        // (mobileRevealStartedAt is (re)armed by the IntersectionObserver
+        // below each time it re-enters view), easing to fully gathered
+        // over MOBILE_GATHER_MS, then holding there.
+        const elapsed = now - mobileRevealStartedAt;
+        activity = 1 - Math.min(Math.max(elapsed / MOBILE_GATHER_MS, 0), 1);
+      } else {
+        const radius = Math.min(window.innerWidth, window.innerHeight) * GATHER_RADIUS_FACTOR;
+        const dist = Math.abs(pagePointer.y - window.innerHeight / 2);
+        const centerProximity = pagePointer.active ? Math.max(0, 1 - dist / radius) : 0;
+        activity = 1 - centerProximity;
+      }
       scrambleStrength += (activity - scrambleStrength) * Math.min(dt * 5.5, 1);
 
       const isNowActive = scrambleStrength > 0.12;
@@ -119,20 +186,6 @@ export default function AsciiLogo() {
         lastActiveState = isNowActive;
         setIsActive(isNowActive);
       }
-
-      // Both of these are continuous functions of scrambleStrength itself —
-      // no gating on isNowActive — so they ease down smoothly as strength
-      // decays instead of hard-cutting to 0 the instant it crosses the
-      // 0.12 threshold, which read as a rough snap.
-      const bleed = scrambleStrength * 140;
-      // Symmetric growth needs width + a half-bleed shift, not equal
-      // negative margins on both sides: in normal block flow (this section
-      // isn't a flex row), margin-left moves the box itself while
-      // margin-right only affects spacing after it — so marginLeft ===
-      // marginRight only ever bled the mark to the left, never evenly.
-      stage.style.width = `calc(100% + ${bleed.toFixed(2)}px)`;
-      stage.style.marginLeft = `${(-bleed / 2).toFixed(2)}px`;
-      stage.style.transform = `translateX(${(Math.sin(now * 0.0012) * scrambleStrength * 4).toFixed(2)}px)`;
 
       if (now - lastScrambleAt > SCRAMBLE_INTERVAL_MS) {
         // No constant floor here: at scrambleStrength 0 this must reach
@@ -202,12 +255,20 @@ export default function AsciiLogo() {
           0.35 *
           scrambleStrength;
 
+        // Cursor Y only (which row it's near), never cursor X — a slat
+        // still only ever moves along its own horizontal axis (it's a
+        // single-row-tall horizontal bar, see hinside-mark-geometry.ts),
+        // so "direction" can't come from cursor X anymore; it's now the
+        // slat's own fixed side of center, giving a symmetric part-down-
+        // the-middle ripple on whichever row(s) the cursor's height
+        // currently lines up with, regardless of how far left/right the
+        // pointer actually is.
         let hoverForce = 0;
         if (hover.active) {
-          const dx = slat.x + x + slat.w * 0.5 - hover.x;
-          const sigma = 9;
-          const influence = Math.exp(-(dx * dx) / (2 * sigma * sigma));
-          const direction = dx >= 0 ? 1 : -1;
+          const dy = slat.y - hover.y;
+          const sigma = 2;
+          const influence = Math.exp(-(dy * dy) / (2 * sigma * sigma));
+          const direction = slat.x + slat.w * 0.5 < VIEWBOX_WIDTH * 0.5 ? -1 : 1;
           hoverForce = direction * influence * (16 + 20 * scrambleStrength);
         }
 
@@ -249,10 +310,17 @@ export default function AsciiLogo() {
         }
       }
 
+      // Rows push apart from the mark's own vertical center as it
+      // scrambles — 0 extra spacing when fully gathered (idle rows sit
+      // exactly at their authored y), growing to ROW_SPREAD_MAX extra
+      // viewBox units between adjacent rows at full scramble.
+      const rowSpread = scrambleStrength * ROW_SPREAD_MAX;
       for (let i = 0; i < SLATS.length; i += 1) {
         const slat = SLATS[i];
         const text = textRefs.current[i];
-        if (text) text.setAttribute("x", (slat.x + offsets[i]).toFixed(3));
+        if (!text) continue;
+        text.setAttribute("x", (slat.x + offsets[i]).toFixed(3));
+        text.setAttribute("y", (slat.y + rowCenterFactor[i] * rowSpread + 0.84).toFixed(3));
       }
 
       if (isRunning) rafId = window.requestAnimationFrame(tick);
@@ -274,8 +342,17 @@ export default function AsciiLogo() {
     // page load, since the idle drift term never settles to exactly zero.
     const intersectionObserver = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) startLoop();
-        else stopLoop();
+        if (entry.isIntersecting) {
+          // Re-arms the mobile timed reveal each time this slide comes
+          // back into view, rather than only once per page load — so
+          // scrolling away and back re-plays the scrambled->gathered
+          // moment instead of leaving it permanently settled after the
+          // first visit.
+          mobileRevealStartedAt = performance.now();
+          startLoop();
+        } else {
+          stopLoop();
+        }
       },
       { threshold: 0 },
     );
@@ -284,11 +361,12 @@ export default function AsciiLogo() {
     return () => {
       stopLoop();
       intersectionObserver.disconnect();
+      if (!isTouchDevice) window.removeEventListener("pointermove", onPagePointerMove);
       svg.removeEventListener("pointermove", onPointerMove);
       svg.removeEventListener("pointerenter", onPointerEnter);
       svg.removeEventListener("pointerleave", onPointerLeave);
     };
-  }, [rowGroups]);
+  }, [rowGroups, rowCenterFactor]);
 
   return (
     <div className="ascii-logo" role="img" aria-label="hinside">
@@ -330,24 +408,11 @@ export default function AsciiLogo() {
           overflow: visible;
         }
         .ascii-logo__stage {
-          /* Absolutely positioned so growing wider/taller during
-             interaction (the bleed effect) is purely visual overlay —
-             without this, the SVG's height growing with its width (it
-             keeps its aspect ratio) pushed the section below it down the
-             page in real time while hovering. */
           position: absolute;
           top: 0;
           left: 0;
           width: 100%;
           overflow: visible;
-          /* No CSS transition here: width, margin-left and transform are
-             all driven every frame straight from scrambleStrength, which
-             already eases smoothly on its own. A CSS transition on top of
-             that only added a second, differently-timed smoothing layer —
-             and since only margin/transform were listed (not width), that
-             mismatch was exactly why the mark drifted off-center and
-             "snapped" during settle instead of shrinking back in place. */
-          will-change: margin, transform;
         }
         .ascii-logo__svg {
           display: block;

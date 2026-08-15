@@ -58,8 +58,13 @@ export default function EyeCursorItem({
     const relativeY = pointerYRef.current - shellBounds.top;
     const frame = EYE_CURSOR_FRAMES[currentFrameRef.current] ?? EYE_CURSOR_FRAMES[0];
 
-    cursor.style.left = `${relativeX - frame.hotX}px`;
-    cursor.style.top = `${relativeY - frame.hotY}px`;
+    // transform, not left/top: this runs every rAF tick while the pointer
+    // moves, and left/top would force a layout reflow each frame on an
+    // element that also has backdrop-filter (below) — that combination is
+    // a known cause of visible flicker as the browser fights to keep the
+    // filtered backdrop in sync with a reflowing element. translate3d is
+    // compositor-only, so the same tracking never touches layout.
+    cursor.style.transform = `translate3d(${relativeX - frame.hotX}px, ${relativeY - frame.hotY}px, 0)`;
     shell.style.setProperty("--glint-x", `${relativeX}px`);
     shell.style.setProperty("--glint-y", `${relativeY}px`);
   };
@@ -72,6 +77,14 @@ export default function EyeCursorItem({
     cursor.style.width = `${frame.width}px`;
     cursor.style.height = `${frame.height}px`;
     cursor.style.backgroundImage = `url("${frame.src}")`;
+    // Masks the element to the same artwork used as its background — the
+    // eye glyph only fills part of its own bounding box (more so on the
+    // thin blink frames), and without this, backdrop-filter/mix-blend-mode
+    // below apply to that whole rectangle rather than just the visible
+    // shape, showing up as a grayscale/inverted block around the eye
+    // instead of hugging its outline.
+    cursor.style.maskImage = `url("${frame.src}")`;
+    cursor.style.setProperty("-webkit-mask-image", `url("${frame.src}")`);
     if (isImageHoveringRef.current) syncCursorPositionFromPointer();
   };
 
@@ -194,10 +207,10 @@ export default function EyeCursorItem({
           pointer-events: none;
           background:
             radial-gradient(120% 96% at var(--glint-x) var(--glint-y),
-              rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 32%,
-              rgba(255, 255, 255, 0.03) 52%, rgba(255, 255, 255, 0) 74%),
+              rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 32%,
+              rgba(255, 255, 255, 0.015) 52%, rgba(255, 255, 255, 0) 74%),
             radial-gradient(170% 120% at 50% 8%,
-              rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.06) 34%, rgba(255, 255, 255, 0) 72%);
+              rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 34%, rgba(255, 255, 255, 0) 72%);
           opacity: 0;
           transition: opacity var(--duration-slow) var(--ease-standard);
         }
@@ -214,23 +227,60 @@ export default function EyeCursorItem({
         }
         .eye-cursor-item__shell:hover::after,
         .eye-cursor-item__shell:focus-visible::after {
-          opacity: 0.78;
+          opacity: 0.5;
         }
         .eye-cursor-item__cursor {
+          /* Its size, sprite frame, and position are only ever set by the
+             mouse-pointer JS above (onPointerEnter/onPointerMove) — there's
+             no keyboard equivalent, so a stray :focus-visible rule that
+             also revealed this used to show whatever frame/position a
+             *previous* mouse hover had last left behind (sometimes a
+             mid-blink frame, i.e. a flat eyelid line) frozen in the wrong
+             spot the moment Tab landed on an item, with nothing to update
+             it since focus never runs the tracking loop. Visibility here is
+             mouse-hover-only for that reason; :focus-visible still gets its
+             own real feedback via the shell's box-shadow/glint rules below.
+          */
           position: absolute;
           left: 0;
           top: 0;
+          will-change: transform;
           z-index: 3;
           pointer-events: none;
           display: block;
           background-repeat: no-repeat;
           background-position: center;
           background-size: contain;
+          mask-repeat: no-repeat;
+          mask-position: center;
+          mask-size: contain;
+          -webkit-mask-repeat: no-repeat;
+          -webkit-mask-position: center;
+          -webkit-mask-size: contain;
           opacity: 0;
+          /* The sprite itself is solid white on transparent (see
+             cursor-frames.ts) — difference blending against whatever's
+             underneath means it self-inverts to black over light areas
+             and stays white over dark ones, so it never needs its own
+             light/dark variant and never disappears against a
+             light-colored image the way a plain white icon would.
+
+             difference is a per-channel operation, though: against a
+             colored backdrop (not just grayscale) it doesn't invert to
+             black/white, it inverts to that color's complement — a blue
+             area turned the cursor orange rather than gray. backdrop-
+             filter: grayscale(1) desaturates only the small patch directly
+             behind the cursor's own box *before* the blend runs, so
+             difference only ever has R=G=B values to invert against,
+             which always stays achromatic regardless of what's underneath
+             — without touching the actual image's own color anywhere
+             outside the cursor's tiny footprint. */
+          backdrop-filter: grayscale(1);
+          -webkit-backdrop-filter: grayscale(1);
+          mix-blend-mode: difference;
           transition: opacity 120ms var(--ease-standard);
         }
-        .eye-cursor-item__shell:hover ~ .eye-cursor-item__cursor,
-        .eye-cursor-item__shell:focus-visible ~ .eye-cursor-item__cursor {
+        .eye-cursor-item__shell:hover ~ .eye-cursor-item__cursor {
           opacity: 1;
         }
 

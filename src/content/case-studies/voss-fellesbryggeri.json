@@ -1,0 +1,214 @@
+{
+  "title": {
+    "no": "Voss Fellesbryggeri",
+    "en": "Voss Fellesbryggeri"
+  },
+  "description": {
+    "no": "Merkevare og emballasje for et bryggeri på Voss",
+    "en": "Brand and packaging for a brewery in Voss"
+  },
+  "client": "Voss Fellesbryggeri",
+  "studio": "Creuna Norway",
+  "categories": ["Visual identity", "Packaging", "3D visualisation"],
+  "accent": "#FF1493",
+  "cover": "projects/voss-fellesbryggeri/cover.png",
+  "coverAlt": {
+    "no": "Tre mørke ølflasker fra Voss Fellesbryggeri med håndtegnede etiketter og fargede kapsler",
+    "en": "Three dark glass Voss Fellesbryggeri beer bottles with hand-drawn labels and colored caps"
+  },
+  "sections": [
+    {
+      "id": "brief",
+      "heading": { "no": "Brief", "en": "Brief" },
+      "body": {
+        "no": [
+          "Voss har en sterk tradisjon for hjemmebrygget øl, men å bringe denne kulturen til et nasjonalt og internasjonalt publikum risikerte å gjøre den generisk. Identiteten måtte kommunisere opprinnelse og kvalitet, samtidig som den bevarte humoren, uformaliteten og den særegne måten folk fra Voss uttrykker seg på."
+        ],
+        "en": [
+          "Voss has a strong tradition of brewing homemade beer, but bringing that culture to a national and international audience risked making it feel generic. The identity needed to communicate provenance and quality while preserving the humour, informality and particular way people from Voss express themselves."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/voss-fellesbryggeri/cover.png",
+        "alt": {
+          "no": "Tre mørke ølflasker fra Voss Fellesbryggeri med håndtegnede etiketter og fargede kapsler",
+          "en": "Three dark glass Voss Fellesbryggeri beer bottles with hand-drawn labels and colored caps"
+        }
+      }
+    },
+    {
+      "id": "strategy",
+      "heading": { "no": "Strategi", "en": "Strategy" },
+      "body": {
+        "no": [
+          "I stedet for å polere bort det lokale særpreget, ble det gjort til selve styrken. Håndskrift, muntlige formuleringer og ekte vossamål ga identiteten en menneskelig stemme. Målet var å skape noe som føltes nært, sært og selvsikkert."
+        ],
+        "en": [
+          "Instead of polishing away the local character, it was turned into the very strength of the identity. Handwriting, spoken phrasing and genuine Vossa dialect gave the identity a human voice. The goal was to create something that felt close, distinctive and self-assured."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/voss-fellesbryggeri/sections/close-up.webp",
+        "alt": {
+          "no": "Nærbilde av en Voss Fellesbryggeri-flaske med håndtegnet gul typografi: «Du blir fort klar for ein Ljos Kos»",
+          "en": "Close-up of a Voss Fellesbryggeri bottle with hand-drawn yellow typography reading \"Du blir fort klar for ein Ljos Kos\""
+        }
+      }
+    },
+    {
+      "id": "result",
+      "heading": { "no": "Resultat", "en": "Result" },
+      "body": {
+        "no": [
+          "Resultatet ble en tydelig og frittalende identitet med sterk lokal forankring. I en kategori preget av etablerte koder og tradisjonell ølestetikk ble uttrykket et visuelt opprør i hyllene. Korte, svarte flasker, kontrastfarger, håndskrift og direkte språk ga sortimentet sterk gjenkjennelighet, samtidig som hver variant kunne ha sin egen personlighet uten å miste helheten."
+        ],
+        "en": [
+          "The result was a clear, outspoken identity with strong local roots. In a category shaped by established codes and traditional beer aesthetics, the expression became a visual revolt on the shelves. Short, black bottles, contrasting colours, handwriting and direct language gave the range strong recognisability, while each variant could carry its own personality without losing the whole."
+        ]
+      },
+      "media": {
+        "type": "carousel",
+        "shape": "square",
+        "colorful": true,
+        "items": [
+          { "src": "projects/voss-fellesbryggeri/bottles/1.png", "alt": "Black bottle labelled \"Traa\", hand-lettered in magenta with a matching cap" },
+          { "src": "projects/voss-fellesbryggeri/bottles/2.png", "alt": "Black bottle labelled \"Ei Bleik Ei Palmafossen\", hand-lettered in teal with a matching cap" },
+          { "src": "projects/voss-fellesbryggeri/bottles/3.png", "alt": "Black bottle labelled \"Ljos Kos\", hand-lettered in orange with a matching cap" },
+          { "src": "projects/voss-fellesbryggeri/bottles/4.png", "alt": "Black bottle labelled \"Kvit Øl i Myrkdalen\", hand-lettered in pale yellow-green with a matching cap" },
+          { "src": "projects/voss-fellesbryggeri/bottles/5.png", "alt": "Black bottle labelled \"Solnergang\", hand-lettered in red-orange with a matching cap" },
+          { "src": "projects/voss-fellesbryggeri/bottles/6.png", "alt": "Black bottle labelled \"Brukbar Jolagåva\", hand-lettered in red with a black cap" },
+          { "src": "projects/voss-fellesbryggeri/bottles/8.png", "alt": "Black bottle labelled \"Camping Øl\", hand-lettered in green with a matching cap" },
+          { "src": "projects/voss-fellesbryggeri/bottles/9.png", "alt": "Black bottle labelled \"Indisk Bleik\", hand-lettered in lavender with a matching cap" },
+          { "src": "projects/voss-fellesbryggeri/bottles/10.png", "alt": "Black bottle labelled \"Påsketur\", hand-lettered in gold with a matching cap" }
+        ]
+      }
+    },
+    {
+      "id": "spoken-like-voss",
+      "heading": { "no": "Vossamål", "en": "Vossa-speak" },
+      "body": {
+        "no": [
+          "Språket ble en like viktig del av identiteten som det visuelle. Korte uttrykk på ekte vossamål tok lokal humor direkte inn på flasker, glass og annet materiell. De skulle ikke bare informere, men skape reaksjon, starte samtaler og gi merkevaren en stemme som var vanskelig å forveksle med noen andre."
+        ],
+        "en": [
+          "Language became just as important a part of the identity as the visuals. Short sayings in genuine Vossa dialect brought local humour directly onto bottles, glasses and other materials. They were meant not just to inform, but to provoke a reaction, start conversations and give the brand a voice that was hard to mistake for anyone else's."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/voss-fellesbryggeri/sections/tone-of-voice.webp",
+        "alt": {
+          "no": "Nærbilde av Voss Fellesbryggeri-flasker med håndskrevet baksideetikett på ekte vossamål, signert av bryggmeister Rune Midttun",
+          "en": "Close-up of Voss Fellesbryggeri bottles with a handwritten back label in genuine Vossa dialect, signed by brewmaster Rune Midttun"
+        }
+      }
+    },
+    {
+      "id": "handwriting-as-identity",
+      "heading": { "no": "Håndskrift som kjernespråk", "en": "Handwriting as core language" },
+      "body": {
+        "no": [
+          "Håndskriften var ikke dekorasjon, men selve det grafiske språket. Den personlige og uperfekte kvaliteten stod i kontrast til mer polert ølemballasje og ga identiteten en tydelig menneskelig karakter. Det gjorde uttrykket anvendelig på alt fra etiketter til kommunikasjon og objekter."
+        ],
+        "en": [
+          "The handwriting wasn't decoration, but the graphic language itself. Its personal, imperfect quality stood in contrast to more polished beer packaging and gave the identity a clearly human character. That made the expression applicable to everything from labels to communication and objects."
+        ]
+      },
+      "media": {
+        "type": "gallery",
+        "items": [
+          {
+            "src": "projects/voss-fellesbryggeri/sections/handwriting.webp",
+            "alt": "A sketchbook with hand-lettered Voss Fellesbryggeri logos and product names like \"Slalom Porter\", \"Kvit øl\" and \"Traa\", with marker pens resting beside it"
+          },
+          {
+            "src": "projects/voss-fellesbryggeri/sections/t-shirt.webp",
+            "alt": "Black t-shirts printed with the same hand-lettered typography — \"Kvit øl i Myrkdalen\" and \"Traa\" — extending the handwriting system onto merchandise"
+          },
+          {
+            "src": "projects/voss-fellesbryggeri/sections/applications.webp",
+            "alt": "Stationery flatlay with Voss Fellesbryggeri letterhead, envelopes and hand-lettered coasters printed with product names, alongside pencils and bottle caps"
+          }
+        ]
+      }
+    },
+    {
+      "id": "black-bottles-loud-labels",
+      "heading": { "no": "Emballasje med karaktér", "en": "Packaging with character" },
+      "body": {
+        "no": [
+          "De kompakte, svarte flaskene ga sortimentet en sterk og konsekvent silhuett. Kontrastfargene skilte variantene fra hverandre, mens treemballasjen videreførte det taktile og ukompliserte uttrykket. Materialer og form ble dermed en aktiv del av identiteten, ikke bare noe grafikken ble plassert på."
+        ],
+        "en": [
+          "The compact, black bottles gave the range a strong, consistent silhouette. Contrasting colours told the variants apart, while the wooden packaging carried the tactile, uncomplicated expression further. Materials and form became an active part of the identity, not just something the graphics were placed on."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/voss-fellesbryggeri/sections/crate.webp",
+        "alt": {
+          "no": "Voss Fellesbryggeri-flasker med fargede kapsler ved siden av en trekasse, med et fylt ølglass til høyre",
+          "en": "Voss Fellesbryggeri bottles with coloured caps beside a wooden crate, with a filled beer glass to the right"
+        }
+      }
+    },
+    {
+      "id": "brewed-by-people",
+      "heading": { "no": "Humor med en funksjon", "en": "Humour with a function" },
+      "body": {
+        "no": [
+          "Formuleringer som «Brygga av folk som trass alt har drukke ein del øl» oppsummerte mye av holdningen i prosjektet. Humoren gjorde merkevaren mer tilgjengelig og minneverdig, men fungerte også som et signal om selvtillit. Voss Fellesbryggeri tok produktet på alvor uten å måtte ta seg selv høytidelig."
+        ],
+        "en": [
+          "Phrases like \"Brewed by people who, after all, have drunk a fair bit of beer\" summed up much of the project's attitude. The humour made the brand more approachable and memorable, but also worked as a signal of confidence. Voss Fellesbryggeri took the product seriously without having to take itself too seriously."
+        ]
+      },
+      "media": {
+        "type": "image",
+        "src": "projects/voss-fellesbryggeri/sections/business-cards.webp",
+        "alt": {
+          "no": "Svarte visittkort med håndskrevne uttrykk på vossamål, deriblant «Brygga av folk som trass alt har drukke ein del øl», ved siden av en trekasse og en Slalom Porter-flaske",
+          "en": "Black business cards with handwritten Vossa dialect phrases, including \"Brygga av folk som trass alt har drukke ein del øl\", beside a wooden crate and a Slalom Porter bottle"
+        }
+      }
+    }
+  ],
+  "credits": [
+    {
+      "role": { "no": "Designbyrå", "en": "Design studio" },
+      "name": { "no": "Creuna Norway (nå Knowit Experience)", "en": "Creuna Norway (now Knowit Experience)" }
+
+    },
+    {
+      "role": { "no": "Konsept, design og foto", "en": "Concept, design and photography" },
+      "name": "Stein Øvre"
+    },
+    {
+      "role": { "no": "Konsept og design", "en": "Concept and design" },
+      "name": "Marc Ligeti"
+    },
+    {
+      "role": { "no": "Konsept og tekst", "en": "Concept and copy" },
+      "name": "Olav Nausthaug"
+    },
+    {
+      "role": { "no": "Konsept og tekst", "en": "Concept and copy" },
+      "name": "Arne Hjeltnes"
+    },
+    {
+      "role": { "no": "Visualisering", "en": "Visualisation" },
+      "name": "Sindre Dahl"
+    },
+    {
+      "role": { "no": "Konsept, tekst og visualisering", "en": "Concept, copy and visualisation" },
+      "name": "Sebastian Reed"
+    },
+    {
+      "role": { "no": "Prosjektledelse", "en": "Project management" },
+      "name": "Anne Kindem"
+    }
+  ],
+  "featured": true
+}

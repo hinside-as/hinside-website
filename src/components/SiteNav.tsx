@@ -34,38 +34,6 @@ export default function SiteNav({
     };
   }, [isOpen]);
 
-  // Active section state — same IntersectionObserver approach as
-  // AnchorMenu.astro (the case-study page's section nav), ported here
-  // rather than shared, since it's small and the two live in different
-  // component types (Astro vs. React island).
-  useEffect(() => {
-    const anchors = Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-nav-hash]"));
-    const tracked = anchors
-      .map((anchor) => ({ anchor, section: document.getElementById(anchor.dataset.navHash ?? "") }))
-      .filter((entry): entry is { anchor: HTMLAnchorElement; section: HTMLElement } => entry.section !== null);
-
-    if (tracked.length === 0) return;
-
-    const setActive = (id: string) => {
-      for (const { anchor } of tracked) {
-        anchor.dataset.active = String(anchor.dataset.navHash === id);
-      }
-    };
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((entry) => entry.isIntersecting);
-        if (visible.length === 0) return;
-        const topMost = visible.reduce((a, b) => (a.boundingClientRect.top < b.boundingClientRect.top ? a : b));
-        setActive(topMost.target.id);
-      },
-      { rootMargin: "-20% 0px -70% 0px" },
-    );
-
-    tracked.forEach(({ section }) => observer.observe(section));
-    return () => observer.disconnect();
-  }, [links]);
-
   return (
     <nav className="site-nav" aria-label="Main">
       <ul className="site-nav__desktop">
@@ -96,7 +64,11 @@ export default function SiteNav({
           <ul>
             {links.map((link) => (
               <li key={link.href}>
-                <a href={link.href} data-nav-hash={link.href.split("#")[1]} onClick={() => setIsOpen(false)}>
+                <a
+                  href={link.href}
+                  data-nav-hash={link.href.split("#")[1]}
+                  onClick={() => setIsOpen(false)}
+                >
                   {link.label}
                 </a>
               </li>
@@ -119,16 +91,12 @@ export default function SiteNav({
         .site-nav__desktop a {
           text-decoration: none;
           font-size: var(--text-sm);
-          opacity: 1;
-          transition: opacity var(--duration-fast) var(--ease-standard);
+          opacity: 0.7;
+          transition: opacity var(--duration-base) var(--ease-standard);
         }
         .site-nav__desktop a:hover,
         .site-nav__desktop a:focus-visible {
-          opacity: 0.75;
-        }
-        .site-nav__desktop a[data-active="true"] {
-          text-decoration: underline;
-          text-underline-offset: 0.3em;
+          opacity: 1;
         }
         .site-nav__toggle {
           background: none;
@@ -163,16 +131,12 @@ export default function SiteNav({
           text-decoration: none;
           font-size: var(--text-2xl);
           color: var(--color-fg);
-          opacity: 1;
-          transition: opacity var(--duration-fast) var(--ease-standard);
+          opacity: 0.7;
+          transition: opacity var(--duration-base) var(--ease-standard);
         }
         .site-nav__panel a:hover,
         .site-nav__panel a:focus-visible {
-          opacity: 0.75;
-        }
-        .site-nav__panel a[data-active="true"] {
-          text-decoration: underline;
-          text-underline-offset: 0.3em;
+          opacity: 1;
         }
         @media (min-width: 48rem) {
           .site-nav__desktop {

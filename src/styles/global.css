@@ -6,8 +6,48 @@
   box-sizing: border-box;
 }
 
+/* background matches body's own var(--color-bg) explicitly, not just
+   inherited — html and body can paint as separate layers during fast
+   scroll/overscroll (the rubber-band bounce past the top/bottom edge, or
+   sub-pixel gaps mid-scroll), and without this, whatever gap appears
+   reveals html's own default canvas instead of body's dark background —
+   which, combined with color-scheme: light dark telling the browser this
+   page supports a light UA rendering, showed up as a flickering light
+   hairline right at the scroll edge. */
 html {
+  background: var(--color-bg);
   color-scheme: light dark;
+}
+
+/* Opt-in for case-study pages' full-bleed slide sections (see
+   CaseStudyExperience.tsx's .cse__step) — native scroll-snap on the real
+   document scroller, not a nested overflow:auto container: no scrolling is
+   ever intercepted or hijacked, the browser's own wheel/trackpad/touch/
+   keyboard scrolling physics are untouched, CSS just states where a
+   deliberate scroll gesture should come to rest. Disabled under reduced
+   motion, where a user has asked for the least surprising scroll behavior.
+
+   `mandatory`, not `proximity`: this template's whole premise is a series
+   of distinct full-bleed slides, so landing stuck between two of them —
+   which real hardware testing confirmed `proximity` allows, since it only
+   aligns when a scroll already happens to land close to a snap point — is
+   a worse, more visibly broken outcome than mandatory's own known
+   trade-off (a low-resolution mouse wheel sending one small, isolated
+   deltaY per physical click can need a second scroll input to fully
+   commit past the halfway point, since mandatory corrects back to the
+   nearest point after each separate small input). Continuous input —
+   trackpad momentum, touch, a modern high-resolution mouse, a fast
+   flick — carries enough distance/velocity in one gesture to cross that
+   threshold and always behaves natively; this is a documented, accepted
+   trade-off for the one discrete-low-resolution-wheel edge case, not an
+   oversight. */
+html[data-scroll-snap="true"] {
+  scroll-snap-type: y mandatory;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-scroll-snap="true"] {
+    scroll-snap-type: none;
+  }
 }
 
 body {
@@ -45,6 +85,7 @@ h3 {
   font-family: var(--font-display);
   letter-spacing: var(--tracking-tight);
   font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
 }
 
 /* Falls back to a neutral grey, not the brand accent — STYLE.md is

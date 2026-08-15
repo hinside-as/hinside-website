@@ -25,9 +25,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return new Response(JSON.stringify({ error: "Invalid request body" }), { status: 400 });
   }
 
-  const name = typeof body.name === "string" ? body.name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
-  const subject = typeof body.subject === "string" ? body.subject.trim() : "";
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const honeypot = typeof body.company === "string" ? body.company.trim() : "";
 
@@ -36,7 +34,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   }
 
-  if (!name || !email || !subject || !message) {
+  if (!email || !message) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
   }
 
@@ -54,11 +52,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       from: FROM_ADDRESS,
       to: [TO_ADDRESS],
       reply_to: email,
-      subject: `[hinside.as] ${subject}`,
+      subject: "[hinside.as] New message",
       html: `
-        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-        <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
         <p><strong>Message:</strong></p>
         <p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>
       `,

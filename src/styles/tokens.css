@@ -85,15 +85,12 @@
   --header-height: 4.5rem;
   --content-max-width: 90rem;
 
-  /* Brand mark size — the wordmark's native pixel-block art is a 112×13
-     viewBox, so it's sized as exact integer multiples of that (2x / 1x)
-     rather than an arbitrary rem value, or block edges land on
-     sub-pixels and anti-alias into a soft blur instead of staying crisp.
-     Shared by the header and footer so both stay identical. */
-  --brand-mark-width: 224px;
-  --brand-mark-height: 26px;
-  --brand-mark-width-sm: 112px;
-  --brand-mark-height-sm: 13px;
+  /* Brand mark size — rendered at its native 112×13 pixel-block art size
+     (not scaled up), so block edges land on whole pixels and stay crisp
+     rather than anti-aliasing into a soft blur. Shared by the header and
+     footer so both stay identical, at every breakpoint. */
+  --brand-mark-width: 112px;
+  --brand-mark-height: 13px;
 }
 
 :root[data-theme="light"] {

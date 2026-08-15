@@ -4,9 +4,24 @@ import { localizedPath, type Locale } from "../i18n/utils";
 
 type Props = {
   locale: Locale;
+  /** Case-study pages want the footer to read as the same continuous black
+   * surface as the header/sidebar above it, with no hairline breaking that
+   * up — elsewhere on the site the border is the intended separator between
+   * page content and footer. */
+  noBorder?: boolean;
+  /** Case-study pages' sidebar uses --space-5 horizontal padding (wider than
+   * the site's usual --space-4), so the footer's brand mark below it needs
+   * the same value to keep both flush with the same left edge. */
+  wideMargin?: boolean;
+  /** Homepage-only: on mobile, the footer becomes its own full-height,
+   * scroll-snapped slide instead of trailing content below the last one —
+   * matching the "one idea per slide" pattern the rest of the homepage
+   * already uses there. Not used on case-study pages, which handle the
+   * last-slide-plus-footer relationship differently (see .cse__promo). */
+  fullSlideMobile?: boolean;
 };
 
-const { locale } = Astro.props;
+const { locale, noBorder = false, wideMargin = false, fullSlideMobile = false } = Astro.props;
 
 const socials = [
   { label: "LinkedIn", href: "https://www.linkedin.com/company/hinside" },
@@ -16,62 +31,77 @@ const socials = [
 ];
 ---
 
-<footer class="site-footer">
+<footer
+  class="site-footer"
+  data-no-border={noBorder ? "true" : undefined}
+  data-wide-margin={wideMargin ? "true" : undefined}
+  data-full-slide-mobile={fullSlideMobile ? "true" : undefined}
+>
   <div class="site-footer__brand">
     <div class="site-footer__mark">
       <BrandMark href={localizedPath(locale, "/")} />
     </div>
   </div>
 
-  <div class="site-footer__contact">
-    <a href="mailto:hei@hinside.as">hei@hinside.as</a>
-    <a href="tel:+4746661240">+47 466 61 240</a>
-    <span>Verkstedveien 13</span>
-    <a href="https://virksomhet.brreg.no/nb/oppslag/enheter/937170602" target="_blank" rel="noopener noreferrer">
-      937 170 602 MVA
-    </a>
-  </div>
+  <div class="site-footer__text">
+    <div class="site-footer__contact">
+      <a href="mailto:hei@hinside.as">hei@hinside.as</a>
+      <a href="tel:+4746661240">+47 466 61 240</a>
+      <a
+        href="https://www.google.com/maps/search/?api=1&query=Verkstedveien+13%2C+6517+Kristiansund+N"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Verkstedveien 13
+      </a>
+      <a href="https://virksomhet.brreg.no/nb/oppslag/enheter/937170602" target="_blank" rel="noopener noreferrer">
+        937 170 602 MVA
+      </a>
+    </div>
 
-  <div class="site-footer__socials">
-    {socials.map((social) => (
-      <a href={social.href} target="_blank" rel="noopener noreferrer">{social.label}</a>
-    ))}
+    <div class="site-footer__socials">
+      {socials.map((social) => (
+        <a href={social.href} target="_blank" rel="noopener noreferrer">{social.label}</a>
+      ))}
+    </div>
   </div>
 </footer>
 
 <style>
   .site-footer {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: var(--space-5);
     padding: var(--space-6) var(--space-4);
     border-top: 1px solid var(--color-border);
     color: var(--color-fg-muted);
     font-size: var(--text-sm);
   }
+  .site-footer[data-no-border="true"] {
+    border-top: none;
+  }
   .site-footer a {
     color: var(--color-fg);
     text-decoration: none;
-    opacity: 1;
-    transition: opacity var(--duration-fast) var(--ease-standard);
+    opacity: 0.7;
+    transition: opacity var(--duration-base) var(--ease-standard);
   }
   .site-footer a:hover,
   .site-footer a:focus-visible {
-    opacity: 0.75;
+    opacity: 1;
   }
   .site-footer__brand {
     display: flex;
     align-items: center;
   }
   .site-footer__mark {
-    width: var(--brand-mark-width-sm);
-    height: var(--brand-mark-height-sm);
+    width: var(--brand-mark-width);
+    height: var(--brand-mark-height);
   }
-  @media (min-width: 48rem) {
-    .site-footer__mark {
-      width: var(--brand-mark-width);
-      height: var(--brand-mark-height);
-    }
+  .site-footer__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
   }
   .site-footer__contact,
   .site-footer__socials {
@@ -79,10 +109,39 @@ const socials = [
     flex-direction: column;
     gap: var(--space-2);
   }
+  /* Contact and socials are grouped in .site-footer__text (a nested flex
+     with its own, tighter gap) rather than each getting an equal 1fr grid
+     column — that previously left contact stranded in the middle third of
+     the row. Grouping them and pushing the group to the far end with
+     justify-content:space-between reads as one cluster near the right
+     edge, balancing the brand mark on the left. */
   @media (min-width: 48rem) {
     .site-footer {
-      grid-template-columns: 1fr 1fr 1fr;
+      flex-direction: row;
+      justify-content: space-between;
       align-items: start;
+    }
+    .site-footer__text {
+      flex-direction: row;
+      gap: var(--space-6);
+    }
+  }
+  @media (min-width: 60rem) {
+    .site-footer[data-wide-margin="true"] {
+      padding-inline: var(--space-5);
+    }
+  }
+  /* Same breakpoint PortfolioCarousel's own touch override and
+     HomeExperience's .hs__contact mobile split already use, for one
+     consistent "mobile" width across the site. justify-content:center
+     (on top of the existing column layout) centers the brand mark + text
+     block vertically within the full slide, matching every .hs__step. */
+  @media (max-width: 720px) {
+    .site-footer[data-full-slide-mobile="true"] {
+      min-height: 100dvh;
+      justify-content: center;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
     }
   }
 </style>

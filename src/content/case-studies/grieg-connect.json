@@ -3,12 +3,12 @@
     "no": "Grieg Connect",
     "en": "Grieg Connect"
   },
-  "dek": {
-    "no": "Et skalerbart designfundament for maritim programvare, som knytter sammen produktdesign, visuell identitet og kommunikasjon på tvers av Grieg Connect-økosystemet.",
-    "en": "A scalable design foundation for maritime software, connecting product design, visual identity and communication across the Grieg Connect ecosystem."
+  "description": {
+    "no": "Skalerbart designsystem for maritim programvare",
+    "en": "A scalable design system for maritime software"
   },
   "client": "Grieg Connect",
-  "year": 2025,
+  "categories": ["Visual identity", "Digital", "Illustration"],
   "accent": "#126CB2",
   "cover": "projects/grieg-connect/cover.png",
   "coverAlt": {
@@ -23,15 +23,15 @@
     {
       "id": "context",
       "heading": {
-        "no": "Kontekst",
-        "en": "Context"
+        "no": "Brief",
+        "en": "Brief"
       },
       "body": {
         "no": [
-          "Grieg Connect utvikler digitale verktøy for havner, terminaler og maritim logistikk. Som Head of Design jobbet jeg på tvers av produkter som Plan, Port, Predict, Security, Terminal og Traffic. Utfordringen var å skape et tydeligere designspråk på tvers av en voksende produktportefølje, samtidig som hvert produkts brukere, arbeidsflyter og tekniske rammer ble ivaretatt."
+          "Grieg Connect utvikler digitale verktøy for havner, terminaler og maritim logistikk og sikkerhet. Da to selskaper ble slått sammen til Grieg Connect, besto porteføljen av seks produkter med totalt forskjellig uttrykk, interaksjonsprinsipper og teknologisk arkitektur. Utfordringen var å samle dette i en helhetlig produktportefølje."
         ],
         "en": [
-          "Grieg Connect develops digital tools for ports, terminals and maritime logistics. As Head of Design, I worked across products including Plan, Port, Predict, Security, Terminal and Traffic. The challenge was to create a clearer design language across a growing product portfolio, while respecting each product's users, workflows and technical constraints."
+          "Grieg Connect develops digital tools for ports, terminals, maritime logistics and security. When two companies merged to form Grieg Connect, the portfolio consisted of six products with completely different visual expression, interaction principles and technical architecture. The challenge was to bring this together into a cohesive product portfolio."
         ]
       },
       "media": {
@@ -51,19 +51,27 @@
       },
       "body": {
         "no": [
-          "Strategien var å bygge et felles designfundament som kunne skalere på tvers av flere produkter uten å bli for rigid. Vi jobbet med UX/UI, komponenter, visuelle systemer, ikonografi og produktkommunikasjon, med fokus på klarhet, konsistens og teknisk realisme. Målet var å løse problemer én gang, og deretter gjenbruke gode mønstre på tvers av det bredere økosystemet."
+          "Strategien var å samle produktene rundt et tydeligere felles språk. Produktnavn og kommunikasjon skulle bli lettere å forstå, det visuelle uttrykket mer helhetlig og interaksjonen vennlig og konsistent. Komponenter og løsninger utviklet for ett produkt skulle gi verdi til alle team og hele produktlinjen. Et fleksibelt rammeverk skulle gjøre det mulig å bygge videre raskere etter hvert som systemet vokste."
         ],
         "en": [
-          "The strategy was to build a shared design foundation that could scale across several products without becoming too rigid. We worked with UX/UI, components, visual systems, iconography and product communication, focusing on clarity, consistency and technical realism. The goal was to solve problems once, then reuse good patterns across the wider ecosystem."
+          "The strategy was to bring the products together around a clearer shared language. Product names and communication were to become easier to understand, the visual expression more cohesive, and the interaction friendly and consistent. Components and solutions developed for one product were meant to bring value to every team and the whole product line. A flexible framework would make it possible to build faster as the system grew."
         ]
       },
       "media": {
-        "type": "image",
-        "src": "projects/grieg-connect/sections/section-strategy-port-vessel.png",
-        "alt": {
-          "no": "Skjermbilde av Port-produktet med et fartøy valgt og detaljer i sidepanelet",
-          "en": "Screenshot of the Port product with a vessel selected and details in the side panel"
-        }
+        "type": "gallery",
+        "items": [
+          {
+            "src": "/media/projects/grieg-connect/sections/brand-hierarchy-2-desktop.svg",
+            "mobileSrc": "/media/projects/grieg-connect/sections/brand-hierarchy-2-mobile.svg",
+            "alt": "Grieg Connect brand hierarchy diagram on a dark background, showing the master brand connected to six sub-products: Plan, Port, Predict, Security, Terminal and Traffic"
+          },
+          {
+            "src": "projects/grieg-connect/sections/splash-2.png",
+            "alt": "Terminal product splash screen on a dark background, showing the Terminal icon and wordmark, a loading indicator, version and copyright text, and the Grieg Connect logo",
+            "padded": true,
+            "background": "#141414"
+          }
+        ]
       }
     },
     {
@@ -74,19 +82,22 @@
       },
       "body": {
         "no": [
-          "Arbeidet skapte et fundament der mønstre utviklet for ett produkt kunne komme hele økosystemet til gode. Dette gjorde produktutviklingen mer effektiv, reduserte gjentatt designarbeid og forbedret konsistensen. Internt bidro det sterkere designspråket også til økt trivsel, stolthet og trygghet blant ansatte, ved å gi teamene en mer profesjonell og gjenkjennelig produktopplevelse å representere."
+          "Produktene fikk et tydeligere slektskap, både visuelt og i måten de fungerte på. God dokumentasjon og felles ressursbiblioteker gjorde videre utvikling raskere, samtidig som designforståelsen på tvers av team økte. En sterkere forståelse for brukernes utfordringer bidro til bedre beslutninger. Samtidig vokste ambisjonene og selvtilliten internt, i takt med at porteføljen fremsto mer helhetlig, gjennomtenkt og profesjonell."
         ],
         "en": [
-          "The work created a foundation where patterns developed for one product could benefit the entire ecosystem. This made product development more efficient, reduced repeated design effort and improved consistency. Internally, the stronger design language also helped increase employee satisfaction, pride and confidence by giving teams a more professional and recognizable product experience to represent."
+          "The products gained a clearer kinship, both visually and in how they worked. Good documentation and shared resource libraries made further development faster, while design understanding across teams grew. A stronger grasp of users' challenges contributed to better decisions. At the same time, ambitions and confidence grew internally, as the portfolio came across as more cohesive, considered and professional."
         ]
       },
       "media": {
-        "type": "image",
-        "src": "projects/grieg-connect/sections/section-result-port-details.png",
-        "alt": {
-          "no": "Skjermbilde av Port-produktet med utvidet detaljvisning for et fartøy",
-          "en": "Screenshot of the Port product with an expanded detail view for a vessel"
-        }
+        "type": "gallery",
+        "items": [
+          {
+            "src": "/media/projects/grieg-connect/sections/port-1.svg",
+            "alt": "Screenshot of the Port product showing a mooring plan editor with an interactive map, mooring device markers, and a details panel",
+            "padded": true,
+            "background": "#141414"
+          }
+        ]
       }
     },
     {
@@ -364,7 +375,12 @@
             "alt": "Grieg Connect team portrait 24"
           }
         ],
-        "shape": "circle"
+        "shape": "circle",
+        "trailingImage": {
+          "src": "projects/grieg-connect/sections/email-signature.png",
+          "alt": "An email signature featuring a Grieg Connect portrait illustration, the Grieg Connect logo, name, title and contact details",
+          "padded": true
+        }
       }
     },
     {
@@ -523,7 +539,7 @@
         "no": "Head of design",
         "en": "Head of design"
       },
-      "name": "Sindre Martin Dahl"
+      "name": "Sindre Dahl"
     },
     {
       "role": {

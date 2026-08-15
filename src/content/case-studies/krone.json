@@ -1,0 +1,190 @@
+{
+  "title": {
+    "no": "Krone",
+    "en": "Krone"
+  },
+  "description": {
+    "no": "Merkevare og emballasje for en økologisk norsk øl",
+    "en": "Brand and packaging for an organic Norwegian beer"
+  },
+  "client": "Norbrew",
+  "studio": "Creuna Norway",
+  "categories": ["Packaging", "3D visualisation"],
+  "accent": "#B8860B",
+  "cover": "projects/krone/cover.png",
+  "coverAlt": {
+    "no": "To Krone-flasker i mattslipt glass, grønn pilsner og brun bayer, på gullfargede sokler",
+    "en": "Two frosted-glass Krone bottles, a green pilsner and a brown bayer, on gold pedestals"
+  },
+  "sections": [
+    {
+      "id": "problem",
+      "heading": { "no": "Brief", "en": "Brief" },
+      "body": {
+        "no": [
+          "Krone skulle inn i et marked dominert av etablerte norske ølmerker, og måtte fremstå troverdig uten å bli konvensjonell. Som et økologisk produkt måtte den også unngå det forutsigbare visuelle språket til øko-emballasje. Den foreslåtte matte flasken var en ytterligere utfordring, og krevde at produsenten utviklet nye produksjonsmetoder."
+        ],
+        "en": [
+          "Krone was entering a market dominated by established Norwegian beer brands and needed to feel credible without looking conventional. As an organic product, it also had to avoid the predictable visual language of eco-packaging. The proposed frosted bottle added a further challenge, requiring the manufacturer to develop new production methods."
+        ]
+      }
+    },
+    {
+      "id": "strategy",
+      "heading": { "no": "Strategi", "en": "Strategy" },
+      "body": {
+        "no": [
+          "Strategien var å gjøre enkelhet særpreget. Kjente ølsignaler som dype farger og gull ble kombinert med et langt mer redusert uttrykk. 3D-visualisering gjorde det mulig å vurdere designet som et fysisk objekt, og samlet glass, væske, typografi, trykk og materialoverflater før produksjon."
+        ],
+        "en": [
+          "The strategy was to make simplicity distinctive. Familiar beer cues such as deep colours and gold were combined with a much more reduced expression. 3D visualisation helped evaluate the design as a physical object, bringing glass, liquid, typography, print and material finishes together before production."
+        ]
+      }
+    },
+    {
+      "id": "result",
+      "heading": { "no": "Resultat", "en": "Result" },
+      "body": {
+        "no": [
+          "Den ferdige identiteten brukte mattslipt glass, direkte silketrykk og ekte gull, der den roterte E-en danner en krone inne i Krone-logotypen. Den uvanlige flasken ble den sterkeste delen av identiteten, og bidro til at merkevaren skilte seg ut gjennom materialkarakter fremfor dekorasjon."
+        ],
+        "en": [
+          "The finished identity used frosted glass, direct silkscreen printing and real gold, with the rotated E forming a crown inside the Krone wordmark. The unusual bottle became the strongest part of the identity and helped the brand stand apart through material character rather than decoration."
+        ]
+      }
+    },
+    {
+      "id": "before-the-bottle-existed",
+      "heading": { "no": "Før flasken eksisterte", "en": "Before the bottle existed" },
+      "body": {
+        "no": [
+          "Emballasjen ble visualisert før ferdige flasker fantes. Dette lot teamet undersøke proporsjoner, materialer, transparens og grafisk plassering langt tidligere, og gjorde renderingen til en slags før-produksjonsprototype fremfor bare et endelig presentasjonsbilde."
+        ],
+        "en": [
+          "The packaging was visualised before finished bottles were available. This allowed the team to examine proportions, materials, transparency and graphic placement much earlier, turning the render into a form of pre-production prototype rather than simply a final presentation image."
+        ]
+      }
+    },
+    {
+      "id": "a-shared-vision",
+      "heading": { "no": "En felles visjon", "en": "A shared vision" },
+      "body": {
+        "no": [
+          "Den matte flasken krevde at produsenten utviklet en ny måte å skape den tiltenkte overflaten på. 3D-visualiseringene ga Creuna, Norbrew og produsenten en felles referanse, og bidro til å oversette designernes visuelle intensjon til noe konkret nok til å diskutere, videreutvikle og produsere."
+        ],
+        "en": [
+          "The frosted bottle required the manufacturer to develop a new way of producing the intended finish. The 3D visualisations gave Creuna, Norbrew and the manufacturer a common reference, helping translate the designers' visual intention into something concrete enough to discuss, refine and manufacture."
+        ]
+      }
+    },
+    {
+      "id": "materials-in-context",
+      "heading": { "no": "Materialer i kontekst", "en": "Materials in context" },
+      "body": {
+        "no": [
+          "Mattslipt glass, øl, metallisk gull og direktetrykk oppfører seg alle ulikt i lys. 3D gjorde det mulig å se disse materialene fungere sammen, i stedet for å vurdere dem hver for seg gjennom prøver, tegninger og spesifikasjoner."
+        ],
+        "en": [
+          "Frosted glass, beer, metallic gold and direct printing all behave differently under light. 3D made it possible to see these materials working together instead of judging them through isolated swatches, drawings and specifications."
+        ]
+      }
+    },
+    {
+      "id": "earlier-decisions",
+      "heading": { "no": "Tidligere beslutninger", "en": "Earlier decisions" },
+      "body": {
+        "no": [
+          "Emballasje blir stadig dyrere å endre etter at verktøy, prøver og produksjon er satt i gang. Digitale modeller gjorde det mulig å justere materialer, farger, grafikk og overflater tidligere, og bidro til å løse visuelle spørsmål før man forpliktet seg til dyrere fysiske trinn."
+        ],
+        "en": [
+          "Packaging becomes increasingly expensive to change once tooling, samples and production begin. Digital models allowed materials, colours, graphics and finishes to be adjusted earlier, helping resolve visual questions before committing to more costly physical stages."
+        ]
+      }
+    },
+    {
+      "id": "approval-before-production",
+      "heading": { "no": "Godkjenning før produksjon", "en": "Approval before production" },
+      "body": {
+        "no": [
+          "Realistiske produktbilder kunne lages mens produksjonen fortsatt pågikk. Det betydde at presentasjoner og materiell knyttet til Vinmonopolet kunne gå videre før ferdige flasker forelå, slik at godkjenning, produksjon og kommunikasjon kunne overlappe fremfor å skje strengt etter hverandre."
+        ],
+        "en": [
+          "Realistic product imagery could be created while manufacturing was still underway. This meant presentations and material connected to Vinmonopolet could move forward before finished bottles were available, allowing approval, production and communication to overlap rather than happen strictly one after another."
+        ]
+      }
+    },
+    {
+      "id": "from-bottle-to-range",
+      "heading": { "no": "Fra flaske til sortiment", "en": "From bottle to range" },
+      "body": {
+        "no": [
+          "De samme visuelle prinsippene ble videreført på tvers av flasker og bokser. Matte overflater, metalliske detaljer, tilbakeholden typografi og dempede farger bidro til at ulike produkter føltes som del av ett system, samtidig som hver variant beholdt sin egen karakter."
+        ],
+        "en": [
+          "The same visual principles were extended across bottles and cans. Matte surfaces, metallic details, restrained typography and muted colours helped different products feel part of one system while still giving each variant its own character."
+        ]
+      }
+    },
+    {
+      "id": "building-the-image-world",
+      "heading": { "no": "Å bygge bildeverdenen", "en": "Building the image world" },
+      "body": {
+        "no": [
+          "De digitale modellene ble senere selv til kommunikasjonsmateriell. Produktbilder, komposisjoner, glass og stemningsbilder kunne alle lages fra det samme emballasjesystemet, og ga merkevaren en konsistent visuell verden uten å være avhengig av ny fysisk fotografering for hver eneste anvendelse."
+        ],
+        "en": [
+          "The digital models later became communication assets themselves. Pack shots, compositions, glasses and atmospheric scenes could all be created from the same packaging system, giving the brand a consistent visual world without depending on new physical photography for every application."
+        ]
+      }
+    },
+    {
+      "id": "less-uncertainty",
+      "heading": { "no": "Mindre usikkerhet", "en": "Less uncertainty" },
+      "body": {
+        "no": [
+          "Verdien av 3D-arbeidet lå ikke bare i bedre bilder. Det reduserte usikkerheten mellom design, kundegodkjenning og produksjon. Visualiseringen gjorde en ambisiøs idé lettere å forstå, lettere å videreutvikle og til syvende og sist lettere å produsere."
+        ],
+        "en": [
+          "The value of the 3D work was not only better imagery. It reduced uncertainty between design, client approval and manufacturing. The visualisation made an ambitious idea easier to understand, easier to develop and ultimately easier to produce."
+        ]
+      }
+    }
+  ],
+  "recognition": [
+    { "name": "Pentawards", "award": "Gold", "year": 2017 },
+    { "name": "Gullblyanten", "award": "Gold", "year": 2017 },
+    { "name": "European Design Awards", "award": "Silver", "year": 2017 },
+    { "name": "D&AD", "award": "Wood Pencil", "year": 2018 },
+    { "name": "ADC Awards", "award": "Merit", "year": 2018 },
+    { "name": "Visuelt", "award": "Diploma", "year": 2017 },
+    { "name": "Cannes Lions", "award": "Finalist", "year": 2017 },
+    { "name": "Red Dot Award", "year": 2017 }
+  ],
+  "credits": [
+    {
+      "role": { "no": "Designbyrå", "en": "Design studio" },
+      "name": { "no": "Creuna Norway (nå Knowit Experience)", "en": "Creuna Norway (now Knowit Experience)" }
+    },
+    {
+      "role": { "no": "Konsept og design", "en": "Concept and design" },
+      "name": "Marc Ligeti"
+    },
+    {
+      "role": { "no": "Konsept og design", "en": "Concept and design" },
+      "name": "Kristina Nyjordet"
+    },
+    {
+      "role": { "no": "Konsept, bidragsyter", "en": "Concept contributor" },
+      "name": "Thor Erik Ramleth"
+    },
+    {
+      "role": { "no": "3D-visualisering", "en": "3D visualisation" },
+      "name": "Sindre Dahl"
+    },
+    {
+      "role": { "no": "Prosjektledelse", "en": "Project management" },
+      "name": "Anne Kindem"
+    }
+  ],
+  "featured": true
+}

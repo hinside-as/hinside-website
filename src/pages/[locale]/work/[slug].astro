@@ -24,6 +24,12 @@ const chapters: CaseStudyChapter[] = entry.data.sections.map((section) => ({
   id: section.id,
   label: section.heading[locale],
 }));
+if (entry.data.recognition?.length) {
+  chapters.push({ id: "recognition", label: t("case.recognition") });
+}
+if (entry.data.credits?.length) {
+  chapters.push({ id: "credits", label: t("case.credits") });
+}
 
 // Flattens each content section into one or more full-bleed slides: a
 // "gallery" section (2+ images) becomes one slide per image, since the new
@@ -35,9 +41,9 @@ const chapters: CaseStudyChapter[] = entry.data.sections.map((section) => ({
 // notes): a leading "/" means it's already a public/-relative URL (SVGs,
 // videos — served as-is, never processed by astro:assets); anything else is
 // a relative path into src/assets/media that needs getMediaImage + getImage.
-async function resolveImageSrc(src: string): Promise<string> {
+async function resolveImageSrc(src: string, width = 1920): Promise<string> {
   if (src.startsWith("/")) return src;
-  const optimized = await getImage({ src: getMediaImage(src), width: 1920 });
+  const optimized = await getImage({ src: getMediaImage(src), width });
   return optimized.src;
 }
 
@@ -54,29 +60,77 @@ for (const section of entry.data.sections) {
 
   if (media.type === "image") {
     const src = await resolveImageSrc(media.src);
+    // 1080, not 1920 — matches the mobile export guidance (390px CSS width
+    // × up to ~3x device pixel ratio), so a mobile crop isn't shipping
+    // desktop-sized bytes to a phone.
+    const mobileSrc = media.mobileSrc ? await resolveImageSrc(media.mobileSrc, 1080) : undefined;
     slides.push({
       chapterId: section.id,
       heading,
       body,
-      media: { type: "image", src, alt: media.alt[locale] },
+      media: { type: "image", src, alt: media.alt[locale], mobileSrc },
     });
   } else if (media.type === "video") {
     slides.push({
       chapterId: section.id,
       heading,
       body,
-      media: { type: "video", src: media.src },
+      media: {
+        type: "video",
+        src: media.src,
+        mobileSrc: media.mobileSrc,
+        desktopFit: media.desktopFit,
+        allowUnmute: media.allowUnmute,
+      },
     });
-  } else if (media.type === "gallery") {
+  } else if (media.type === "videoGallery") {
     const items = await Promise.all(
-      media.items.map(async (item) => ({ src: await resolveImageSrc(item.src), alt: item.alt })),
+      media.items.map(async (item) => {
+        const poster = item.poster ? await getImage({ src: getMediaImage(item.poster), width: 1920 }) : undefined;
+        const mobilePoster = item.mobilePoster
+          ? await getImage({ src: getMediaImage(item.mobilePoster), width: 1080 })
+          : undefined;
+        return {
+          src: item.src,
+          mobileSrc: item.mobileSrc,
+          poster: poster?.src,
+          mobilePoster: mobilePoster?.src,
+          desktopFit: item.desktopFit,
+          allowUnmute: item.allowUnmute,
+        };
+      }),
     );
     items.forEach((item, i) => {
       slides.push({
         chapterId: section.id,
         heading: i === 0 ? heading : undefined,
         body: i === 0 ? body : undefined,
-        media: { type: "image", src: item.src, alt: item.alt },
+        media: { type: "video", ...item },
+      });
+    });
+  } else if (media.type === "gallery") {
+    const items = await Promise.all(
+      media.items.map(async (item) => ({
+        src: await resolveImageSrc(item.src),
+        alt: item.alt,
+        mobileSrc: item.mobileSrc ? await resolveImageSrc(item.mobileSrc, 1080) : undefined,
+        padded: item.padded,
+        background: item.background,
+      })),
+    );
+    items.forEach((item, i) => {
+      slides.push({
+        chapterId: section.id,
+        heading: i === 0 ? heading : undefined,
+        body: i === 0 ? body : undefined,
+        media: {
+          type: "image",
+          src: item.src,
+          alt: item.alt,
+          mobileSrc: item.mobileSrc,
+          padded: item.padded,
+          background: item.background,
+        },
       });
     });
   } else if (media.type === "carousel") {
@@ -91,8 +145,25 @@ for (const section of entry.data.sections) {
       chapterId: section.id,
       heading,
       body,
-      media: { type: "carousel", items, shape: media.shape },
+      media: { type: "carousel", items, shape: media.shape, colorful: media.colorful },
     });
+    if (media.trailingImage) {
+      const src = await resolveImageSrc(media.trailingImage.src);
+      const mobileSrc = media.trailingImage.mobileSrc
+        ? await resolveImageSrc(media.trailingImage.mobileSrc, 1080)
+        : undefined;
+      slides.push({
+        chapterId: section.id,
+        media: {
+          type: "image",
+          src,
+          alt: media.trailingImage.alt,
+          mobileSrc,
+          padded: media.trailingImage.padded,
+          background: media.trailingImage.background,
+        },
+      });
+    }
   }
 }
 
@@ -100,17 +171,40 @@ for (const section of entry.data.sections) {
 // first slide's own image so the page doesn't need a separate, non-immersive
 // hero block before the split sidebar/slides layout begins.
 if (entry.data.heroVideo && slides.length > 0) {
-  const heroPoster = await getImage({ src: getMediaImage(entry.data.heroVideo.poster), width: 1920 });
+  const heroPoster = entry.data.heroVideo.poster
+    ? await getImage({ src: getMediaImage(entry.data.heroVideo.poster), width: 1920 })
+    : undefined;
+  const heroMobilePoster = entry.data.heroVideo.mobilePoster
+    ? await getImage({ src: getMediaImage(entry.data.heroVideo.mobilePoster), width: 1080 })
+    : undefined;
   slides[0] = {
     ...slides[0],
-    media: { type: "video", src: entry.data.heroVideo.src, poster: heroPoster.src },
+    media: {
+      type: "video",
+      src: entry.data.heroVideo.src,
+      poster: heroPoster?.src,
+      mobileSrc: entry.data.heroVideo.mobileSrc,
+      mobilePoster: heroMobilePoster?.src,
+    },
   };
 }
 
 const credits = (entry.data.credits ?? []).map((credit) => ({
   role: credit.role[locale],
-  name: credit.name,
+  name: typeof credit.name === "string" ? credit.name : credit.name[locale],
 }));
+
+// Recognition and credits close out the chapter sequence (in that order,
+// second-to-last and last) rather than living in the sidebar — see
+// CaseStudyExperience's RecognitionSlide/CreditsSlide for why they're
+// rendered as their own kind of slide instead of going through the
+// image/video Media component every other slide uses.
+if (entry.data.recognition?.length) {
+  slides.push({ chapterId: "recognition", heading: t("case.recognition"), recognition: entry.data.recognition });
+}
+if (credits.length) {
+  slides.push({ chapterId: "credits", heading: t("case.credits"), credits });
+}
 
 // Cross-promo slide at the end of the experience: every OTHER case study,
 // so there's always somewhere to go next rather than a dead end before the
@@ -127,7 +221,7 @@ const otherProjects = await Promise.all(
       return {
         href: localizedPath(locale, `/work/${other.id}`),
         title: other.data.title[locale],
-        subtitle: other.data.dek[locale],
+        subtitle: other.data.description[locale],
         image: optimized.src,
         imageAlt: other.data.coverAlt[locale],
         accent: other.data.accent,
@@ -138,30 +232,32 @@ const otherProjects = await Promise.all(
 
 <BaseLayout
   locale={locale}
-  title={`${entry.data.title[locale]} — hinside`}
-  description={entry.data.dek[locale]}
+  title={`${entry.data.title[locale]} — Hinside`}
+  description={entry.data.description[locale]}
   accent={entry.data.accent}
-  initiallyHideHeader
+  scrollSnap
+  hasSidebar
   headerScrollControlsVisibility={false}
+  headerSolidBackground
+  headerWideMargin
+  footerNoBorder
+  footerWideMargin
+  footerFullSlideMobile
 >
   <CaseStudyExperience
     client:load
     meta={{
       title: entry.data.title[locale],
       client: entry.data.client,
-      year: entry.data.year,
-      dek: entry.data.dek[locale],
-      credits,
+      description: entry.data.description[locale],
       backHref: `${localizedPath(locale, "/")}#work`,
       backLabel: t("case.back"),
       clientLabel: t("case.client"),
-      yearLabel: t("case.year"),
       hideTextLabel: t("case.hideText"),
       showTextLabel: t("case.showText"),
     }}
     chapters={chapters}
     slides={slides}
     otherProjects={otherProjects}
-    moreProjectsLabel={t("case.moreProjects")}
   />
 </BaseLayout>

@@ -1,0 +1,122 @@
+---
+import { useTranslations, type Locale } from "../i18n/utils";
+
+type Props = {
+  locale: Locale;
+  /** Google Analytics Measurement ID — the gtag.js script itself is never
+   * added to the page until the visitor accepts (see the script below),
+   * not just hidden or loaded-then-ignored. Norway's ePrivacy rules require
+   * consent *before* a non-essential script runs, not an opt-out after the
+   * fact. */
+  gaId: string;
+};
+
+const { locale, gaId } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<div class="cookie-consent" id="cookie-consent" data-ga-id={gaId} hidden>
+  <p class="cookie-consent__message">{t("cookies.message")}</p>
+  <div class="cookie-consent__actions">
+    <button type="button" class="cookie-consent__decline" id="cookie-decline">{t("cookies.decline")}</button>
+    <button type="button" class="cookie-consent__accept" id="cookie-accept">{t("cookies.accept")}</button>
+  </div>
+</div>
+
+<style>
+  /* Same floating-glass treatment as .cse__text-box / the video mute
+     button — color-mix + blur, monochrome, bottom-left corner — so this
+     reads as part of the site's existing UI language rather than a bolted-
+     on third-party widget. */
+  .cookie-consent {
+    position: fixed;
+    z-index: 80;
+    left: var(--space-4);
+    bottom: var(--space-4);
+    width: min(88vw, 24rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .cookie-consent[hidden] {
+    display: none;
+  }
+  .cookie-consent__message {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    color: var(--color-fg-muted);
+  }
+  .cookie-consent__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .cookie-consent__accept,
+  .cookie-consent__decline {
+    all: unset;
+    cursor: pointer;
+    font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: color var(--duration-base) var(--ease-standard);
+  }
+  .cookie-consent__accept {
+    color: var(--color-fg);
+  }
+  .cookie-consent__decline {
+    color: var(--color-fg-muted);
+  }
+  .cookie-consent__accept:hover,
+  .cookie-consent__accept:focus-visible {
+    color: var(--accent, var(--color-fg));
+  }
+  .cookie-consent__decline:hover,
+  .cookie-consent__decline:focus-visible {
+    color: var(--color-fg);
+  }
+</style>
+
+<script>
+  const STORAGE_KEY = "hinside-cookie-consent";
+
+  function loadGoogleAnalytics(gaId: string) {
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+    document.head.appendChild(script);
+
+    // window.gtag isn't a recognized global — cast once here rather than
+    // scattering `as any` through every line that touches it.
+    const w = window as typeof window & { dataLayer: unknown[]; gtag: (...args: unknown[]) => void };
+    w.dataLayer = w.dataLayer || [];
+    w.gtag = (...args: unknown[]) => w.dataLayer.push(args);
+    w.gtag("js", new Date());
+    w.gtag("config", gaId);
+  }
+
+  const banner = document.getElementById("cookie-consent");
+  const gaId = banner?.dataset.gaId;
+  const stored = localStorage.getItem(STORAGE_KEY);
+
+  if (stored === "accepted" && gaId) {
+    loadGoogleAnalytics(gaId);
+  } else if (stored !== "declined" && banner) {
+    banner.hidden = false;
+  }
+
+  document.getElementById("cookie-accept")?.addEventListener("click", () => {
+    localStorage.setItem(STORAGE_KEY, "accepted");
+    if (banner) banner.hidden = true;
+    if (gaId) loadGoogleAnalytics(gaId);
+  });
+
+  document.getElementById("cookie-decline")?.addEventListener("click", () => {
+    localStorage.setItem(STORAGE_KEY, "declined");
+    if (banner) banner.hidden = true;
+  });
+</script>

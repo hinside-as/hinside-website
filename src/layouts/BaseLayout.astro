@@ -2,17 +2,48 @@
 import "@fontsource-variable/jetbrains-mono";
 import "@fontsource-variable/playfair-display";
 import "../styles/global.css";
+// Preloaded explicitly (Vite ?url import, not just the @font-face rules the
+// bare import above registers) so the browser starts fetching these two
+// subsets — the only ones h1/h2/h3 text on this site actually needs — in
+// parallel with HTML parsing instead of discovering them only once the
+// cascade resolves font-family on a heading. font-display: swap (fontsource's
+// default) still governs the fallback-to-Playfair swap itself; preloading
+// just shrinks the window where that swap is visible.
+import playfairLatin from "@fontsource-variable/playfair-display/files/playfair-display-latin-wght-normal.woff2?url";
+import playfairLatinExt from "@fontsource-variable/playfair-display/files/playfair-display-latin-ext-wght-normal.woff2?url";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import CookieConsent from "../components/CookieConsent.astro";
+import ScrollCue from "../components/ScrollCue.tsx";
 import { useTranslations, localizedPath, type Locale } from "../i18n/utils";
+
+const GA_MEASUREMENT_ID = "G-T7TSLX0N4S";
 
 type Props = {
   locale: Locale;
   title: string;
   description: string;
   accent?: string;
-  initiallyHideHeader?: boolean;
+  /** Case-study pages opt into page-level CSS scroll-snap for their
+   * full-bleed slide sections — scoped via this attribute rather than
+   * applying scroll-snap-type globally, since only those pages want it. */
+  scrollSnap?: boolean;
+  /** Case-study pages carry a 25%-width sticky sidebar (≥60rem) alongside
+   * the slides — ScrollCue centers itself within the remaining content
+   * column on those pages instead of the full viewport width. Homepage has
+   * no sidebar, so this stays false there. */
+  hasSidebar?: boolean;
+  /** Case-study pages drive the header's data-hidden themselves (visible
+   * only on the first slide — see CaseStudyExperience's activeIndex effect
+   * — not this component's own scroll-direction-based show/hide) and want
+   * it to always match the sidebar's solid black background rather than
+   * the usual transparent/blurred floating look. */
   headerScrollControlsVisibility?: boolean;
+  headerSolidBackground?: boolean;
+  headerWideMargin?: boolean;
+  footerNoBorder?: boolean;
+  footerWideMargin?: boolean;
+  footerFullSlideMobile?: boolean;
 };
 
 const {
@@ -20,8 +51,14 @@ const {
   title,
   description,
   accent,
-  initiallyHideHeader = false,
+  scrollSnap = false,
+  hasSidebar = false,
   headerScrollControlsVisibility = true,
+  headerSolidBackground = false,
+  headerWideMargin = false,
+  footerNoBorder = false,
+  footerWideMargin = false,
+  footerFullSlideMobile = false,
 } = Astro.props;
 const t = useTranslations(locale);
 const canonicalPath = localizedPath(locale, Astro.url.pathname);
@@ -35,7 +72,7 @@ const navLinks = [
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={locale} data-scroll-snap={scrollSnap ? "true" : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -50,6 +87,8 @@ const navLinks = [
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" as="font" type="font/woff2" href={playfairLatin} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={playfairLatinExt} crossorigin />
   </head>
   <body style={accent ? `--accent: ${accent};` : undefined}>
     <a class="visually-hidden" href="#main-content">Skip to content</a>
@@ -59,13 +98,21 @@ const navLinks = [
       menuLabel={t("nav.menu")}
       closeLabel={t("nav.close")}
       otherLocaleLabel={t("lang.switchTo")}
-      initiallyHidden={initiallyHideHeader}
       scrollControlsVisibility={headerScrollControlsVisibility}
+      solidBackground={headerSolidBackground}
+      wideMargin={headerWideMargin}
     />
     <main id="main-content">
       <slot />
     </main>
-    <Footer locale={locale} />
+    <Footer locale={locale} noBorder={footerNoBorder} wideMargin={footerWideMargin} fullSlideMobile={footerFullSlideMobile} />
+    {scrollSnap && <ScrollCue client:load centerInContent={hasSidebar} />}
+    {
+      // PROD-only, same reasoning as the old inline GA snippet this
+      // replaced — no banner, no analytics machinery at all, under
+      // `astro dev`.
+      import.meta.env.PROD && <CookieConsent locale={locale} gaId={GA_MEASUREMENT_ID} />
+    }
   </body>
 </html>
 
