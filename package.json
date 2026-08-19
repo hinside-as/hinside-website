@@ -7,10 +7,10 @@
     "dev": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "astro": "astro",
-    "preview:cf": "astro build && wrangler pages dev ./dist"
+    "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/netlify": "^8.2.3",
     "@astrojs/react": "^6.0.2",
     "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
@@ -21,11 +21,9 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@cloudflare/workers-types": "^5.20260730.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "playwright": "^1.62.1",
-    "typescript": "^6.0.3",
-    "wrangler": "^4.116.0"
+    "typescript": "^6.0.3"
   }
 }
