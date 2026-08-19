@@ -1,8 +1,6 @@
-/// <reference types="@cloudflare/workers-types" />
+import type { APIRoute } from "astro";
 
-interface Env {
-  RESEND_API_KEY: string;
-}
+export const prerender = false;
 
 const TO_ADDRESS = "hei@hinside.as";
 // Sends from updates.hinside.as, which already has Resend's DKIM/SPF
@@ -17,7 +15,7 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const POST: APIRoute = async ({ request }) => {
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -25,9 +23,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return new Response(JSON.stringify({ error: "Invalid request body" }), { status: 400 });
   }
 
-  const name = typeof body.name === "string" ? body.name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
-  const subject = typeof body.subject === "string" ? body.subject.trim() : "";
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const honeypot = typeof body.company === "string" ? body.company.trim() : "";
 
@@ -36,29 +32,28 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   }
 
-  if (!name || !email || !subject || !message) {
+  if (!email || !message) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
   }
 
-  if (!env.RESEND_API_KEY) {
+  const apiKey = import.meta.env.RESEND_API_KEY;
+  if (!apiKey) {
     return new Response(JSON.stringify({ error: "Email service not configured" }), { status: 500 });
   }
 
   const resendResponse = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       from: FROM_ADDRESS,
       to: [TO_ADDRESS],
       reply_to: email,
-      subject: `[hinside.as] ${subject}`,
+      subject: "[hinside.as] New message",
       html: `
-        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-        <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
         <p><strong>Message:</strong></p>
         <p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>
       `,
