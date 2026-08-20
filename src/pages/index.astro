@@ -1,4 +1,11 @@
 ---
+// On-demand, not prerendered: Astro.redirect() needs a live request to send
+// a real HTTP Location header. Prerendered, it falls back to a static HTML
+// page with a <meta http-equiv="refresh"> and a visible "Redirecting from /
+// to /no/" link — a flash of blank white page before the JS-less fallback
+// link even loads, instead of an instant server-side redirect.
+export const prerender = false;
+
 import { defaultLocale } from "../i18n/utils";
 return Astro.redirect(`/${defaultLocale}/`);
 ---
