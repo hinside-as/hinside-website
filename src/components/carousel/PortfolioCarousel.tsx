@@ -107,7 +107,13 @@ export default function PortfolioCarousel({ items }: { items: PortfolioItem[] })
           width: 100%;
           min-width: 0;
           overflow: hidden;
-          touch-action: pan-y;
+          /* pan-y (not the bare default) hands vertical scroll to the
+             native page while useDragCarousel's JS claims horizontal drag —
+             but touch-action's allowed-gesture list is exhaustive, so
+             pan-y alone silently also blocks pinch-zoom over this element.
+             Appending pinch-zoom restores it without giving back the
+             horizontal axis. */
+          touch-action: pan-y pinch-zoom;
           user-select: none;
           cursor: grab;
         }
