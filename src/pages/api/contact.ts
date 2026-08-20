@@ -1,8 +1,6 @@
-/// <reference types="@cloudflare/workers-types" />
+import type { APIRoute } from "astro";
 
-interface Env {
-  RESEND_API_KEY: string;
-}
+export const prerender = false;
 
 const TO_ADDRESS = "hei@hinside.as";
 // Sends from updates.hinside.as, which already has Resend's DKIM/SPF
@@ -17,7 +15,7 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const POST: APIRoute = async ({ request }) => {
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -38,14 +36,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
   }
 
-  if (!env.RESEND_API_KEY) {
+  const apiKey = import.meta.env.RESEND_API_KEY;
+  if (!apiKey) {
     return new Response(JSON.stringify({ error: "Email service not configured" }), { status: 500 });
   }
 
   const resendResponse = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

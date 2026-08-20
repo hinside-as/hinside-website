@@ -11,7 +11,6 @@ hinside.as design studio site, rebuilt from scratch in Astro 7 + React 19 island
 - `npm run dev` — start the Astro dev server
 - `npm run build` — type-check (`astro check`) then build; **this is the only script that type-checks**, so run it before considering any change done
 - `npm run preview` — preview the static build
-- `npm run preview:cf` — build, then serve `./dist` through `wrangler pages dev` (use this to test `functions/api/contact.ts` locally, since Pages Functions don't run under plain `astro dev`)
 
 There is no test suite and no lint script configured.
 
@@ -79,11 +78,11 @@ Prefer native browser behavior over custom JavaScript interaction systems for sc
 
 ### Contact form
 
-`src/components/ContactForm.tsx` posts to `functions/api/contact.ts`, a Cloudflare Pages Function that sends via the Resend API (`FROM_ADDRESS` is a verified `updates.hinside.as` sending subdomain) and includes a honeypot field for spam. Requires a `RESEND_API_KEY` secret in the Cloudflare Pages project; test it locally with `npm run preview:cf`, not `npm run dev`.
+`src/components/ContactForm.tsx` posts to `src/pages/api/contact.ts`, an Astro API route (`export const prerender = false`) that sends via the Resend API (`FROM_ADDRESS` is a verified `updates.hinside.as` sending subdomain) and includes a honeypot field for spam. The site builds via `@astrojs/netlify` (`astro.config.mjs`), which prerenders every page except this route to static HTML and bundles the route itself as a Netlify Function — no separate build step or CLI needed to test it, `npm run dev` runs it directly. Requires a `RESEND_API_KEY` environment variable set in the Netlify site's dashboard (Site configuration → Environment variables); it's read via `import.meta.env.RESEND_API_KEY`, typed in `src/env.d.ts`.
 
-## Current gaps (as of this file's creation)
+## Hosting
 
-Nothing in this repository has been committed to git yet, there is no Cloudflare Pages project or deployment, and there is no CI. Don't assume any part of the site is live or backed up beyond the local working tree.
+Deployed on Netlify (migrated from an earlier Cloudflare Pages plan — Cloudflare Pages didn't work out for a sister project, so Netlify is now the standard for Hinside sites). DNS for hinside.as stays on Cloudflare; only hosting/build/deploy runs through Netlify. Connect the Netlify site to this repo's GitHub remote for auto-deploys on push; `netlify.toml` sets the build command and publish directory.
 
 ## Collaboration
 

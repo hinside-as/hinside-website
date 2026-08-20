@@ -1,7 +1,7 @@
 # build output
 dist/
 .astro/
-.wrangler/
+.netlify/
 
 # dependencies
 node_modules/
