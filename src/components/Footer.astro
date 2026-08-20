@@ -13,15 +13,9 @@ type Props = {
    * the site's usual --space-4), so the footer's brand mark below it needs
    * the same value to keep both flush with the same left edge. */
   wideMargin?: boolean;
-  /** Homepage-only: on mobile, the footer becomes its own full-height,
-   * scroll-snapped slide instead of trailing content below the last one —
-   * matching the "one idea per slide" pattern the rest of the homepage
-   * already uses there. Not used on case-study pages, which handle the
-   * last-slide-plus-footer relationship differently (see .cse__promo). */
-  fullSlideMobile?: boolean;
 };
 
-const { locale, noBorder = false, wideMargin = false, fullSlideMobile = false } = Astro.props;
+const { locale, noBorder = false, wideMargin = false } = Astro.props;
 
 const socials = [
   { label: "LinkedIn", href: "https://www.linkedin.com/company/hinside" },
@@ -35,7 +29,6 @@ const socials = [
   class="site-footer"
   data-no-border={noBorder ? "true" : undefined}
   data-wide-margin={wideMargin ? "true" : undefined}
-  data-full-slide-mobile={fullSlideMobile ? "true" : undefined}
 >
   <div class="site-footer__brand">
     <div class="site-footer__mark">
@@ -129,19 +122,6 @@ const socials = [
   @media (min-width: 60rem) {
     .site-footer[data-wide-margin="true"] {
       padding-inline: var(--space-5);
-    }
-  }
-  /* Same breakpoint PortfolioCarousel's own touch override and
-     HomeExperience's .hs__contact mobile split already use, for one
-     consistent "mobile" width across the site. justify-content:center
-     (on top of the existing column layout) centers the brand mark + text
-     block vertically within the full slide, matching every .hs__step. */
-  @media (max-width: 720px) {
-    .site-footer[data-full-slide-mobile="true"] {
-      min-height: 100dvh;
-      justify-content: center;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
     }
   }
 </style>

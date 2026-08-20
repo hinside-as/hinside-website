@@ -79,7 +79,6 @@ for (const section of entry.data.sections) {
         type: "video",
         src: media.src,
         mobileSrc: media.mobileSrc,
-        desktopFit: media.desktopFit,
         allowUnmute: media.allowUnmute,
       },
     });
@@ -95,7 +94,6 @@ for (const section of entry.data.sections) {
           mobileSrc: item.mobileSrc,
           poster: poster?.src,
           mobilePoster: mobilePoster?.src,
-          desktopFit: item.desktopFit,
           allowUnmute: item.allowUnmute,
         };
       }),
@@ -235,14 +233,11 @@ const otherProjects = await Promise.all(
   title={`${entry.data.title[locale]} — Hinside`}
   description={entry.data.description[locale]}
   accent={entry.data.accent}
-  scrollSnap
-  hasSidebar
   headerScrollControlsVisibility={false}
   headerSolidBackground
   headerWideMargin
   footerNoBorder
   footerWideMargin
-  footerFullSlideMobile
 >
   <CaseStudyExperience
     client:load
@@ -253,8 +248,6 @@ const otherProjects = await Promise.all(
       backHref: `${localizedPath(locale, "/")}#work`,
       backLabel: t("case.back"),
       clientLabel: t("case.client"),
-      hideTextLabel: t("case.hideText"),
-      showTextLabel: t("case.showText"),
     }}
     chapters={chapters}
     slides={slides}

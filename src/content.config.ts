@@ -44,7 +44,6 @@ const galleryVideo = z.object({
   mobileSrc: z.string().optional(),
   poster: z.string().optional(),
   mobilePoster: z.string().optional(),
-  desktopFit: z.enum(["cover", "contain"]).optional(),
   allowUnmute: z.boolean().optional(),
 });
 
@@ -87,16 +86,6 @@ const sectionMedia = z.discriminatedUnion("type", [
     // video isn't run through astro:assets, so this is used as-is, no
     // width parameter to pick.
     mobileSrc: z.string().optional(),
-    // Every other slide's media (image or video) fills the full-bleed
-    // frame edge-to-edge via object-fit: cover — the default, and correct
-    // for most footage. A video shot/composed to be seen in full (nothing
-    // meant to bleed off-frame) instead wants object-fit: contain on the
-    // wider desktop frame specifically; mobile's narrower, taller frame
-    // stays cover regardless, since "contain" there would shrink it to a
-    // letterboxed strip rather than filling the screen. Optional and unset
-    // by default so this stays a one-off per-video choice, not a new
-    // universal behavior.
-    desktopFit: z.enum(["cover", "contain"]).optional(),
     // Opts this specific video into a mute/unmute toggle button — most
     // autoplaying background video on this site has no audio worth
     // surfacing controls for, so this defaults off rather than adding a
