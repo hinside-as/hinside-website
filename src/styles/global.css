@@ -52,6 +52,16 @@ html[data-scroll-snap="true"] {
 
 body {
   margin: 0;
+  /* Decorative elements (e.g. AsciiLogo's scramble animation) deliberately
+     paint outside their own box via overflow: visible — this clips that
+     bleed from ever widening the page's actual scrollable area. `clip`,
+     not `hidden`: per spec, `overflow-x: hidden` alone forces `overflow-y`
+     to compute as `auto` (you can't mix `visible` on one axis with a
+     non-visible value on the other), which would make body its own scroll
+     container and break every position: sticky element anchored to the
+     real document scroller (e.g. the case-study sidebar). `clip` never
+     establishes a scroll container, so it can't have that side effect. */
+  overflow-x: clip;
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-body);
