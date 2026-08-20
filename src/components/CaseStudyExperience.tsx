@@ -1202,6 +1202,25 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
             max-height var(--duration-base) var(--ease-standard) var(--duration-base),
             opacity var(--duration-base) var(--ease-standard) var(--duration-base);
         }
+        /* 40rem is close to a whole phone screen's height once expanded —
+           at ~88vw width (see .cse__text-box's own max-width) a heading
+           plus a couple of paragraphs routinely reaches it, burying most of
+           the slide's own media behind the box. Capping to half the slide
+           on mobile leaves the media visibly present around it. This can't
+           just shrink the cap in place, though: docs/text-length-limits.md
+           documents the *current* 40rem as the actual basis for this site's
+           established body-copy length limit ("hard technical ceiling"),
+           so existing content that's already within that documented limit
+           would start silently clipping — the exact silent-content-loss
+           failure mode that doc calls out as the one real hazard of this
+           element. overflow-y: auto turns any content past the smaller cap
+           into an in-box scroll instead of a clip. */
+        @media (max-width: 720px) {
+          .cse__text-box[data-expanded="true"] .cse__text-box-body {
+            max-height: 50dvh;
+            overflow-y: auto;
+          }
+        }
         .cse__text-box-body h2 {
           font-size: var(--text-xl);
           margin-top: var(--space-4);
