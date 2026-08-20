@@ -116,9 +116,10 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
      either component's own comments — rather than by the data-hidden flag
      + timed transition used on other pages. A fixed-duration transition
      triggered by a one-off data-hidden flip reads fine at normal scroll
-     speed, but a fast fling can let scroll-snap settle well before that
-     transition finishes, so the header keeps animating for a moment after
-     the page has already stopped moving — visibly detached/bouncy. Tying
+     speed, but a fast fling can let native momentum scrolling settle well
+     before that transition finishes, so the header keeps animating for a
+     moment after the page has already stopped moving — visibly
+     detached/bouncy. Tying
      the transform straight to scroll position removes the independent
      timer entirely: the header always sits exactly where the current
      scroll offset says it should, at any scroll speed, the same quality
@@ -166,16 +167,11 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
 
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    // Native scrollIntoView, not a hand-rolled rAF easing loop — the
-    // homepage runs under scroll-snap-type: mandatory (see BaseLayout's
-    // scrollSnap prop), and a custom scroll animation calls window.scrollTo
-    // every frame with a position the browser doesn't know is "mid-
-    // animation," so its own snap-correction logic fights the animation
-    // for control of the scroll position, reading as stutter/glitching.
-    // scrollIntoView's smooth behavior is implemented by the same engine
-    // that owns scroll-snap, so it cooperates with it instead. Target
+    // Native scrollIntoView, not a hand-rolled rAF easing loop — no need to
+    // hand-roll scroll physics the browser already provides. Target
     // elements get their header clearance from scroll-margin-top (see
-    // .hs__step) rather than a manual offset calculated here.
+    // HomeExperience's #work/#studio/#contact) rather than a manual offset
+    // calculated here.
     const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const navLinks = header.querySelectorAll<HTMLAnchorElement>("a[data-nav-hash]");

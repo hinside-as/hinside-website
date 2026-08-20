@@ -9,15 +9,15 @@ import { useEffect, type RefObject } from "react";
  * position at the top of the viewport, decreasing to 0 as it scrolls out
  * of view, and staying 0 for every slide after it.
  *
- * Shared by CaseStudyExperience and HomeExperience: both arrange content
- * as full-viewport, scroll-snapped slides with the header visible only on
- * the first one. An earlier version toggled a binary hidden flag off which
- * slide was "active" (via IntersectionObserver) and let a ~300ms CSS
- * transition animate the header to its new state; that reads fine at
- * normal scroll speed, but a fast fling can let scroll-snap settle well
- * before the transition finishes, so the header kept animating for a
- * moment after the page had already stopped moving — visibly detached/
- * bouncy. Driving the reveal directly off scroll position removes that
+ * Shared by CaseStudyExperience and HomeExperience: both keep the header
+ * visible only on the first section. An earlier version toggled a binary
+ * hidden flag off which slide was "active" (via IntersectionObserver) and
+ * let a ~300ms CSS transition animate the header to its new state; that
+ * reads fine at normal scroll speed, but a fast fling can let native
+ * momentum scrolling settle well before the transition finishes, so the
+ * header kept animating for a moment after the page had already stopped
+ * moving — visibly detached/bouncy. Driving the reveal directly off scroll
+ * position removes that
  * independent timer entirely: the header always sits exactly where the
  * current scroll offset says it should, at any scroll speed, and inherits
  * whatever native deceleration produced that scroll instead of following

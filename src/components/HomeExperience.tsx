@@ -5,7 +5,6 @@ import PortfolioCarousel, { type PortfolioItem } from "./carousel/PortfolioCarou
 import LogoCarousel, { type LogoCarouselItem } from "./carousel/LogoCarousel";
 import TestimonialCarousel, { type TestimonialCarouselItem } from "./carousel/TestimonialCarousel";
 import { useHeaderReveal } from "../hooks/useHeaderReveal";
-import { useFooterHeight } from "../hooks/useFooterHeight";
 
 type FormLabels = {
   email: string;
@@ -31,12 +30,12 @@ type Props = {
 };
 
 /**
- * The homepage as a sequence of full-bleed, scroll-snapped slides — the
- * same native-scroll + CSS scroll-snap architecture as the case-study
- * template (see CaseStudyExperience.tsx and the "Case-study scroll
- * experience" section of CLAUDE.md), minus the sidebar/TOC: there's no
- * chapter list to show here, just the sections themselves in sequence,
- * one idea per slide rather than several stacked in one scroll.
+ * The homepage as a sequence of full-bleed sections in plain continuous
+ * scroll — no scroll-snap paging. Each .hs__step still reserves at least
+ * one viewport (min-height: 100dvh) so every section reads as "one idea,
+ * one screen" at rest, but nothing forces the browser to stop there: the
+ * user's own scroll physics carry through uninterrupted from top to
+ * bottom, same as the rest of the web.
  */
 export default function HomeExperience({
   heroHeadline,
@@ -55,11 +54,6 @@ export default function HomeExperience({
   // slide onward — see useHeaderReveal for why this is a continuous
   // scroll-coupled value rather than a discrete flag + CSS transition.
   useHeaderReveal(containerRef, ".hs__hero");
-
-  // .hs__contact's own min-height (see its CSS below) needs the real,
-  // current footer height to guarantee contact+footer together always
-  // reach a full viewport — see useFooterHeight.
-  useFooterHeight();
 
   return (
     <div className="hs" ref={containerRef}>
@@ -118,21 +112,26 @@ export default function HomeExperience({
           width: 100%;
         }
         /* min-height, not a fixed height, unlike the case-study template's
-           .cse__step — those are single images/videos that always fill
-           exactly one viewport; these are text-heavy sections that can
-           genuinely need more room on a short viewport, and clipping
-           content is worse than a slide occasionally running taller than
-           100dvh — the same reasoning already applied to the case-study
-           template's own promo slide. */
+           .cse__step — these are text-heavy sections that can genuinely
+           need more room on a short viewport, and clipping content is
+           worse than a section occasionally running taller than 100dvh. */
         .hs__step {
           position: relative;
           min-height: 100dvh;
           display: flex;
           align-items: center;
           justify-content: center;
-          scroll-snap-align: start;
-          scroll-snap-stop: always;
           padding-block: var(--space-8);
+        }
+        /* Lets a same-page nav-hash click (or a hard navigation landing
+           directly on e.g. /#work) rest with the header's own height
+           clear above it, instead of scrolling the target flush to the
+           very top of the viewport where the header would sit on top of
+           it. */
+        #work,
+        #studio,
+        #contact {
+          scroll-margin-top: var(--header-height);
         }
         /* Same left/right inset at every breakpoint, matching the
            case-study sidebar/footer's own --space-5 desktop margin rather
@@ -175,20 +174,9 @@ export default function HomeExperience({
         }
         /* No heading on this slide — the carousel is the whole slide, so
            plain centering (inherited from .hs__step) puts it dead center
-           with no text block to offset it. padding-block: 0 overrides
-           .hs__step's own --space-8 (144px top+bottom, sized for
-           text-heavy slides) — PortfolioCarousel already carries its own
-           internal spacing (.pc-carousel-section's padding, .pc-track's
-           cursor-clearance padding), and stacking .hs__step's padding on
-           top of that pushed this slide's total content past one
-           viewport on any screen shorter than ~900px (i.e. most laptop
-           browser windows), overflowing the min-height floor. That
-           extra, unreachable-in-one-gesture height under mandatory
-           scroll-snap is what read as the carousel "not lining up"/being
-           scrollable in place. */
+           with no text block to offset it. */
         .hs__work {
           background: var(--color-bg);
-          padding-block: 0;
         }
         /* Unlike .hs__work's own history with this same problem (see its
            comment above), .hs__clients keeps its intro text rather than
@@ -252,38 +240,8 @@ export default function HomeExperience({
         }
         .hs__contact {
           background: var(--color-bg-raised);
-          /* min-height is calc(100dvh - footer height), not auto and not
-             the shared 100dvh: this is the last slide, and its own
-             scroll-snap-align:start point is only physically reachable
-             (see the general truism about a document's *last* snap point
-             in CLAUDE.md) if the remaining document height from this
-             slide's own top to the true end is at least one full
-             viewport. Undershoot that and the browser clamps to the max
-             scrollable position instead, landing short of this slide's
-             top — visible as a band of the *previous* slide bleeding in
-             above it, which is exactly the bug this replaced (an earlier
-             version tried to fix the same symptom by shrinking this
-             slide's own padding, which just reduced the shortfall rather
-             than eliminating it). Sizing this slide to exactly fill
-             "one viewport minus the footer" guarantees contact + footer
-             always add up to precisely one viewport, at any viewport
-             height or footer content length — see the --footer-height
-             ResizeObserver above. */
-          min-height: calc(100dvh - var(--footer-height, 0px));
+          min-height: 100dvh;
           padding-block: var(--space-6);
-        }
-        /* Mobile gets its own full slide instead of sharing one screen
-           with the footer — a narrow column doesn't have the horizontal
-           room desktop does to lay the footer's link groups out
-           compactly, so cramming the whole form *and* the whole footer
-           into one short mobile viewport reads as cramped rather than
-           efficient. Same breakpoint PortfolioCarousel's own touch
-           override uses, for one consistent "mobile" width across the
-           site rather than a bespoke threshold here. */
-        @media (max-width: 720px) {
-          .hs__contact {
-            min-height: 100dvh;
-          }
         }
         /* Only one child now (the form) — justify-content:flex-end is
            what actually puts it on the right; .hs__contact-main's own

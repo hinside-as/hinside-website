@@ -1,8 +1,6 @@
 // The hinside "growing arrow" — three frames (short/long/longest) that play
-// in sequence to read as a single arrow extending. Originally authored for
-// LogoCarousel's own pointer-tracking cursor; factored out here so ScrollCue
-// (a down-pointing idle reminder, same frames rotated 90°) can share the
-// exact same pixel asset instead of duplicating it.
+// in sequence to read as a single arrow extending. Used by LogoCarousel's
+// own pointer-tracking cursor.
 
 const ARROW_SHORT_URI = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="80" height="56" viewBox="0 0 80 56" fill="none">
   <path d="M56 56H48V48H56V56Z" fill="white"/>

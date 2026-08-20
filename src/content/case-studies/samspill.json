@@ -63,7 +63,6 @@
       "media": {
         "type": "video",
         "src": "/media/projects/samspill/video/result.mp4",
-        "desktopFit": "contain",
         "allowUnmute": true
       }
     },
