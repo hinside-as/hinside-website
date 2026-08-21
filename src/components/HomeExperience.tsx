@@ -19,10 +19,14 @@ type FormLabels = {
 
 type Props = {
   heroHeadline: string;
+  identityHeading: string;
+  workHeading: string;
   heroDek: string;
   studioHeading: string;
   studioParagraph: string;
+  clientsHeading: string;
   clientsIntro: string;
+  contactHeading: string;
   portfolioItems: PortfolioItem[];
   clientItems: LogoCarouselItem[];
   testimonials: TestimonialCarouselItem[];
@@ -39,10 +43,14 @@ type Props = {
  */
 export default function HomeExperience({
   heroHeadline,
+  identityHeading,
+  workHeading,
   heroDek,
   studioHeading,
   studioParagraph,
+  clientsHeading,
   clientsIntro,
+  contactHeading,
   portfolioItems,
   clientItems,
   testimonials,
@@ -65,18 +73,19 @@ export default function HomeExperience({
         </div>
       </section>
 
-      <section id="work" className="hs__step hs__work">
-        <PortfolioCarousel items={portfolioItems} />
-      </section>
-
       <section className="hs__step hs__ascii">
+        <div className="hs__content">
+          <h2>{identityHeading}</h2>
+        </div>
         <AsciiLogo />
       </section>
 
-      <section className="hs__step hs__dek">
+      <section id="work" className="hs__step hs__work">
         <div className="hs__content">
+          <h2>{workHeading}</h2>
           <p className="hs__hero-dek">{heroDek}</p>
         </div>
+        <PortfolioCarousel items={portfolioItems} />
       </section>
 
       <section id="studio" className="hs__step hs__studio">
@@ -88,6 +97,7 @@ export default function HomeExperience({
 
       <section className="hs__step hs__clients">
         <div className="hs__content">
+          <h2>{clientsHeading}</h2>
           <p className="hs__clients-intro">{clientsIntro}</p>
         </div>
         <LogoCarousel items={clientItems} />
@@ -102,6 +112,7 @@ export default function HomeExperience({
       <section id="contact" className="hs__step hs__contact">
         <div className="hs__content hs__contact-grid">
           <div className="hs__contact-main">
+            <h2>{contactHeading}</h2>
             <ContactForm labels={formLabels} />
           </div>
         </div>
@@ -158,6 +169,7 @@ export default function HomeExperience({
            default .hs__step (--space-6, not --space-8) leaves more of the
            viewport for the headline itself. */
         .hs__hero {
+          background: #000000;
           padding-block: var(--space-6);
         }
         .hs__hero-headline {
@@ -167,8 +179,11 @@ export default function HomeExperience({
           line-height: var(--leading-tight);
           max-width: 20ch;
         }
-        .hs__dek {
-          background: var(--color-bg);
+        /* Shared heading treatment for every section below the hero —
+           consistent size/spacing rather than each section tuning its own. */
+        .hs__step h2 {
+          font-size: var(--text-2xl);
+          margin-bottom: var(--space-4);
         }
         .hs__hero-dek {
           font-size: var(--text-base);
@@ -176,30 +191,40 @@ export default function HomeExperience({
           color: var(--color-fg-muted);
           max-width: 42ch;
         }
+        /* Column, not the base .hs__step row: heading above the mark. */
         .hs__ascii {
-          background: var(--color-bg);
+          flex-direction: column;
+          gap: var(--space-6);
+          background: #000000;
           padding-inline: clamp(1rem, 3vw, var(--space-6));
         }
-        /* No heading on this slide — the carousel is the whole slide, so
-           plain centering (inherited from .hs__step) puts it dead center
-           with no text block to offset it. */
-        .hs__work {
-          background: var(--color-bg);
+        /* .hs__content here holds nothing but the heading (no paragraph
+           below it to use the margin for) — without this, its own
+           margin-bottom: var(--space-4) (see the shared h2 rule) would
+           stack on top of .hs__ascii's own gap above, doubling the space
+           before the mark. */
+        .hs__ascii h2 {
+          margin-bottom: 0;
         }
-        /* Unlike .hs__work's own history with this same problem (see its
-           comment above), .hs__clients keeps its intro text rather than
-           dropping it — but the carousel still needs to read as centered
-           on the *slide*, not "centered in whatever space the intro
-           happens to leave behind" (which sits visibly below true center,
-           pushed down by the intro's own height). Taking .hs__content out
-           of flow entirely (absolute, pinned near the bottom) leaves
-           LogoCarousel as the slide's only in-flow child, so .hs__step's
-           own inherited flex centering centers *it* directly against the
-           full viewport instead of against a shorter remaining box. */
+        /* Column, not the base .hs__step row: heading + dek copy above the
+           carousel. */
+        .hs__work {
+          flex-direction: column;
+          gap: var(--space-6);
+          background: #000000;
+        }
+        /* The carousel still needs to read as centered on the *slide*, not
+           "centered in whatever space the heading/intro happen to leave
+           behind" (which sits visibly below true center, pushed down by
+           their own height). Taking .hs__content out of flow entirely
+           (absolute, pinned near the bottom) leaves LogoCarousel as the
+           slide's only in-flow child, so .hs__step's own inherited flex
+           centering centers *it* directly against the full viewport
+           instead of against a shorter remaining box. */
         .hs__clients {
           position: relative;
           padding-block: var(--space-6);
-          background: var(--color-bg-raised);
+          background: #0a0a0a;
         }
         .hs__clients > .hs__content {
           position: absolute;
@@ -226,11 +251,7 @@ export default function HomeExperience({
           display: none;
         }
         .hs__studio {
-          background: var(--color-bg-raised);
-        }
-        .hs__studio h2 {
-          font-size: var(--text-2xl);
-          margin-bottom: var(--space-4);
+          background: #0a0a0a;
         }
         .hs__studio-paragraph {
           font-size: var(--text-base);
@@ -245,10 +266,10 @@ export default function HomeExperience({
           color: var(--color-fg-muted);
         }
         .hs__testimonials {
-          background: var(--color-bg);
+          background: #141414;
         }
         .hs__contact {
-          background: var(--color-bg-raised);
+          background: #1f1f1f;
           min-height: 100svh;
           padding-block: var(--space-6);
         }

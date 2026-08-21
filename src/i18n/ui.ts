@@ -12,6 +12,8 @@ export const ui = {
     "lang.switchTo": "English",
     "home.hero.eyebrow":
       "Hinside er et designstudio som bygger tydelighet, stolthet og gjenkjennelse gjennom visuell problemløsning med presisjon og egenart.",
+    "home.identity.heading": "Identitet i bevegelse",
+    "home.clients.heading": "Klienter",
     "home.clients.intro":
       "Kompetansen i Hinside er bygget på erfaring fra tidligere designstudioer og bidrag til prosjekter for noen av Norges sterkeste merkevarer.",
     "form.email": "E-post",
@@ -41,6 +43,8 @@ export const ui = {
     "lang.switchTo": "Norsk",
     "home.hero.eyebrow":
       "Hinside is a design studio building clarity, pride and recognition through visual problem-solving with precision and character.",
+    "home.identity.heading": "Identity in motion",
+    "home.clients.heading": "Clients",
     "home.clients.intro":
       "The expertise within Hinside is built on experience from previous design studios and contributions to projects for some of Norway's strongest brands.",
     "form.email": "Email",

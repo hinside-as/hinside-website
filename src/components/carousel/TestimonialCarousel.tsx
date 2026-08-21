@@ -48,19 +48,7 @@ export default function TestimonialCarousel({ items }: { items: TestimonialCarou
       <div className="tc-stack">
         {items.map((item, index) => (
           <blockquote className="tc-card" key={item.name} data-active={index === activeIndex} aria-hidden={index !== activeIndex}>
-            <svg className="tc-mark tc-mark--open" viewBox="0 0 40 32" aria-hidden="true">
-              <path d="M8 16H16V32H0V8H8V16Z" />
-              <path d="M32 16H40V32H24V8H32V16Z" />
-              <path d="M16 8H8V0H16V8Z" />
-              <path d="M40 8H32V0H40V8Z" />
-            </svg>
             <p>{item.quote}</p>
-            <svg className="tc-mark tc-mark--close" viewBox="0 0 40 32" aria-hidden="true">
-              <path d="M8 32H0V24H8V32Z" />
-              <path d="M32 32H24V24H32V32Z" />
-              <path d="M16 24H8V16H0V0H16V24Z" />
-              <path d="M40 24H32V16H24V0H40V24Z" />
-            </svg>
             <footer>
               <span className="tc-name">{item.name}</span>
               <span className="tc-role">{item.role}</span>
@@ -101,25 +89,11 @@ export default function TestimonialCarousel({ items }: { items: TestimonialCarou
           opacity: 1;
           pointer-events: auto;
         }
-        .tc-mark {
-          display: block;
-          width: 40px;
-          height: 32px;
-          fill: var(--color-fg-muted);
-        }
-        .tc-mark--open {
-          margin: 0 0 var(--space-3);
-        }
-        .tc-mark--close {
-          /* Trails the quote at its own line's end, not flush-left like the
-             opening mark — margin-left: auto pushes it to the right edge
-             within the card's block layout. */
-          margin: var(--space-3) 0 0 auto;
-        }
         .tc-card p {
           margin: 0;
           font-size: var(--text-sm);
           line-height: var(--leading-normal);
+          font-style: italic;
         }
         .tc-card footer {
           margin-top: var(--space-4);
