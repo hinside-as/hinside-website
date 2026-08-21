@@ -32,7 +32,7 @@ type Props = {
 /**
  * The homepage as a sequence of full-bleed sections in plain continuous
  * scroll — no scroll-snap paging. Each .hs__step still reserves at least
- * one viewport (min-height: 100dvh) so every section reads as "one idea,
+ * one viewport (min-height: 100svh) so every section reads as "one idea,
  * one screen" at rest, but nothing forces the browser to stop there: the
  * user's own scroll physics carry through uninterrupted from top to
  * bottom, same as the rest of the web.
@@ -114,10 +114,18 @@ export default function HomeExperience({
         /* min-height, not a fixed height, unlike the case-study template's
            .cse__step — these are text-heavy sections that can genuinely
            need more room on a short viewport, and clipping content is
-           worse than a section occasionally running taller than 100dvh. */
+           worse than a section occasionally running taller than 100svh.
+           svh, not dvh: dvh tracks the *current* viewport live, which
+           shrinks/grows continuously as mobile Chrome's toolbar hides and
+           reveals on scroll — every section using it as a min-height floor
+           visibly resized in step, reading as the whole page jumping. svh
+           is the viewport size with the toolbar fully expanded (the
+           smallest it's ever going to be), so a floor sized off it never
+           has to move; a section can still grow taller than that floor
+           when its own content needs to, same as before. */
         .hs__step {
           position: relative;
-          min-height: 100dvh;
+          min-height: 100svh;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -203,7 +211,7 @@ export default function HomeExperience({
            360px) — this slide's whole point is the carousel filling the
            view, so it's sized to dominate rather than to fit tidily
            beneath the heading. The slide is allowed to run taller than
-           100dvh for this (min-height, not height, on .hs__step) rather
+           100svh for this (min-height, not height, on .hs__step) rather
            than shrinking the carousel to force a single-screen fit. */
         .hs__work .pc-carousel-section {
           --card-size: clamp(260px, 32vw, 420px);
@@ -240,7 +248,7 @@ export default function HomeExperience({
         }
         .hs__contact {
           background: var(--color-bg-raised);
-          min-height: 100dvh;
+          min-height: 100svh;
           padding-block: var(--space-6);
         }
         /* Only one child now (the form) — justify-content:flex-end is

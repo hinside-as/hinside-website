@@ -604,10 +604,18 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
            needs more room than one viewport (an image plus a full
            paragraph, say) simply grows past it. Real native scrolling, real
            momentum, real keyboard paging — nothing here intercepts,
-           cancels, or redirects a scroll gesture. */
+           cancels, or redirects a scroll gesture.
+
+           svh, not dvh: dvh tracks the *current* viewport live, which
+           shrinks/grows continuously as mobile Chrome's toolbar hides and
+           reveals on scroll — every step using it as a min-height floor
+           visibly resized in step, reading as the whole page jumping. svh
+           is the viewport size with the toolbar fully expanded (the
+           smallest it's ever going to be), so a floor sized off it never
+           has to move. */
         .cse__step {
           position: relative;
-          min-height: 100dvh;
+          min-height: 100svh;
           background: var(--color-bg-raised);
         }
         .cse__media-wrap {
@@ -633,7 +641,7 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
            has, matching CLAUDE.md's "header, sidebar, and footer share one
            flat background" spirit in reverse: slides are their own
            surface, distinct from the chrome around them. */
-        /* min-height: 0 overrides .cse__step's own 100dvh floor — that
+        /* min-height: 0 overrides .cse__step's own 100svh floor — that
            floor exists to guarantee the sidebar's sticky-release has at
            least one viewport of content to release against, which the ~10
            other regular slides already satisfy on their own. Without this
