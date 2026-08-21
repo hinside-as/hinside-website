@@ -171,7 +171,7 @@ export default function HomeExperience({
           background: var(--color-bg);
         }
         .hs__hero-dek {
-          font-size: var(--text-lg);
+          font-size: var(--text-base);
           line-height: var(--leading-normal);
           color: var(--color-fg-muted);
           max-width: 42ch;
@@ -233,14 +233,15 @@ export default function HomeExperience({
           margin-bottom: var(--space-4);
         }
         .hs__studio-paragraph {
-          font-size: var(--text-lg);
+          font-size: var(--text-base);
           line-height: var(--leading-normal);
+          color: var(--color-fg-muted);
           max-width: 56ch;
         }
         .hs__clients-intro {
           max-width: 34rem;
           margin: 0;
-          font-size: var(--text-sm);
+          font-size: var(--text-base);
           color: var(--color-fg-muted);
         }
         .hs__testimonials {
