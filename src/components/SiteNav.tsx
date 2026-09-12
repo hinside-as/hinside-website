@@ -193,7 +193,19 @@ export default function SiteNav({
             );
           })}
           <li>
-            <a href={otherLocaleHref}>{otherLocaleLabel}</a>
+            {/* data-astro-reload: a locale switch is still "the homepage"
+                at the URL level, so both ends carry the exact same
+                case-cover-<slug> view-transition-name on each portfolio
+                image (see src/lib/viewTransitions.ts) — meant to morph a
+                clicked card into that project's hero on a *different*
+                page, not to run between two locale variants of the *same*
+                page. Without this, switching language made every card
+                image visibly reflow/re-crop for a frame as the browser
+                tried to morph each one into its own (identically named,
+                already-correct) counterpart. */}
+            <a href={otherLocaleHref} data-astro-reload>
+              {otherLocaleLabel}
+            </a>
           </li>
         </ul>
         {underline && (
@@ -256,7 +268,9 @@ export default function SiteNav({
                 </li>
               ))}
               <li style={{ transitionDelay: isOpen ? `${links.length * 40}ms` : "0ms" }}>
-                <a href={otherLocaleHref} tabIndex={isOpen ? 0 : -1}>
+                {/* data-astro-reload — see the desktop locale link's own
+                    comment above. */}
+                <a href={otherLocaleHref} tabIndex={isOpen ? 0 : -1} data-astro-reload>
                   {otherLocaleLabel}
                 </a>
               </li>

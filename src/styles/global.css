@@ -61,6 +61,21 @@ a {
   color: inherit;
 }
 
+/* Safari applies its native focus ring on any :focus, not just keyboard
+   :focus-visible — a trackpad/mouse click on a link got the same outline as
+   pressing Tab to it. Suppressing plain :focus and styling :focus-visible
+   instead keeps the ring for actual keyboard navigation (the accessibility
+   reason it exists) while a pointer click no longer shows one. A
+   component's own more specific :focus-visible rule (e.g. .pppc-card's)
+   still wins over this default via normal specificity. */
+a:focus {
+  outline: none;
+}
+a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 h1,
 h2,
 h3,
