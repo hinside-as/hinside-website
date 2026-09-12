@@ -218,6 +218,21 @@ export default function HomeExperience({
           --color-fg: #141414;
           --color-fg-muted: color-mix(in srgb, #141414 65%, transparent);
           color: var(--color-fg);
+          /* Cancels the header's own reserved flow space (position: sticky
+             still reserves its natural, un-offset box — see Header.astro's
+             own comment) so this section's top sits at the document's true
+             y:0 instead of one header-height down. Without this, the
+             pinned carousel's sticky viewport hadn't actually reached its
+             "stuck" state for the first --header-height px of scroll — it
+             was still scrolling normally while PinnedPortfolioCarousel's
+             own transform had already started sliding the track, reading
+             as the whole thing drifting diagonally before settling into
+             pure sideways motion. Margin collapses straight through .hs and
+             <main> (both plain, unpadded, unbordered block boxes) up to
+             <header>'s own reserved box, same technique the case-study
+             template's .cse__text-box-anchor already uses for an identical
+             reason. */
+          margin-top: calc(-1 * var(--header-height));
         }
         /* The carousel still needs to read as centered on the *slide*, not
            "centered in whatever space the heading/intro happen to leave

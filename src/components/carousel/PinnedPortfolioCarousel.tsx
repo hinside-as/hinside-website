@@ -45,6 +45,8 @@ export default function PinnedPortfolioCarousel({
   const stickyRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const imageRefs = useRef<Map<string, HTMLImageElement>>(new Map());
+  const introRef = useRef<HTMLParagraphElement | null>(null);
+  const outroRef = useRef<HTMLParagraphElement | null>(null);
 
   const entries: TrackEntry[] = [
     { kind: "text", key: "intro", text: introText },
@@ -76,26 +78,43 @@ export default function PinnedPortfolioCarousel({
     // never a moment early or late. No separate "progress" fraction or
     // easing curve to keep in sync with a hand-picked section height.
     const measure = () => {
+      // Leading/trailing padding is computed, not the flat CSS clamp() it
+      // used to be, so the *first project card's* left edge lands exactly
+      // at viewport-center when the track is untransformed, and the *last
+      // project card's* right edge lands there too once fully scrolled —
+      // both ends framed the same way, with the intro/outro quote peeking
+      // in from off-center rather than the cards themselves starting
+      // mid-screen. Solving for it: card1.left = padding + introWidth + gap
+      // must equal half the viewport width, so padding = half width minus
+      // introWidth minus gap (and symmetrically for the trailing side,
+      // since maxTranslate itself falls out of the track's total width —
+      // see the comment below on why that's enough to also place the last
+      // card correctly with no separate calculation needed there).
+      const gapPx = parseFloat(getComputedStyle(track).columnGap) || 0;
+      const viewportWidth = sticky.clientWidth;
+      const introWidth = introRef.current?.getBoundingClientRect().width ?? 0;
+      const outroWidth = outroRef.current?.getBoundingClientRect().width ?? 0;
+      const paddingStart = Math.max(0, viewportWidth / 2 - gapPx - introWidth);
+      const paddingEnd = Math.max(0, viewportWidth / 2 - gapPx - outroWidth);
+      track.style.paddingInlineStart = `${paddingStart}px`;
+      track.style.paddingInlineEnd = `${paddingEnd}px`;
+
       maxTranslate = Math.max(0, track.scrollWidth - sticky.clientWidth);
       section.style.height = `${sticky.clientHeight + maxTranslate}px`;
     };
 
     const apply = () => {
-      // Plain window.scrollY, not this section's own position — Portfolio
-      // is the page's first section, with nothing above it but the header
-      // (which reserves its own small flow space without pushing this
-      // section's *visual* start down, since position: sticky doesn't
-      // offset the space it reserves — see Header.astro). Deriving "raw"
-      // from the section's own getBoundingClientRect() therefore left a
-      // dead zone of exactly the header's height at the very start of the
-      // page: the user had to scroll that much before the section's top
-      // even reached the viewport's top edge, during which the track sat
-      // completely still. scrollY has no such gap — it's already 0 at the
-      // very top of the page, so the first pixel of scroll moves the track
-      // immediately. This assumes Portfolio stays the first thing on the
-      // page; if another section is ever added above it, this needs to go
-      // back to a rect-based measurement.
-      const raw = window.scrollY;
+      // getBoundingClientRect().top, not window.scrollY directly: this is
+      // robust to whatever sits above the section (see HomeExperience's own
+      // negative margin-top on .hs__work, which cancels the header's
+      // reserved space so this section's top already sits at the viewport's
+      // top edge from the very first frame — without that, there's a window
+      // where the section hasn't reached position: sticky's stuck state yet
+      // but this was already translating the track, reading as the whole
+      // carousel drifting diagonally instead of purely sideways). Live
+      // getBoundingClientRect() also can't go stale the way a once-measured
+      // offsetTop can (see this function's git history for that bug).
+      const raw = -section.getBoundingClientRect().top;
       const clamped = Math.min(Math.max(raw, 0), maxTranslate);
       track.style.transform = `translate3d(${-clamped}px, 0, 0)`;
 
@@ -165,7 +184,11 @@ export default function PinnedPortfolioCarousel({
         <div ref={trackRef} className="pppc-track">
           {entries.map((entry) =>
             entry.kind === "text" ? (
-              <p key={entry.key} className="pppc-quote">
+              <p
+                key={entry.key}
+                className="pppc-quote"
+                ref={entry.key === "intro" ? introRef : outroRef}
+              >
                 {entry.text}
               </p>
             ) : (
@@ -220,6 +243,13 @@ export default function PinnedPortfolioCarousel({
           align-items: center;
           width: max-content;
           gap: 24px;
+          /* Static fallback only — the effect above overrides both sides
+             via inline style once mounted, computing them so the first/last
+             project card lands flush with viewport-center at either end of
+             the scroll (see measure()'s own comment). This value only ever
+             shows pre-hydration or under prefers-reduced-motion, where the
+             effect bails out entirely and this becomes a plain scrollable
+             strip instead. */
           padding-inline: clamp(1rem, 6vw, var(--space-8, 6rem));
           will-change: transform;
         }
