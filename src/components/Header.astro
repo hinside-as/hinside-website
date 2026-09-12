@@ -86,7 +86,17 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     z-index: 50;
     display: flex;
     flex-direction: column;
-    margin-inline: var(--space-4);
+    /* Caps and centers at the same width as the page's own content column
+       (--content-max-width, same token .hs__content uses) rather than
+       just a fixed 24px inset — on an ordinary window this reads
+       identically to a plain inset (viewport minus 48px is already
+       narrower than the cap), but on a very wide monitor the header would
+       otherwise keep stretching edge to edge while the actual content
+       below it stays capped and centered, visibly wider than everything
+       it's supposed to align with. */
+    width: calc(100% - var(--space-4) * 2);
+    max-width: var(--content-max-width);
+    margin-inline: auto;
     border-radius: 8px;
     overflow: hidden;
     background: color-mix(in srgb, var(--color-bg) 55%, transparent);
@@ -122,6 +132,8 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
      position removes that independent timer entirely. */
   .site-header[data-solid="true"] {
     top: 0;
+    width: 100%;
+    max-width: none;
     margin-inline: 0;
     border-radius: 0;
     overflow: visible;

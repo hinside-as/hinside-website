@@ -12,39 +12,29 @@ type Props = {
   otherLocaleLabel: string;
 };
 
-// Two stacked bars that splay into an X — drawn as a single SVG whose two
-// <line>s rotate/translate together, not two separately-animated elements,
-// so they stay symmetric at every step of the transition instead of
-// potentially drifting out of sync.
+// Two stacked bars that splay into an X. Both <line>s keep the exact same
+// x1/y1/x2/y2 the whole time (centered through the icon's own middle) —
+// only `transform` ever changes, never the underlying coordinates. An
+// earlier version instead changed y1/y2 directly between states: SVG
+// geometry attributes set as plain JSX props snap instantly on re-render,
+// they don't ease — so that version had the *rotation* animating smoothly
+// via CSS transform while the *position* jumped with no interpolation at
+// all, two different motions on the same element reading as sluggish/
+// incoherent. Doing the whole motion (offset apart -> centered + rotated)
+// through transform alone keeps it one continuous, synchronized move.
+// transform-origin: 12px 12px (not "center", which for SVG resolves
+// against the element's own bounding box rather than the icon's) rotates
+// around the icon's actual center regardless of each line's own bounds.
 function MenuIcon({ open }: { open: boolean }) {
+  const line = (rotateDeg: number, closedOffsetY: number): React.CSSProperties => ({
+    transformOrigin: "12px 12px",
+    transform: open ? `rotate(${rotateDeg}deg)` : `translateY(${closedOffsetY}px)`,
+    transition: "transform var(--duration-fast) var(--ease-out-expressive)",
+  });
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-      <line
-        x1="3"
-        y1={open ? 12 : 7}
-        x2="21"
-        y2={open ? 12 : 7}
-        stroke="currentColor"
-        strokeWidth="1.5"
-        style={{
-          transformOrigin: "center",
-          transform: open ? "rotate(45deg)" : "none",
-          transition: `transform var(--duration-base) var(--ease-standard), y var(--duration-base) var(--ease-standard)`,
-        }}
-      />
-      <line
-        x1="3"
-        y1={open ? 12 : 17}
-        x2="21"
-        y2={open ? 12 : 17}
-        stroke="currentColor"
-        strokeWidth="1.5"
-        style={{
-          transformOrigin: "center",
-          transform: open ? "rotate(-45deg)" : "none",
-          transition: `transform var(--duration-base) var(--ease-standard), y var(--duration-base) var(--ease-standard)`,
-        }}
-      />
+      <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="1.5" style={line(45, -5)} />
+      <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="1.5" style={line(-45, 5)} />
     </svg>
   );
 }
