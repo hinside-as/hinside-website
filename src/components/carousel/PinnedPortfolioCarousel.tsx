@@ -270,6 +270,16 @@ export default function PinnedPortfolioCarousel({
           aspect-ratio: 1 / 1;
           overflow: hidden;
         }
+        /* .pppc-card's own height (what .pppc-track's align-items: center
+           actually aligns by) is deliberately just the image frame's —
+           title/subtitle live outside normal flow (see .pppc-meta's
+           position: absolute below) instead of stacking underneath it, so
+           a card whose title happens to wrap to a second line can't make
+           that one card's box taller than the others and throw off
+           everyone's shared center. Every card uses the same --card-size,
+           so with meta out of the height calculation entirely, all four
+           are now exactly the same height by construction, not just
+           usually the same height. */
         /* Oversized relative to its frame (140%, recentered with a -20%
            inset) purely so the parallax transform below has room to pan
            without ever revealing an edge — see PARALLAX_RANGE_PX's own
@@ -290,6 +300,10 @@ export default function PinnedPortfolioCarousel({
           filter: grayscale(0) saturate(1.04);
         }
         .pppc-meta {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
           margin-top: var(--space-3);
           display: flex;
           flex-direction: column;

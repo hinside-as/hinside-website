@@ -83,14 +83,20 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     z-index: 50;
     display: flex;
     flex-direction: column;
-    /* Same box model as .hs__content (width:100%, capped by
-       --content-max-width, centered) — not a narrower width inset from
-       that, so the pill's own edges land exactly on the page's content
-       column edges at every viewport width instead of floating inside
-       them. The 24px gap from the pill's edge to the logo/nav content
-       comes entirely from .site-header__row's own padding-inline below. */
-    width: 100%;
-    max-width: var(--content-max-width);
+    /* Matches .hs__content's own *readable content* bounds — that's its
+       outer box (width:100%, capped by --content-max-width) minus its own
+       --space-5 padding-inline, not the outer box itself. Using the outer
+       box directly (an earlier version of this rule did) put the pill
+       flush against the viewport edges on mobile, where --content-max-width
+       doesn't apply yet and .hs__content's padding is the only thing
+       keeping its own text off the screen edge — the pill needs that same
+       inset, just applied as a width reduction here since box-shadow and
+       border-radius need to live on this element's real edge, not be
+       pushed in by padding. The 24px gap from the pill's own edge to the
+       logo/nav content inside it is a separate, smaller inset — see
+       .site-header__row's own padding-inline below. */
+    width: calc(100% - var(--space-5) * 2);
+    max-width: calc(var(--content-max-width) - var(--space-5) * 2);
     margin-inline: auto;
     border-radius: 8px;
     overflow: hidden;
