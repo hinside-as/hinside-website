@@ -144,22 +144,6 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     transition: none;
     transform: translateY(calc((var(--header-reveal, 1) - 1) * 100%));
   }
-  /* Redefining --color-bg/--color-fg locally (not swapping in a whole
-     separate rule set) lets every descendant that already reads those
-     tokens — BrandMark's fill, SiteNav's inherited text color — adapt for
-     free via normal CSS cascade, no per-component light/dark variant
-     needed. Only ever set on pages whose sections declare
-     [data-section-theme] (see the header's own script) — everywhere else
-     this attribute never appears, so nothing changes. */
-  .site-header[data-on-light="true"] {
-    --color-bg: var(--color-soft-cream);
-    --color-fg: var(--color-soft-black);
-    --color-fg-muted: color-mix(in srgb, var(--color-soft-black) 65%, transparent);
-    color: var(--color-fg);
-  }
-  .site-header[data-on-light="true"] {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  }
   .site-header__brand {
     width: var(--brand-mark-width);
     height: var(--brand-mark-height);
@@ -188,30 +172,6 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-
-    // Adapts the header's own colour to whichever section currently sits
-    // behind it — only does anything on pages that actually mark their
-    // sections up with [data-section-theme] (currently just the homepage,
-    // see HomeExperience.tsx); a page with none simply has nothing to
-    // observe. Same center-crossing IntersectionObserver principle as
-    // useActiveSection (case-study TOC) — purely observational, never
-    // touches scroll itself. Distinct from the site-wide data-theme
-    // light/dark-mode attribute on <html>: this is "what's behind the
-    // header right now," not a user preference.
-    const themedSections = document.querySelectorAll<HTMLElement>("[data-section-theme]");
-    if (themedSections.length > 0) {
-      const themeObserver = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (!entry.isIntersecting) continue;
-            const theme = entry.target.getAttribute("data-section-theme");
-            if (theme) header.dataset.onLight = String(theme === "light");
-          }
-        },
-        { rootMargin: "-50% 0px -50% 0px", threshold: 0 },
-      );
-      themedSections.forEach((section) => themeObserver.observe(section));
-    }
 
     // Native scrollIntoView, not a hand-rolled rAF easing loop — no need to
     // hand-roll scroll physics the browser already provides. Target

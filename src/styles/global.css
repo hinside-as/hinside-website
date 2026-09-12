@@ -17,10 +17,20 @@
 html {
   background: var(--color-bg);
   color-scheme: light dark;
+  /* Removes the elastic rubber-band overshoot at the very top/bottom of the
+     page — a real native CSS property, not a JS replacement for the
+     browser's own scroll physics (see this file's own native-first
+     principles elsewhere). Momentum scrolling itself is untouched: a fast
+     flick still decelerates exactly as it always did, this only stops that
+     deceleration cleanly at the boundary instead of letting it overshoot
+     and spring back. Set on both html and body since different engines
+     treat either as the actual scrolling element. */
+  overscroll-behavior-y: none;
 }
 
 body {
   margin: 0;
+  overscroll-behavior-y: none;
   /* Decorative elements (e.g. AsciiLogo's scramble animation) deliberately
      paint outside their own box via overflow: visible — this clips that
      bleed from ever widening the page's actual scrollable area. `clip`,

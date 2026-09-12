@@ -81,17 +81,21 @@ export default function PinnedPortfolioCarousel({
     };
 
     const apply = () => {
-      // getBoundingClientRect().top, not a cached window.scrollY minus a
-      // once-measured section.offsetTop: an earlier version cached that
-      // offset at mount, which silently went stale the moment anything
-      // above this section reflowed afterward (a web font swapping in, an
-      // image finishing its load) — scrollY would then map to the wrong
-      // point in the section's own travel, and the track could render
-      // permanently pinned at one end instead of animating. Reading the
-      // live rect is unaffected by any offsetParent chain, is intrinsically
-      // always current, and costs nothing this function wasn't already
-      // paying for its own parallax measurement below.
-      const raw = -section.getBoundingClientRect().top;
+      // Plain window.scrollY, not this section's own position — Portfolio
+      // is the page's first section, with nothing above it but the header
+      // (which reserves its own small flow space without pushing this
+      // section's *visual* start down, since position: sticky doesn't
+      // offset the space it reserves — see Header.astro). Deriving "raw"
+      // from the section's own getBoundingClientRect() therefore left a
+      // dead zone of exactly the header's height at the very start of the
+      // page: the user had to scroll that much before the section's top
+      // even reached the viewport's top edge, during which the track sat
+      // completely still. scrollY has no such gap — it's already 0 at the
+      // very top of the page, so the first pixel of scroll moves the track
+      // immediately. This assumes Portfolio stays the first thing on the
+      // page; if another section is ever added above it, this needs to go
+      // back to a rect-based measurement.
+      const raw = window.scrollY;
       const clamped = Math.min(Math.max(raw, 0), maxTranslate);
       track.style.transform = `translate3d(${-clamped}px, 0, 0)`;
 

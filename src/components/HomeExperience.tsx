@@ -61,24 +61,20 @@ export default function HomeExperience({
     <div className="hs" ref={containerRef}>
       {/* data-nav-section groups sections under whichever nav link they
           count as being "part of" for the underline (several sections can
-          share one — see useActiveNavSection); data-section-theme is a
-          separate, per-section axis driving the header's own adaptive
-          light/dark color (see Header.astro's script). All "dark" for now
-          — every section here still assumes a dark background internally
-          (AsciiLogo's glyph fill, PortfolioCarousel/LogoCarousel's card
-          shells, ContactForm's inputs all read --color-fg etc.), so
-          flipping any of them to the new soft-cream ground has to wait
-          until each is individually reviewed for that, not bundled into
-          the nav work. */}
+          share one — see useActiveNavSection). The header itself no longer
+          adapts to what's behind it (a light-section flip was tried on
+          Portfolio below and then deliberately dropped — it stays a fixed
+          dark pill everywhere), so nothing else needs to know a section's
+          light/dark intent except the section's own internal styling. */}
       {/* Portfolio opens the page (matching the Figma flow — the nav sits
           directly on this section from the very first frame, no separate
           hero screen ahead of it) rather than following a headline/identity
           lead-in. */}
-      <section id="work" className="hs__step hs__work" data-nav-section="work" data-section-theme="light">
+      <section id="work" className="hs__step hs__work" data-nav-section="work">
         <PinnedPortfolioCarousel items={portfolioItems} introText={workIntro} outroText={workOutro} />
       </section>
 
-      <section className="hs__step hs__hero" data-nav-section="work" data-section-theme="dark">
+      <section className="hs__step hs__hero" data-nav-section="work">
         <div className="hs__content">
           <h1 className="hs__hero-headline" data-reveal>
             {heroHeadline}
@@ -86,21 +82,21 @@ export default function HomeExperience({
         </div>
       </section>
 
-      <section className="hs__step hs__ascii" data-nav-section="work" data-section-theme="dark">
+      <section className="hs__step hs__ascii" data-nav-section="work">
         <div className="hs__content">
           <h2>{identityHeading}</h2>
         </div>
         <AsciiLogo />
       </section>
 
-      <section id="studio" className="hs__step hs__studio" data-nav-section="studio" data-section-theme="dark">
+      <section id="studio" className="hs__step hs__studio" data-nav-section="studio">
         <div className="hs__content">
           <h2>{studioHeading}</h2>
           <p className="hs__studio-paragraph">{studioParagraph}</p>
         </div>
       </section>
 
-      <section className="hs__step hs__clients" data-nav-section="contact" data-section-theme="dark">
+      <section className="hs__step hs__clients" data-nav-section="contact">
         <div className="hs__content">
           <h2>{clientsHeading}</h2>
           <p className="hs__clients-intro">{clientsIntro}</p>
@@ -109,17 +105,12 @@ export default function HomeExperience({
       </section>
 
       {testimonials.length > 0 && (
-        <section className="hs__step hs__testimonials" data-nav-section="contact" data-section-theme="dark">
+        <section className="hs__step hs__testimonials" data-nav-section="contact">
           <TestimonialCarousel items={testimonials} />
         </section>
       )}
 
-      <section
-        id="contact"
-        className="hs__step hs__contact"
-        data-nav-section="contact"
-        data-section-theme="dark"
-      >
+      <section id="contact" className="hs__step hs__contact" data-nav-section="contact">
         <div className="hs__content hs__contact-grid">
           <div className="hs__contact-main">
             <h2>{contactHeading}</h2>
@@ -214,12 +205,12 @@ export default function HomeExperience({
            homepage — redefining --color-fg/-muted locally rather than a
            separate rule set lets every descendant that already reads those
            tokens (PinnedPortfolioCarousel's own component included) adapt
-           for free. Same technique Header.astro's [data-on-light] override
-           uses, and exactly why this section also carries
-           data-section-theme="light" (see HomeExperience's own
-           section-theme comment) — the header picks that up and flips its
-           own pill to match. The carousel is this section's only child now
-           (no heading/dek above it), so it's free to fill the whole step. */
+           for free. The header itself doesn't react to this (it stays a
+           fixed dark pill everywhere — an earlier adaptive version was
+           deliberately dropped), so this override only ever affects this
+           section's own content. The carousel is this section's only child
+           now (no heading/dek above it), so it's free to fill the whole
+           step. */
         .hs__work {
           align-items: stretch;
           background: #ebebeb;
