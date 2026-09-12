@@ -20,6 +20,8 @@ type Props = {
   heroHeadline: string;
   identityHeading: string;
   workHeading: string;
+  workIntro: string;
+  workOutro: string;
   heroDek: string;
   studioHeading: string;
   studioParagraph: string;
@@ -44,6 +46,8 @@ export default function HomeExperience({
   heroHeadline,
   identityHeading,
   workHeading,
+  workIntro,
+  workOutro,
   heroDek,
   studioHeading,
   studioParagraph,
@@ -85,12 +89,12 @@ export default function HomeExperience({
         <AsciiLogo />
       </section>
 
-      <section id="work" className="hs__step hs__work" data-nav-section="work" data-section-theme="dark">
+      <section id="work" className="hs__step hs__work" data-nav-section="work" data-section-theme="light">
         <div className="hs__content">
           <h2>{workHeading}</h2>
           <p className="hs__hero-dek">{heroDek}</p>
         </div>
-        <PinnedPortfolioCarousel items={portfolioItems} />
+        <PinnedPortfolioCarousel items={portfolioItems} introText={workIntro} outroText={workOutro} />
       </section>
 
       <section id="studio" className="hs__step hs__studio" data-nav-section="studio" data-section-theme="dark">
@@ -220,11 +224,23 @@ export default function HomeExperience({
            first, then the pinned carousel below takes over the section's
            own height (see PinnedPortfolioCarousel, which sets that height
            itself via JS to match how far its track has to travel). */
+        /* Light section (per the Figma spec) inside an otherwise-dark
+           homepage — redefining --color-fg/-muted locally rather than a
+           separate rule set lets every descendant that already reads those
+           tokens (the shared h2/.hs__hero-dek rules above, the pinned
+           carousel's own PinnedPortfolioCarousel component) adapt for free.
+           Same technique Header.astro's [data-on-light] override uses, and
+           exactly why this section also carries data-section-theme="light"
+           (see HomeExperience's own section-theme comment) — the header
+           picks that up and flips its own pill to match. */
         .hs__work {
           flex-direction: column;
           align-items: stretch;
           gap: var(--space-6);
-          background: #000000;
+          background: #ebebeb;
+          --color-fg: #141414;
+          --color-fg-muted: color-mix(in srgb, #141414 65%, transparent);
+          color: var(--color-fg);
         }
         .hs__work .hs__content {
           padding-top: var(--space-2);
