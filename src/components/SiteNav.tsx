@@ -47,6 +47,8 @@ export default function SiteNav({
   otherLocaleLabel,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   // #mobile-nav-panel-target is an Astro-rendered element already in the
   // server HTML (see Header.astro), not something this component creates —
@@ -68,9 +70,25 @@ export default function SiteNav({
     };
     window.addEventListener("keydown", onKeyDown);
 
+    // The panel is a position: absolute overlay now (see Header.astro/its
+    // own #mobile-nav-panel rule) rather than content that pushes the page
+    // down, so whatever's behind it — the homepage's own carousel included
+    // — is still reachable through any gap around the panel unless a tap
+    // there closes the menu first. toggleRef is excluded so this doesn't
+    // fight the toggle button's own onClick over the same tap.
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (panelRef.current?.contains(target)) return;
+      if (toggleRef.current?.contains(target)) return;
+      setIsOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
     };
   }, [isOpen]);
 
@@ -167,6 +185,7 @@ export default function SiteNav({
       </div>
 
       <button
+        ref={toggleRef}
         type="button"
         className="site-nav__toggle"
         aria-expanded={isOpen}
@@ -192,7 +211,14 @@ export default function SiteNav({
           // rows/opacity CSS below handle showing and hiding instead;
           // tabIndex/aria-hidden keep the always-present links out of the
           // tab order and off screen readers while closed.
-          <div id="mobile-nav-panel" data-open={isOpen} role="dialog" aria-modal={isOpen} aria-hidden={!isOpen}>
+          <div
+            ref={panelRef}
+            id="mobile-nav-panel"
+            data-open={isOpen}
+            role="dialog"
+            aria-modal={isOpen}
+            aria-hidden={!isOpen}
+          >
             <div className="site-nav__panel-inner">
               <ul>
                 {links.map((link, index) => (
@@ -266,7 +292,17 @@ export default function SiteNav({
           cursor: pointer;
           padding: var(--space-2);
         }
-        /* grid-template-rows: 0fr -> 1fr, not height: 0 -> auto — height
+        /* position: absolute (anchored to #mobile-nav-panel-target, see
+           Header.astro), not normal in-flow content — this panel used to
+           grow the header's own box downward, which meant opening it
+           pushed everything below the header down the page instead of
+           overlaying it. Carries its own background/radius/shadow now
+           since it no longer shares a box with .site-header (which has
+           stopped clipping overflow specifically so this can extend past
+           its row without being cut off) — border-radius only on the
+           bottom corners so it reads as one continuous shape with the row
+           still visible above it.
+           grid-template-rows: 0fr -> 1fr, not height: 0 -> auto — height
            can't be transitioned to/from auto at all, and a fixed pixel
            target would need re-measuring every time the link count or
            label lengths change (locale swap, adding a nav item). A single
@@ -279,12 +315,25 @@ export default function SiteNav({
            0 while its content stays its natural height unless something
            inside clips to the row's own shrunk size. */
         #mobile-nav-panel {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1;
           display: grid;
           grid-template-rows: 0fr;
+          background: var(--color-bg);
+          border-radius: 0 0 8px 8px;
           transition: grid-template-rows var(--duration-base) var(--ease-standard);
         }
+        /* Shadow only while open, not on the base rule above — collapsed
+           to a 0fr row it's still a real (if invisible) box, and a blurred
+           box-shadow paints past a zero-size box's own edges, which showed
+           up as a faint persistent line under the header even fully
+           closed. */
         #mobile-nav-panel[data-open="true"] {
           grid-template-rows: 1fr;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
         }
         .site-nav__panel-inner {
           overflow: hidden;

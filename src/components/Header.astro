@@ -60,9 +60,12 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     />
   </div>
   {/* SiteNav portals its expanded mobile-menu content in here (see its own
-     comment) rather than to document.body — it's normal flow content that
-     grows this header's own box now, not a position:fixed overlay, so it
-     stays within this same floating card instead of needing to escape it. */}
+     comment) — position: relative makes this the positioning context for
+     that panel's own position: absolute, so it overlays whatever's below
+     the header instead of pushing it down the page. Not document.body:
+     staying inside .site-header keeps the panel visually anchored to (and
+     the same width as) the header pill, matching the Figma spec's compact
+     dropdown rather than a full-screen takeover. */}
   <div id="mobile-nav-panel-target"></div>
 </header>
 
@@ -83,23 +86,17 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     z-index: 50;
     display: flex;
     flex-direction: column;
-    /* Matches .hs__content's own *readable content* bounds — that's its
-       outer box (width:100%, capped by --content-max-width) minus its own
-       --space-5 padding-inline, not the outer box itself. Using the outer
-       box directly (an earlier version of this rule did) put the pill
-       flush against the viewport edges on mobile, where --content-max-width
-       doesn't apply yet and .hs__content's padding is the only thing
-       keeping its own text off the screen edge — the pill needs that same
-       inset, just applied as a width reduction here since box-shadow and
-       border-radius need to live on this element's real edge, not be
-       pushed in by padding. The 24px gap from the pill's own edge to the
-       logo/nav content inside it is a separate, smaller inset — see
-       .site-header__row's own padding-inline below. */
-    width: calc(100% - var(--space-5) * 2);
-    max-width: calc(var(--content-max-width) - var(--space-5) * 2);
+    /* 24px from the viewport edge on every side — left, right, and top
+       (the sticky offset above) all the same flat value, capped by
+       --content-max-width once the viewport gets wide enough that a plain
+       24px inset would otherwise keep growing past it. --space-4 is that
+       same 24px, already used for the *inner* logo-to-pill-edge gap below
+       — reused here for the *outer* pill-to-viewport gap, a different
+       role, same value. */
+    width: calc(100% - var(--space-4) * 2);
+    max-width: calc(var(--content-max-width) - var(--space-4) * 2);
     margin-inline: auto;
     border-radius: 8px;
-    overflow: hidden;
     background: var(--color-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
     transition: transform var(--duration-base) var(--ease-standard);
@@ -115,6 +112,18 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
        wider value to match their sidebar/footer; see [data-wide-margin]
        below, now scoped to that state only. */
     padding-inline: var(--space-4);
+  }
+  /* Positioning context for the mobile panel's own position: absolute
+     (see #mobile-nav-panel in SiteNav.tsx) — deliberately the *target*
+     div, not .site-header itself, so the panel anchors to exactly where
+     it used to sit in normal flow (flush under the row) without needing
+     to account for .site-header's own padding/border-radius. .site-header
+     no longer clips overflow (see its own rule above) specifically so this
+     panel can extend below the row's fixed height without being cut off —
+     it carries its own background/radius/shadow now instead of relying on
+     the header's shared box for that. */
+  #mobile-nav-panel-target {
+    position: relative;
   }
   .site-header[data-hidden="true"] {
     transform: translateY(-100%);
@@ -137,7 +146,6 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     max-width: none;
     margin-inline: 0;
     border-radius: 0;
-    overflow: visible;
     box-shadow: none;
     transition: none;
     transform: translateY(calc((var(--header-reveal, 1) - 1) * 100%));
