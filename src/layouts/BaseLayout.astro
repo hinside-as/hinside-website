@@ -24,6 +24,16 @@ type Props = {
   title: string;
   description: string;
   accent?: string;
+  /** Overrides body's own painted background (not the --color-bg token —
+   * every component reading that custom property, the header's default
+   * on-dark pill included, stays on the real dark value). Exists because
+   * position: sticky elements still reserve their natural, un-offset flow
+   * space — the site header being first in the document means that space
+   * sits above <main> and paints with whatever body's own background is.
+   * That was invisible while every homepage section opened dark (body's
+   * default), but a page whose first section is light needs this so a
+   * mismatched dark sliver doesn't show above it. */
+  bodyBackground?: string;
   /** Case-study pages drive the header's data-hidden themselves (visible
    * only on the first slide — see CaseStudyExperience's activeIndex effect
    * — not this component's own scroll-direction-based show/hide) and want
@@ -41,6 +51,7 @@ const {
   title,
   description,
   accent,
+  bodyBackground,
   headerScrollControlsVisibility = true,
   headerSolidBackground = false,
   headerWideMargin = false,
@@ -78,7 +89,11 @@ const navLinks = [
     <link rel="preload" as="font" type="font/woff2" href={playfairLatinExt} crossorigin />
     <ClientRouter />
   </head>
-  <body style={accent ? `--accent: ${accent};` : undefined}>
+  <body
+    style={[accent && `--accent: ${accent};`, bodyBackground && `background: ${bodyBackground};`]
+      .filter(Boolean)
+      .join(" ") || undefined}
+  >
     <a class="visually-hidden" href="#main-content">Skip to content</a>
     <Header
       locale={locale}

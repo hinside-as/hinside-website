@@ -73,10 +73,6 @@ const heroHeadline =
   locale === "no"
     ? "Design er problemløsning, ikke dekor — med mindre dekor løser problemer"
     : "Design is solving problems, not decoration — unless decoration solves a problem.";
-const heroDek =
-  locale === "no"
-    ? "Visuell problemløsning med presisjon, retning og karakter. Hinside bruker strategi, design og utvikling til å løse problemer gjennom tydelig kommunikasjon, visuelle virkemidler og solide systemer. Målet er å gi virksomheter en tydeligere retning og et uttrykk de kan kjenne seg igjen i, bruke med selvtillit og være stolte av å representere."
-    : "Visual problem-solving with precision, direction and character. Hinside uses strategy, design and development to solve problems through clear communication, visual means and solid systems. The goal is to give businesses a clearer direction and an expression they recognize themselves in, use with confidence, and are proud to represent.";
 const studioParagraph =
   locale === "no"
     ? "Hinsides tilnærming ble formet lenge før den fikk et navn — det startet bak disken i en skiltbutikk, med å skjære logoer og bokstaver for hånd, og ble skjerpet gjennom et av Norges mest selektive kreative studieprogrammer og et legendarisk studentdrevet studio bygget på ambisjon fremfor fakturering. Derfra: helhetlig merkevarebygging for noen av Norges sterkeste navn, mindre studioer, frilansarbeid, og ledelse av design i et voksende teknologiselskap. Ulike rom, ulike innsatser, samme instinkt — å behandle design som et verktøy for å løse noe reelt."
@@ -87,6 +83,7 @@ const studioParagraph =
   locale={locale}
   title="Hinside — design & development studio"
   description={t("home.hero.eyebrow")}
+  bodyBackground="#ebebeb"
   headerScrollControlsVisibility={false}
   headerWideMargin
   footerNoBorder
@@ -96,10 +93,8 @@ const studioParagraph =
     client:load
     heroHeadline={heroHeadline}
     identityHeading={t("home.identity.heading")}
-    workHeading={t("nav.work")}
     workIntro={t("home.work.intro")}
     workOutro={t("home.work.outro")}
-    heroDek={heroDek}
     studioHeading={t("nav.studio")}
     studioParagraph={studioParagraph}
     clientsHeading={t("home.clients.heading")}

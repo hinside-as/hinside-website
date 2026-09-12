@@ -10,11 +10,12 @@ type TrackEntry =
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
 // How far (in px) an image is allowed to drift inside its own frame as the
-// track scrolls it past center — see .pppc-image's oversized 130%/-15%
+// track scrolls it past center — see .pppc-image's oversized 140%/-20%
 // sizing below, which exists purely to give this room without exposing the
-// frame's edges. Kept comfortably inside that 15%-per-side budget (of a
-// 384px frame, 15% is ~58px) rather than pushing all the way to it.
-const PARALLAX_RANGE_PX = 36;
+// frame's edges. Kept comfortably inside that 20%-per-side budget (~56px on
+// the smallest card this ever renders at, the min(384px, 78vw) mobile floor)
+// rather than pushing all the way to it.
+const PARALLAX_RANGE_PX = 48;
 
 /**
  * The homepage's Work section: a pinned viewport whose track moves
@@ -102,12 +103,24 @@ export default function PinnedPortfolioCarousel({
       // use for vertical drift (a distance-from-center factor written to a
       // CSS custom property), just measured horizontally here since that's
       // the axis this carousel actually moves on.
+      //
+      // Normalized against the card's own width, not the sticky viewport's —
+      // a 384px card only ever travels roughly one card-width either side of
+      // center before it's off-screen, so dividing by the *viewport's* half
+      // width (easily 1000px+) kept the result pinned near zero for a
+      // card's entire visible transit and the drift never read as anything.
+      // Dividing by the card's own width means a card reaches full drift by
+      // the time it's about a card-width off center — exactly the span it's
+      // actually visible for. (/1.4 undoes .pppc-image's own 140% oversize,
+      // since getBoundingClientRect() reports that inflated box, not the
+      // frame's true width.)
       const stickyRect = sticky.getBoundingClientRect();
       const stickyCenter = stickyRect.left + stickyRect.width / 2;
       imageRefs.current.forEach((img) => {
         const cardRect = img.getBoundingClientRect();
         const cardCenter = cardRect.left + cardRect.width / 2;
-        const normalized = (cardCenter - stickyCenter) / (stickyRect.width / 2);
+        const frameWidth = cardRect.width / 1.4;
+        const normalized = (cardCenter - stickyCenter) / frameWidth;
         const offset = Math.max(-1, Math.min(1, normalized)) * PARALLAX_RANGE_PX;
         img.style.setProperty("--pppc-parallax", `${offset.toFixed(1)}px`);
       });
@@ -223,15 +236,15 @@ export default function PinnedPortfolioCarousel({
           aspect-ratio: 1 / 1;
           overflow: hidden;
         }
-        /* Oversized relative to its frame (130%, recentered with a -15%
+        /* Oversized relative to its frame (140%, recentered with a -20%
            inset) purely so the parallax transform below has room to pan
            without ever revealing an edge — see PARALLAX_RANGE_PX's own
            comment in the component for the budget this stays inside. */
         .pppc-image {
           display: block;
-          width: 130%;
-          height: 130%;
-          margin: -15%;
+          width: 140%;
+          height: 140%;
+          margin: -20%;
           max-width: none;
           object-fit: cover;
           filter: grayscale(1) saturate(0.28);

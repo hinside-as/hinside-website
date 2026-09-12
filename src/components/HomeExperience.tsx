@@ -19,10 +19,8 @@ type FormLabels = {
 type Props = {
   heroHeadline: string;
   identityHeading: string;
-  workHeading: string;
   workIntro: string;
   workOutro: string;
-  heroDek: string;
   studioHeading: string;
   studioParagraph: string;
   clientsHeading: string;
@@ -45,10 +43,8 @@ type Props = {
 export default function HomeExperience({
   heroHeadline,
   identityHeading,
-  workHeading,
   workIntro,
   workOutro,
-  heroDek,
   studioHeading,
   studioParagraph,
   clientsHeading,
@@ -79,10 +75,6 @@ export default function HomeExperience({
           hero screen ahead of it) rather than following a headline/identity
           lead-in. */}
       <section id="work" className="hs__step hs__work" data-nav-section="work" data-section-theme="light">
-        <div className="hs__content">
-          <h2>{workHeading}</h2>
-          <p className="hs__hero-dek">{heroDek}</p>
-        </div>
         <PinnedPortfolioCarousel items={portfolioItems} introText={workIntro} outroText={workOutro} />
       </section>
 
@@ -203,12 +195,6 @@ export default function HomeExperience({
           font-size: var(--text-2xl);
           margin-bottom: var(--space-4);
         }
-        .hs__hero-dek {
-          font-size: var(--text-base);
-          line-height: var(--leading-normal);
-          color: var(--color-fg-muted);
-          max-width: 42ch;
-        }
         /* Column, not the base .hs__step row: heading above the mark. */
         .hs__ascii {
           flex-direction: column;
@@ -224,30 +210,23 @@ export default function HomeExperience({
         .hs__ascii h2 {
           margin-bottom: 0;
         }
-        /* Column, not the base .hs__step row: heading + dek copy scrolls by
-           first, then the pinned carousel below takes over the section's
-           own height (see PinnedPortfolioCarousel, which sets that height
-           itself via JS to match how far its track has to travel). */
         /* Light section (per the Figma spec) inside an otherwise-dark
            homepage — redefining --color-fg/-muted locally rather than a
            separate rule set lets every descendant that already reads those
-           tokens (the shared h2/.hs__hero-dek rules above, the pinned
-           carousel's own PinnedPortfolioCarousel component) adapt for free.
-           Same technique Header.astro's [data-on-light] override uses, and
-           exactly why this section also carries data-section-theme="light"
-           (see HomeExperience's own section-theme comment) — the header
-           picks that up and flips its own pill to match. */
+           tokens (PinnedPortfolioCarousel's own component included) adapt
+           for free. Same technique Header.astro's [data-on-light] override
+           uses, and exactly why this section also carries
+           data-section-theme="light" (see HomeExperience's own
+           section-theme comment) — the header picks that up and flips its
+           own pill to match. The carousel is this section's only child now
+           (no heading/dek above it), so it's free to fill the whole step. */
         .hs__work {
-          flex-direction: column;
           align-items: stretch;
-          gap: var(--space-6);
           background: #ebebeb;
+          padding-block: 0;
           --color-fg: #141414;
           --color-fg-muted: color-mix(in srgb, #141414 65%, transparent);
           color: var(--color-fg);
-        }
-        .hs__work .hs__content {
-          padding-top: var(--space-2);
         }
         /* The carousel still needs to read as centered on the *slide*, not
            "centered in whatever space the heading/intro happen to leave
