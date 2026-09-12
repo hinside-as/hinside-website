@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import AsciiLogo from "./AsciiLogo";
 import ContactForm from "./ContactForm";
+import TypewriterHero from "./TypewriterHero";
 import PinnedPortfolioCarousel, { type PinnedPortfolioItem } from "./carousel/PinnedPortfolioCarousel";
 import LogoCarousel, { type LogoCarouselItem } from "./carousel/LogoCarousel";
 import TestimonialCarousel, { type TestimonialCarouselItem } from "./carousel/TestimonialCarousel";
@@ -17,7 +18,8 @@ type FormLabels = {
 };
 
 type Props = {
-  heroHeadline: string;
+  heroHeadlineStatic: string;
+  heroHeadlineReveal: string;
   identityHeading: string;
   workIntro: string;
   workOutro: string;
@@ -41,7 +43,8 @@ type Props = {
  * bottom, same as the rest of the web.
  */
 export default function HomeExperience({
-  heroHeadline,
+  heroHeadlineStatic,
+  heroHeadlineReveal,
   identityHeading,
   workIntro,
   workOutro,
@@ -74,12 +77,8 @@ export default function HomeExperience({
         <PinnedPortfolioCarousel items={portfolioItems} introText={workIntro} outroText={workOutro} />
       </section>
 
-      <section className="hs__step hs__hero" data-nav-section="work">
-        <div className="hs__content">
-          <h1 className="hs__hero-headline" data-reveal>
-            {heroHeadline}
-          </h1>
-        </div>
+      <section className="hs__step hs__hero">
+        <TypewriterHero navSection="work" staticText={heroHeadlineStatic} revealText={heroHeadlineReveal} />
       </section>
 
       <section className="hs__step hs__ascii" data-nav-section="work">
@@ -162,23 +161,12 @@ export default function HomeExperience({
           margin-inline: auto;
           padding-inline: var(--space-5);
         }
-        /* Big typography, almost filling the slide: --text-4xl (the site's
-           largest display-scale token) with a fairly tight max-width so
-           the sentence wraps into several short lines rather than a few
-           long ones — the wrap count is what actually fills the vertical
-           space, not font-size alone. Tighter padding-block than the
-           default .hs__step (--space-6, not --space-8) leaves more of the
-           viewport for the headline itself. */
+        /* TypewriterHero owns its own pin/height/typography entirely (see
+           that component) — this wrapper just zeroes the padding-block
+           .hs__step would otherwise add before/after it, which would
+           otherwise read as a dead gap before the pin engages. */
         .hs__hero {
-          background: #000000;
-          padding-block: var(--space-6);
-        }
-        .hs__hero-headline {
-          font-size: var(--text-4xl);
-          font-weight: var(--weight-regular);
-          letter-spacing: var(--tracking-tighter);
-          line-height: var(--leading-tight);
-          max-width: 20ch;
+          padding-block: 0;
         }
         /* Shared heading treatment for every section below the hero —
            consistent size/spacing rather than each section tuning its own. */
@@ -287,12 +275,6 @@ export default function HomeExperience({
         .hs__contact-main {
           width: 100%;
           max-width: 32rem;
-        }
-
-        @media (min-width: 60rem) {
-          .hs__hero-headline {
-            max-width: 22ch;
-          }
         }
       `}</style>
     </div>

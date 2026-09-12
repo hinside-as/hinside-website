@@ -69,10 +69,15 @@ const formLabels = {
   error: t("form.error"),
 };
 
-const heroHeadline =
-  locale === "no"
-    ? "Design er problemløsning, ikke dekor — med mindre dekor løser problemer"
-    : "Design is solving problems, not decoration — unless decoration solves a problem.";
+// Split at the em dash for TypewriterHero: heroHeadlineStatic is already
+// fully written by the time this section scrolls into view (with a
+// blinking caret at its end); heroHeadlineReveal is typed out afterwards,
+// once the section pins. Concatenating the two reproduces the original
+// heroHeadline string exactly.
+const heroHeadlineStatic =
+  locale === "no" ? "Design er problemløsning, ikke dekor" : "Design is solving problems, not decoration";
+const heroHeadlineReveal =
+  locale === "no" ? " — med mindre dekor løser problemer" : " — unless decoration solves a problem.";
 const studioParagraph =
   locale === "no"
     ? "Hinsides tilnærming ble formet lenge før den fikk et navn — det startet bak disken i en skiltbutikk, med å skjære logoer og bokstaver for hånd, og ble skjerpet gjennom et av Norges mest selektive kreative studieprogrammer og et legendarisk studentdrevet studio bygget på ambisjon fremfor fakturering. Derfra: helhetlig merkevarebygging for noen av Norges sterkeste navn, mindre studioer, frilansarbeid, og ledelse av design i et voksende teknologiselskap. Ulike rom, ulike innsatser, samme instinkt — å behandle design som et verktøy for å løse noe reelt."
@@ -91,7 +96,8 @@ const studioParagraph =
 >
   <HomeExperience
     client:load
-    heroHeadline={heroHeadline}
+    heroHeadlineStatic={heroHeadlineStatic}
+    heroHeadlineReveal={heroHeadlineReveal}
     identityHeading={t("home.identity.heading")}
     workIntro={t("home.work.intro")}
     workOutro={t("home.work.outro")}
