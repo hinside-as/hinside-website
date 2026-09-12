@@ -66,7 +66,6 @@ export default function PinnedPortfolioCarousel({
     // for a visitor who asked for less motion.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    let sectionTop = 0;
     let maxTranslate = 0;
 
     // 1px of vertical scroll == 1px of horizontal track movement, and the
@@ -76,13 +75,22 @@ export default function PinnedPortfolioCarousel({
     // never a moment early or late. No separate "progress" fraction or
     // easing curve to keep in sync with a hand-picked section height.
     const measure = () => {
-      sectionTop = section.offsetTop;
       maxTranslate = Math.max(0, track.scrollWidth - sticky.clientWidth);
       section.style.height = `${sticky.clientHeight + maxTranslate}px`;
     };
 
     const apply = () => {
-      const raw = window.scrollY - sectionTop;
+      // getBoundingClientRect().top, not a cached window.scrollY minus a
+      // once-measured section.offsetTop: an earlier version cached that
+      // offset at mount, which silently went stale the moment anything
+      // above this section reflowed afterward (a web font swapping in, an
+      // image finishing its load) — scrollY would then map to the wrong
+      // point in the section's own travel, and the track could render
+      // permanently pinned at one end instead of animating. Reading the
+      // live rect is unaffected by any offsetParent chain, is intrinsically
+      // always current, and costs nothing this function wasn't already
+      // paying for its own parallax measurement below.
+      const raw = -section.getBoundingClientRect().top;
       const clamped = Math.min(Math.max(raw, 0), maxTranslate);
       track.style.transform = `translate3d(${-clamped}px, 0, 0)`;
 

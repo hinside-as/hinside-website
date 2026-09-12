@@ -74,6 +74,18 @@ export default function HomeExperience({
           flipping any of them to the new soft-cream ground has to wait
           until each is individually reviewed for that, not bundled into
           the nav work. */}
+      {/* Portfolio opens the page (matching the Figma flow — the nav sits
+          directly on this section from the very first frame, no separate
+          hero screen ahead of it) rather than following a headline/identity
+          lead-in. */}
+      <section id="work" className="hs__step hs__work" data-nav-section="work" data-section-theme="light">
+        <div className="hs__content">
+          <h2>{workHeading}</h2>
+          <p className="hs__hero-dek">{heroDek}</p>
+        </div>
+        <PinnedPortfolioCarousel items={portfolioItems} introText={workIntro} outroText={workOutro} />
+      </section>
+
       <section className="hs__step hs__hero" data-nav-section="work" data-section-theme="dark">
         <div className="hs__content">
           <h1 className="hs__hero-headline" data-reveal>
@@ -87,14 +99,6 @@ export default function HomeExperience({
           <h2>{identityHeading}</h2>
         </div>
         <AsciiLogo />
-      </section>
-
-      <section id="work" className="hs__step hs__work" data-nav-section="work" data-section-theme="light">
-        <div className="hs__content">
-          <h2>{workHeading}</h2>
-          <p className="hs__hero-dek">{heroDek}</p>
-        </div>
-        <PinnedPortfolioCarousel items={portfolioItems} introText={workIntro} outroText={workOutro} />
       </section>
 
       <section id="studio" className="hs__step hs__studio" data-nav-section="studio" data-section-theme="dark">
