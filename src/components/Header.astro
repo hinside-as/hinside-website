@@ -70,16 +70,13 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
   /* Detached floating pill (the default, every page except case studies —
      see [data-solid="true"] below): inset from the viewport on all sides
      rather than flush, so it reads as its own surface floating above the
-     page instead of a bar spanning it edge to edge. backdrop-filter lives
-     directly on .site-header now (not a ::before pseudo-element, as an
-     earlier version needed): that indirection existed only because the
-     mobile menu used to be a position: fixed panel nested inside this
-     element, and backdrop-filter/transform make an element a containing
-     block for any such descendant — trapping that panel inside this small
-     box instead of the viewport. Now that the panel is normal in-flow
-     content (see #mobile-nav-panel-target above) rather than its own
-     fixed-position overlay, there's no fixed descendant left to trap, so
-     the indirection is unnecessary. */
+     page instead of a bar spanning it edge to edge. Solid background, not
+     a translucent backdrop-filter blur — a blur samples whatever's directly
+     behind it, so it rendered visibly differently over a light section
+     versus over one of the portfolio carousel's own images, reading as two
+     mismatched rectangles rather than one consistent bar. A flat color
+     stays uniform regardless of what scrolls underneath, which is also
+     just "black" the way it was asked for — no per-section variation. */
   .site-header {
     position: sticky;
     top: 24px;
@@ -99,13 +96,9 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     margin-inline: auto;
     border-radius: 8px;
     overflow: hidden;
-    background: color-mix(in srgb, var(--color-bg) 55%, transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: var(--color-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-    transition:
-      transform var(--duration-base) var(--ease-standard),
-      background var(--duration-base) var(--ease-standard);
+    transition: transform var(--duration-base) var(--ease-standard);
   }
   .site-header__row {
     flex: 0 0 auto;
@@ -137,9 +130,6 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     margin-inline: 0;
     border-radius: 0;
     overflow: visible;
-    background: var(--color-bg);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
     box-shadow: none;
     transition: none;
     transform: translateY(calc((var(--header-reveal, 1) - 1) * 100%));
