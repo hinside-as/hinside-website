@@ -4,7 +4,6 @@ import ContactForm from "./ContactForm";
 import PortfolioCarousel, { type PortfolioItem } from "./carousel/PortfolioCarousel";
 import LogoCarousel, { type LogoCarouselItem } from "./carousel/LogoCarousel";
 import TestimonialCarousel, { type TestimonialCarouselItem } from "./carousel/TestimonialCarousel";
-import { useHeaderReveal } from "../hooks/useHeaderReveal";
 
 type FormLabels = {
   email: string;
@@ -58,14 +57,20 @@ export default function HomeExperience({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Header visible only on the big headline slide, hidden from the dek
-  // slide onward — see useHeaderReveal for why this is a continuous
-  // scroll-coupled value rather than a discrete flag + CSS transition.
-  useHeaderReveal(containerRef, ".hs__hero");
-
   return (
     <div className="hs" ref={containerRef}>
-      <section className="hs__step hs__hero">
+      {/* data-nav-section groups sections under whichever nav link they
+          count as being "part of" for the underline (several sections can
+          share one — see useActiveNavSection); data-section-theme is a
+          separate, per-section axis driving the header's own adaptive
+          light/dark color (see Header.astro's script). All "dark" for now
+          — every section here still assumes a dark background internally
+          (AsciiLogo's glyph fill, PortfolioCarousel/LogoCarousel's card
+          shells, ContactForm's inputs all read --color-fg etc.), so
+          flipping any of them to the new soft-cream ground has to wait
+          until each is individually reviewed for that, not bundled into
+          the nav work. */}
+      <section className="hs__step hs__hero" data-nav-section="work" data-section-theme="dark">
         <div className="hs__content">
           <h1 className="hs__hero-headline" data-reveal>
             {heroHeadline}
@@ -73,14 +78,14 @@ export default function HomeExperience({
         </div>
       </section>
 
-      <section className="hs__step hs__ascii">
+      <section className="hs__step hs__ascii" data-nav-section="work" data-section-theme="dark">
         <div className="hs__content">
           <h2>{identityHeading}</h2>
         </div>
         <AsciiLogo />
       </section>
 
-      <section id="work" className="hs__step hs__work">
+      <section id="work" className="hs__step hs__work" data-nav-section="work" data-section-theme="dark">
         <div className="hs__content">
           <h2>{workHeading}</h2>
           <p className="hs__hero-dek">{heroDek}</p>
@@ -88,14 +93,14 @@ export default function HomeExperience({
         <PortfolioCarousel items={portfolioItems} />
       </section>
 
-      <section id="studio" className="hs__step hs__studio">
+      <section id="studio" className="hs__step hs__studio" data-nav-section="studio" data-section-theme="dark">
         <div className="hs__content">
           <h2>{studioHeading}</h2>
           <p className="hs__studio-paragraph">{studioParagraph}</p>
         </div>
       </section>
 
-      <section className="hs__step hs__clients">
+      <section className="hs__step hs__clients" data-nav-section="contact" data-section-theme="dark">
         <div className="hs__content">
           <h2>{clientsHeading}</h2>
           <p className="hs__clients-intro">{clientsIntro}</p>
@@ -104,12 +109,17 @@ export default function HomeExperience({
       </section>
 
       {testimonials.length > 0 && (
-        <section className="hs__step hs__testimonials">
+        <section className="hs__step hs__testimonials" data-nav-section="contact" data-section-theme="dark">
           <TestimonialCarousel items={testimonials} />
         </section>
       )}
 
-      <section id="contact" className="hs__step hs__contact">
+      <section
+        id="contact"
+        className="hs__step hs__contact"
+        data-nav-section="contact"
+        data-section-theme="dark"
+      >
         <div className="hs__content hs__contact-grid">
           <div className="hs__contact-main">
             <h2>{contactHeading}</h2>

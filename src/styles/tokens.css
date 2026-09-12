@@ -15,6 +15,18 @@
   --color-accent: #ff4d1c;
   --color-accent-muted: color-mix(in srgb, var(--color-accent) 35%, transparent);
 
+  /* New redesign palette — soft, warm near-black/near-cream (not pure
+     #000/#fff) for alternating full-bleed sections, per the
+     contentarchitecture.dev reference. Deliberately separate from
+     --color-black/--color-white above rather than overwriting them: those
+     still drive the rest of the (not-yet-redesigned) site, and a global
+     swap here would silently recolor pages that haven't been reviewed
+     against this new palette yet. Once every page has migrated, these
+     should absorb into the main greyscale tokens instead of living
+     alongside them. */
+  --color-soft-black: #232323;
+  --color-soft-cream: #f1eee7;
+
   /* Semantic surface roles, built from the greyscale + accent above.
      Dark is the default reading of the brand; data-theme="light" flips it. */
   --color-bg: var(--color-black);
