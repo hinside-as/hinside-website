@@ -87,20 +87,38 @@ export default function SiteNav({
   // case-study TOC's own rail-fill already uses for an identical reason
   // (see CaseStudyExperience.tsx).
   const listRef = useRef<HTMLUListElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
-  const [underline, setUnderline] = useState<{ left: number; width: number } | null>(null);
+  const [underline, setUnderline] = useState<{ left: number; width: number; top: number } | null>(null);
 
   useLayoutEffect(() => {
     const list = listRef.current;
+    const wrap = wrapRef.current;
     const link = activeSection ? linkRefs.current[activeSection] : null;
-    if (!list || !link) {
+    if (!list || !wrap || !link) {
       setUnderline(null);
       return;
     }
     const measure = () => {
+      const wrapRect = wrap.getBoundingClientRect();
       const listRect = list.getBoundingClientRect();
       const linkRect = link.getBoundingClientRect();
-      setUnderline({ left: linkRect.left - listRect.left, width: linkRect.width });
+      // Vertically, the underline sits halfway between the link text's own
+      // bottom edge and the header row's bottom edge — not flush with
+      // either. That midpoint depends on the row's real height and the
+      // link's own rendered line height, neither a clean constant to
+      // compute in pure CSS, so it's measured live the same way left/width
+      // already are. .closest() reaches up to Header.astro's row element,
+      // which this component has no other reference to (it's a plain DOM
+      // ancestor, not something passed down as a prop).
+      const row = wrap.closest<HTMLElement>(".site-header__row");
+      const rowRect = row?.getBoundingClientRect();
+      const midpointY = rowRect ? (linkRect.bottom + rowRect.bottom) / 2 : linkRect.bottom;
+      setUnderline({
+        left: linkRect.left - listRect.left,
+        width: linkRect.width,
+        top: midpointY - wrapRect.top,
+      });
     };
     measure();
     // Link positions shift if the window resizes (e.g. rotating a tablet,
@@ -116,7 +134,7 @@ export default function SiteNav({
           the underline is a decorative sibling of the list, not a list
           item, so it stays out of the <ul>'s own valid-children rules
           (only <li>/<script>/<template> may appear there directly). */}
-      <div className="site-nav__desktop-wrap">
+      <div className="site-nav__desktop-wrap" ref={wrapRef}>
         <ul className="site-nav__desktop" ref={listRef}>
           {links.map((link) => {
             const hash = link.href.split("#")[1];
@@ -143,7 +161,7 @@ export default function SiteNav({
           <span
             className="site-nav__underline"
             aria-hidden="true"
-            style={{ left: `${underline.left}px`, width: `${underline.width}px` }}
+            style={{ left: `${underline.left}px`, width: `${underline.width}px`, top: `${underline.top}px` }}
           />
         )}
       </div>
@@ -209,7 +227,7 @@ export default function SiteNav({
           display: flex;
           list-style: none;
           margin: 0;
-          padding: 0 0 var(--space-2);
+          padding: 0;
           gap: var(--space-4);
         }
         .site-nav__desktop a {
@@ -223,19 +241,22 @@ export default function SiteNav({
         .site-nav__desktop a[data-active="true"] {
           opacity: 1;
         }
-        /* Absolutely positioned within the list (relative, above), not a
-           border/box-shadow on the active link itself — its left/width are
-           driven by real measured geometry (see the component's own
-           useLayoutEffect) so it can slide continuously between two links
-           of different widths ("Arbeid" vs "Kontakt") rather than jumping. */
+        /* Absolutely positioned within the wrap (relative, above), not a
+           border/box-shadow on the active link itself — its left/width/top
+           are all driven by real measured geometry (see the component's
+           own useLayoutEffect) so it can slide continuously between two
+           links of different widths ("Arbeid" vs "Kontakt") rather than
+           jumping, and sit at the exact midpoint between the text's own
+           bottom edge and the header row's bottom edge rather than flush
+           with either. */
         .site-nav__underline {
           position: absolute;
-          bottom: 0;
           height: 1px;
           background: var(--color-fg);
           transition:
             left var(--duration-base) var(--ease-standard),
-            width var(--duration-base) var(--ease-standard);
+            width var(--duration-base) var(--ease-standard),
+            top var(--duration-base) var(--ease-standard);
         }
         .site-nav__toggle {
           display: flex;
