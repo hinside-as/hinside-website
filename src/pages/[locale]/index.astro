@@ -2,7 +2,7 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import HomeExperience from "../../components/HomeExperience.tsx";
-import type { PortfolioItem } from "../../components/carousel/PortfolioCarousel.tsx";
+import type { PinnedPortfolioItem } from "../../components/carousel/PinnedPortfolioCarousel.tsx";
 import { getMediaImage } from "../../lib/media";
 import { getImage } from "astro:assets";
 import { locales, useTranslations, localizedPath, type Locale } from "../../i18n/utils";
@@ -19,7 +19,7 @@ const caseStudies = (await getCollection("case-studies")).filter(
   (entry) => entry.data.featured,
 );
 
-const portfolioItems: PortfolioItem[] = await Promise.all(
+const portfolioItems: PinnedPortfolioItem[] = await Promise.all(
   caseStudies.map(async (entry) => {
     const optimized = await getImage({
       src: getMediaImage(entry.data.cover),
@@ -27,6 +27,7 @@ const portfolioItems: PortfolioItem[] = await Promise.all(
     });
     return {
       href: localizedPath(locale, `/work/${entry.id}`),
+      slug: entry.id,
       title: entry.data.title[locale],
       subtitle: entry.data.description[locale],
       image: optimized.src,

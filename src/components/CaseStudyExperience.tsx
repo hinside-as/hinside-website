@@ -73,6 +73,13 @@ type Props = {
   chapters: CaseStudyChapter[];
   slides: CaseStudySlide[];
   otherProjects: PortfolioItem[];
+  /** Matches the `view-transition-name` the homepage's PinnedPortfolioCarousel
+   * (or this same promo carousel on another case study's page) declares on
+   * this project's cover image — see src/lib/viewTransitions.ts. Applied
+   * only to slide 0's own media below, so the clicked card visually expands
+   * into becoming this page's hero rather than the whole page just
+   * appearing. */
+  coverTransitionName?: string;
 };
 
 // Speaker glyph + either two sound-wave arcs (unmuted) or a slash through
@@ -101,6 +108,7 @@ function MuteIcon({ muted }: { muted: boolean }) {
 function VideoMedia({
   media,
   isMuted,
+  transitionName,
 }: {
   media: Extract<CaseStudySlideMedia, { type: "video" }>;
   // Only meaningful (and only ever read) when media.allowUnmute is set —
@@ -108,6 +116,7 @@ function VideoMedia({
   // the show/hide-text control, so this is just the value to mirror onto
   // whichever <video> element(s) this instance renders.
   isMuted: boolean;
+  transitionName?: string;
 }) {
   const videoRefs = useRef<HTMLVideoElement[]>([]);
 
@@ -129,6 +138,12 @@ function VideoMedia({
     playsInline: true,
     preload: "metadata" as const,
     "aria-hidden": "true" as const,
+    // Safe to set on both the desktop/mobile <video> elements below even
+    // though only one is ever visible at a time (CSS toggles display:none
+    // between them at 720px) — a display:none element has no box to
+    // capture, so the browser's View Transition only ever picks up
+    // whichever one is actually rendered.
+    style: transitionName ? { viewTransitionName: transitionName } : undefined,
   };
 
   return (
@@ -164,10 +179,18 @@ function VideoMedia({
   );
 }
 
-function Media({ media, isMuted }: { media?: CaseStudySlideMedia; isMuted: boolean }) {
+function Media({
+  media,
+  isMuted,
+  transitionName,
+}: {
+  media?: CaseStudySlideMedia;
+  isMuted: boolean;
+  transitionName?: string;
+}) {
   if (!media) return null;
   if (media.type === "video") {
-    return <VideoMedia media={media} isMuted={isMuted} />;
+    return <VideoMedia media={media} isMuted={isMuted} transitionName={transitionName} />;
   }
   if (media.type === "carousel") {
     return (
@@ -176,16 +199,17 @@ function Media({ media, isMuted }: { media?: CaseStudySlideMedia; isMuted: boole
       </div>
     );
   }
+  const style = transitionName ? { viewTransitionName: transitionName } : undefined;
   const className = media.padded ? "cse__media cse__media--padded" : "cse__media";
   if (media.mobileSrc) {
     return (
       <picture>
         <source media="(max-width: 720px)" srcSet={media.mobileSrc} />
-        <img className={className} src={media.src} alt={media.alt} loading="lazy" />
+        <img className={className} src={media.src} alt={media.alt} loading="lazy" style={style} />
       </picture>
     );
   }
-  return <img className={className} src={media.src} alt={media.alt} loading="lazy" />;
+  return <img className={className} src={media.src} alt={media.alt} loading="lazy" style={style} />;
 }
 
 // Recognition and credits are the two slides that carry no image/video —
@@ -243,7 +267,7 @@ function CreditsSlide({
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export default function CaseStudyExperience({ meta, chapters, slides, otherProjects }: Props) {
+export default function CaseStudyExperience({ meta, chapters, slides, otherProjects, coverTransitionName }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const hasPromo = otherProjects.length > 0;
 
@@ -428,7 +452,11 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
             ) : (
               <>
                 <div className="cse__media-wrap">
-                  <Media media={slide.media} isMuted={isMuted} />
+                  <Media
+                    media={slide.media}
+                    isMuted={isMuted}
+                    transitionName={index === 0 ? coverTransitionName : undefined}
+                  />
                   {slide.media?.type === "video" && slide.media.allowUnmute && (
                     <button
                       type="button"

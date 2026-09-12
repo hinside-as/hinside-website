@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import AsciiLogo from "./AsciiLogo";
 import ContactForm from "./ContactForm";
-import PortfolioCarousel, { type PortfolioItem } from "./carousel/PortfolioCarousel";
+import PinnedPortfolioCarousel, { type PinnedPortfolioItem } from "./carousel/PinnedPortfolioCarousel";
 import LogoCarousel, { type LogoCarouselItem } from "./carousel/LogoCarousel";
 import TestimonialCarousel, { type TestimonialCarouselItem } from "./carousel/TestimonialCarousel";
 
@@ -26,7 +26,7 @@ type Props = {
   clientsHeading: string;
   clientsIntro: string;
   contactHeading: string;
-  portfolioItems: PortfolioItem[];
+  portfolioItems: PinnedPortfolioItem[];
   clientItems: LogoCarouselItem[];
   testimonials: TestimonialCarouselItem[];
   formLabels: FormLabels;
@@ -90,7 +90,7 @@ export default function HomeExperience({
           <h2>{workHeading}</h2>
           <p className="hs__hero-dek">{heroDek}</p>
         </div>
-        <PortfolioCarousel items={portfolioItems} />
+        <PinnedPortfolioCarousel items={portfolioItems} />
       </section>
 
       <section id="studio" className="hs__step hs__studio" data-nav-section="studio" data-section-theme="dark">
@@ -216,12 +216,18 @@ export default function HomeExperience({
         .hs__ascii h2 {
           margin-bottom: 0;
         }
-        /* Column, not the base .hs__step row: heading + dek copy above the
-           carousel. */
+        /* Column, not the base .hs__step row: heading + dek copy scrolls by
+           first, then the pinned carousel below takes over the section's
+           own height (see PinnedPortfolioCarousel, which sets that height
+           itself via JS to match how far its track has to travel). */
         .hs__work {
           flex-direction: column;
+          align-items: stretch;
           gap: var(--space-6);
           background: #000000;
+        }
+        .hs__work .hs__content {
+          padding-top: var(--space-2);
         }
         /* The carousel still needs to read as centered on the *slide*, not
            "centered in whatever space the heading/intro happen to leave
@@ -241,24 +247,6 @@ export default function HomeExperience({
           bottom: var(--space-6);
           left: 0;
           right: 0;
-        }
-        /* Larger than PortfolioCarousel's own default card size (up to
-           360px) — this slide's whole point is the carousel filling the
-           view, so it's sized to dominate rather than to fit tidily
-           beneath the heading. The slide is allowed to run taller than
-           100svh for this (min-height, not height, on .hs__step) rather
-           than shrinking the carousel to force a single-screen fit. */
-        .hs__work .pc-carousel-section {
-          --card-size: clamp(260px, 32vw, 420px);
-        }
-        /* The portfolio carousel's own radial-gradient background panel
-           (.pc-carousel-section::before) is tuned for sitting inside the
-           old stacked homepage's section background — here the slide's
-           own plain background already does that job, so the panel would
-           just show up as an out-of-place patch. Same override the
-           case-study promo slide already uses. */
-        .hs__work .pc-carousel-section::before {
-          display: none;
         }
         .hs__studio {
           background: #0a0a0a;

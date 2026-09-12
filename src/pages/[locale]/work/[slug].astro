@@ -4,6 +4,7 @@ import { getImage } from "astro:assets";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import CaseStudyExperience, { type CaseStudySlide, type CaseStudyChapter } from "../../../components/CaseStudyExperience.tsx";
 import { getMediaImage } from "../../../lib/media";
+import { caseCoverTransitionName } from "../../../lib/viewTransitions";
 import { locales, useTranslations, localizedPath, type Locale } from "../../../i18n/utils";
 
 export async function getStaticPaths() {
@@ -252,5 +253,6 @@ const otherProjects = await Promise.all(
     chapters={chapters}
     slides={slides}
     otherProjects={otherProjects}
+    coverTransitionName={caseCoverTransitionName(entry.id)}
   />
 </BaseLayout>
