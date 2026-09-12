@@ -12,6 +12,43 @@ type Props = {
   otherLocaleLabel: string;
 };
 
+// Two stacked bars that splay into an X — drawn as a single SVG whose two
+// <line>s rotate/translate together, not two separately-animated elements,
+// so they stay symmetric at every step of the transition instead of
+// potentially drifting out of sync.
+function MenuIcon({ open }: { open: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <line
+        x1="3"
+        y1={open ? 12 : 7}
+        x2="21"
+        y2={open ? 12 : 7}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        style={{
+          transformOrigin: "center",
+          transform: open ? "rotate(45deg)" : "none",
+          transition: `transform var(--duration-base) var(--ease-standard), y var(--duration-base) var(--ease-standard)`,
+        }}
+      />
+      <line
+        x1="3"
+        y1={open ? 12 : 17}
+        x2="21"
+        y2={open ? 12 : 17}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        style={{
+          transformOrigin: "center",
+          transform: open ? "rotate(-45deg)" : "none",
+          transition: `transform var(--duration-base) var(--ease-standard), y var(--duration-base) var(--ease-standard)`,
+        }}
+      />
+    </svg>
+  );
+}
+
 export default function SiteNav({
   links,
   menuLabel,
@@ -20,6 +57,17 @@ export default function SiteNav({
   otherLocaleLabel,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // #mobile-nav-panel-target is an Astro-rendered element already in the
+  // server HTML (see Header.astro), not something this component creates —
+  // read it via a ref-callback / effect rather than calling
+  // document.getElementById directly during render, so this stays safe
+  // under SSR (no `document` at render time) and still catches it as soon
+  // as the client-side tree is up.
+  const [panelTarget, setPanelTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setPanelTarget(document.getElementById("mobile-nav-panel-target"));
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -115,80 +163,51 @@ export default function SiteNav({
         className="site-nav__toggle"
         aria-expanded={isOpen}
         aria-controls="mobile-nav-panel"
+        aria-label={isOpen ? closeLabel : menuLabel}
         onClick={() => setIsOpen((open) => !open)}
       >
-        {isOpen ? closeLabel : menuLabel}
+        <MenuIcon open={isOpen} />
       </button>
 
-      {isOpen &&
+      {panelTarget &&
         createPortal(
-          // Portalled straight to <body>, not rendered inline under
-          // .site-header: this panel is position: fixed and needs the real
-          // viewport as its containing block. .site-header[data-solid="true"]
-          // applies its own `transform` for the scroll-reveal effect (see
-          // Header.astro's comment on why backdrop-filter had to move off
-          // that same element for the identical reason) — transform, like
-          // backdrop-filter, makes an element a containing block for any
-          // position: fixed descendant, which would trap this panel inside
-          // the header's small bar instead of covering the screen. Porting
-          // it out sidesteps that regardless of what else ever lands on
-          // .site-header.
-          <div id="mobile-nav-panel" className="site-nav__panel" role="dialog" aria-modal="true">
-            <ul>
-              {links.map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    data-nav-hash={link.href.split("#")[1]}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {link.label}
+          // Portalled into #mobile-nav-panel-target (an Astro-rendered
+          // sibling of .site-header__row, see Header.astro), not
+          // document.body: this panel is normal in-flow content now, not
+          // its own position: fixed overlay — it grows the header's own
+          // floating-pill box downward rather than covering the screen, so
+          // it needs to land inside that same box, not escape it.
+          //
+          // Always mounted (not isOpen && ...) rather than mounting only
+          // while open: an element that unmounts immediately has nothing
+          // to animate a close transition against. data-open + the grid-
+          // rows/opacity CSS below handle showing and hiding instead;
+          // tabIndex/aria-hidden keep the always-present links out of the
+          // tab order and off screen readers while closed.
+          <div id="mobile-nav-panel" data-open={isOpen} role="dialog" aria-modal={isOpen} aria-hidden={!isOpen}>
+            <div className="site-nav__panel-inner">
+              <ul>
+                {links.map((link, index) => (
+                  <li key={link.href} style={{ transitionDelay: isOpen ? `${index * 40}ms` : "0ms" }}>
+                    <a
+                      href={link.href}
+                      data-nav-hash={link.href.split("#")[1]}
+                      tabIndex={isOpen ? 0 : -1}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+                <li style={{ transitionDelay: isOpen ? `${links.length * 40}ms` : "0ms" }}>
+                  <a href={otherLocaleHref} tabIndex={isOpen ? 0 : -1}>
+                    {otherLocaleLabel}
                   </a>
                 </li>
-              ))}
-              <li>
-                <a href={otherLocaleHref}>{otherLocaleLabel}</a>
-              </li>
-            </ul>
-            <style>{`
-              .site-nav__panel {
-                position: fixed;
-                inset: 0;
-                top: var(--header-height);
-                background: color-mix(in srgb, var(--color-bg) 82%, transparent);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                /* Above .site-header's z-index: 50 — this panel now lives
-                   under document.body rather than inside the header, so it
-                   no longer wins ties by DOM order alone. */
-                z-index: 60;
-              }
-              .site-nav__panel ul {
-                list-style: none;
-                margin: 0;
-                padding: 0;
-                display: flex;
-                flex-direction: column;
-                gap: var(--space-4);
-                text-align: center;
-              }
-              .site-nav__panel a {
-                text-decoration: none;
-                font-size: var(--text-2xl);
-                color: var(--color-fg);
-                opacity: 0.7;
-                transition: opacity var(--duration-base) var(--ease-standard);
-              }
-              .site-nav__panel a:hover,
-              .site-nav__panel a:focus-visible {
-                opacity: 1;
-              }
-            `}</style>
+              </ul>
+            </div>
           </div>,
-          document.body,
+          panelTarget,
         )}
 
       <style>{`
@@ -205,7 +224,7 @@ export default function SiteNav({
         }
         .site-nav__desktop a {
           text-decoration: none;
-          font-size: var(--text-sm);
+          font-size: var(--text-xs);
           opacity: 0.7;
           transition: opacity var(--duration-base) var(--ease-standard);
         }
@@ -229,17 +248,72 @@ export default function SiteNav({
             width var(--duration-base) var(--ease-standard);
         }
         .site-nav__toggle {
+          display: flex;
           background: none;
           border: none;
-          font: inherit;
           color: var(--color-fg);
           cursor: pointer;
           padding: var(--space-2);
         }
-        /* .site-nav__panel's own rules live with the portalled markup below
-           — it renders under document.body, not this <nav>, so keeping its
-           styles next to that JSX (rather than here) matches where it
-           actually lives in the DOM. */
+        /* grid-template-rows: 0fr -> 1fr, not height: 0 -> auto — height
+           can't be transitioned to/from auto at all, and a fixed pixel
+           target would need re-measuring every time the link count or
+           label lengths change (locale swap, adding a nav item). A single
+           grid row whose fr size animates does the same job natively: the
+           row's own track size interpolates smoothly, and the actual
+           content dictates what "1fr" resolves to without any JS
+           measurement. .site-nav__panel-inner's overflow: hidden is
+           required for this to read as a height animation rather than the
+           content just clipping abruptly at 0fr — a grid row can size to
+           0 while its content stays its natural height unless something
+           inside clips to the row's own shrunk size. */
+        #mobile-nav-panel {
+          display: grid;
+          grid-template-rows: 0fr;
+          transition: grid-template-rows var(--duration-base) var(--ease-standard);
+        }
+        #mobile-nav-panel[data-open="true"] {
+          grid-template-rows: 1fr;
+        }
+        .site-nav__panel-inner {
+          overflow: hidden;
+          min-height: 0;
+        }
+        #mobile-nav-panel ul {
+          list-style: none;
+          margin: 0;
+          padding: var(--space-4) var(--space-4) calc(var(--space-4) * 2);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-4);
+        }
+        /* Each link fades/lifts in with a per-index delay set inline (see
+           the component's own style={{transitionDelay}}) — staggered on
+           the way open, but delay resets to 0 on close so the panel
+           collapses as one quick uniform motion rather than the last item
+           lagging behind the grid-row collapse above it. */
+        #mobile-nav-panel li {
+          opacity: 0;
+          transform: translateY(-4px);
+          transition:
+            opacity var(--duration-base) var(--ease-standard),
+            transform var(--duration-base) var(--ease-standard);
+        }
+        #mobile-nav-panel[data-open="true"] li {
+          opacity: 1;
+          transform: none;
+        }
+        #mobile-nav-panel a {
+          text-decoration: none;
+          font-size: var(--text-xs);
+          color: var(--color-fg);
+          opacity: 0.7;
+          transition: opacity var(--duration-base) var(--ease-standard);
+        }
+        #mobile-nav-panel a:hover,
+        #mobile-nav-panel a:focus-visible {
+          opacity: 1;
+        }
         @media (min-width: 48rem) {
           .site-nav__desktop-wrap {
             display: block;
