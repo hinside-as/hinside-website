@@ -92,6 +92,27 @@ export default function SiteNav({
     };
   }, [isOpen]);
 
+  // Measured height, not the grid-template-rows: 0fr -> 1fr trick this used
+  // before switching #mobile-nav-panel to position: absolute (see
+  // Header.astro's own comment on why it's absolute now) — a 1fr track only
+  // resolves against a *known* available height, and an absolutely
+  // positioned box with no explicit height/bottom doesn't reliably give it
+  // one, so the "expanded" state could collapse to nothing instead of
+  // opening. scrollHeight always reports the panel's true content height
+  // regardless of what height is currently applied to it (even 0, clipped
+  // by overflow: hidden), so animating a real measured pixel value sidesteps
+  // that ambiguity entirely.
+  const [panelHeight, setPanelHeight] = useState(0);
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const measure = () => setPanelHeight(panel.scrollHeight);
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [isOpen]);
+
   // Only ever finds sections on pages that actually mark them up (currently
   // just the homepage, via [data-nav-section] — see HomeExperience.tsx) —
   // resolves to null everywhere else, so the underline simply never
@@ -199,16 +220,17 @@ export default function SiteNav({
       {panelTarget &&
         createPortal(
           // Portalled into #mobile-nav-panel-target (an Astro-rendered
-          // sibling of .site-header__row, see Header.astro), not
-          // document.body: this panel is normal in-flow content now, not
-          // its own position: fixed overlay — it grows the header's own
-          // floating-pill box downward rather than covering the screen, so
-          // it needs to land inside that same box, not escape it.
+          // sibling of .site-header__row, see Header.astro) — this panel is
+          // position: absolute there, overlaying whatever's below the
+          // header rather than pushing it down (see Header.astro's own
+          // comment on #mobile-nav-panel-target), so it needs to land
+          // inside that same positioning context, not escape to
+          // document.body.
           //
           // Always mounted (not isOpen && ...) rather than mounting only
           // while open: an element that unmounts immediately has nothing
-          // to animate a close transition against. data-open + the grid-
-          // rows/opacity CSS below handle showing and hiding instead;
+          // to animate a close transition against. data-open + the
+          // height/opacity CSS below handle showing and hiding instead;
           // tabIndex/aria-hidden keep the always-present links out of the
           // tab order and off screen readers while closed.
           <div
@@ -218,28 +240,27 @@ export default function SiteNav({
             role="dialog"
             aria-modal={isOpen}
             aria-hidden={!isOpen}
+            style={{ height: isOpen ? `${panelHeight}px` : "0px" }}
           >
-            <div className="site-nav__panel-inner">
-              <ul>
-                {links.map((link, index) => (
-                  <li key={link.href} style={{ transitionDelay: isOpen ? `${index * 40}ms` : "0ms" }}>
-                    <a
-                      href={link.href}
-                      data-nav-hash={link.href.split("#")[1]}
-                      tabIndex={isOpen ? 0 : -1}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-                <li style={{ transitionDelay: isOpen ? `${links.length * 40}ms` : "0ms" }}>
-                  <a href={otherLocaleHref} tabIndex={isOpen ? 0 : -1}>
-                    {otherLocaleLabel}
+            <ul>
+              {links.map((link, index) => (
+                <li key={link.href} style={{ transitionDelay: isOpen ? `${index * 40}ms` : "0ms" }}>
+                  <a
+                    href={link.href}
+                    data-nav-hash={link.href.split("#")[1]}
+                    tabIndex={isOpen ? 0 : -1}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {link.label}
                   </a>
                 </li>
-              </ul>
-            </div>
+              ))}
+              <li style={{ transitionDelay: isOpen ? `${links.length * 40}ms` : "0ms" }}>
+                <a href={otherLocaleHref} tabIndex={isOpen ? 0 : -1}>
+                  {otherLocaleLabel}
+                </a>
+              </li>
+            </ul>
           </div>,
           panelTarget,
         )}
@@ -302,42 +323,34 @@ export default function SiteNav({
            its row without being cut off) — border-radius only on the
            bottom corners so it reads as one continuous shape with the row
            still visible above it.
-           grid-template-rows: 0fr -> 1fr, not height: 0 -> auto — height
-           can't be transitioned to/from auto at all, and a fixed pixel
-           target would need re-measuring every time the link count or
-           label lengths change (locale swap, adding a nav item). A single
-           grid row whose fr size animates does the same job natively: the
-           row's own track size interpolates smoothly, and the actual
-           content dictates what "1fr" resolves to without any JS
-           measurement. .site-nav__panel-inner's overflow: hidden is
-           required for this to read as a height animation rather than the
-           content just clipping abruptly at 0fr — a grid row can size to
-           0 while its content stays its natural height unless something
-           inside clips to the row's own shrunk size. */
+           Height is a real measured pixel value set inline by the
+           component (see its own useLayoutEffect + scrollHeight), not the
+           grid-template-rows: 0fr -> 1fr trick used before this became
+           position: absolute — a 1fr track needs a *known* available
+           height to resolve against, and an absolutely positioned box with
+           no explicit height/bottom doesn't reliably provide one, so the
+           "open" state could collapse to nothing instead of expanding. A
+           measured pixel target sidesteps that ambiguity entirely; overflow:
+           hidden here is what makes animating toward it read as a height
+           reveal instead of content just appearing abruptly at 0. */
         #mobile-nav-panel {
           position: absolute;
           top: 0;
           left: 0;
           right: 0;
           z-index: 1;
-          display: grid;
-          grid-template-rows: 0fr;
+          overflow: hidden;
           background: var(--color-bg);
           border-radius: 0 0 8px 8px;
-          transition: grid-template-rows var(--duration-base) var(--ease-standard);
+          transition: height var(--duration-base) var(--ease-standard);
         }
-        /* Shadow only while open, not on the base rule above — collapsed
-           to a 0fr row it's still a real (if invisible) box, and a blurred
-           box-shadow paints past a zero-size box's own edges, which showed
-           up as a faint persistent line under the header even fully
+        /* Shadow only while open, not on the base rule above — collapsed to
+           height: 0 it's still a real (if invisible) box, and a blurred
+           box-shadow paints past even a zero-size box's own edges, which
+           showed up as a faint persistent line under the header even fully
            closed. */
         #mobile-nav-panel[data-open="true"] {
-          grid-template-rows: 1fr;
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-        }
-        .site-nav__panel-inner {
-          overflow: hidden;
-          min-height: 0;
         }
         #mobile-nav-panel ul {
           list-style: none;
