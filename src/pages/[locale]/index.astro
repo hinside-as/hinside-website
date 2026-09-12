@@ -4,6 +4,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import HomeExperience from "../../components/HomeExperience.tsx";
 import type { PinnedPortfolioItem } from "../../components/carousel/PinnedPortfolioCarousel.tsx";
 import { getMediaImage } from "../../lib/media";
+import { resolveCaseStudyHeroImage } from "../../lib/caseStudyHero";
 import { getImage } from "astro:assets";
 import { locales, useTranslations, localizedPath, type Locale } from "../../i18n/utils";
 import { clients } from "../../data/clients";
@@ -21,8 +22,9 @@ const caseStudies = (await getCollection("case-studies")).filter(
 
 const portfolioItems: PinnedPortfolioItem[] = await Promise.all(
   caseStudies.map(async (entry) => {
+    const hero = resolveCaseStudyHeroImage(entry, locale);
     const optimized = await getImage({
-      src: getMediaImage(entry.data.cover),
+      src: getMediaImage(hero.src),
       width: 800,
     });
     return {
@@ -31,7 +33,7 @@ const portfolioItems: PinnedPortfolioItem[] = await Promise.all(
       title: entry.data.title[locale],
       subtitle: entry.data.description[locale],
       image: optimized.src,
-      imageAlt: entry.data.coverAlt[locale],
+      imageAlt: hero.alt,
       accent: entry.data.accent,
     };
   }),

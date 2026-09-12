@@ -281,6 +281,13 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
   const isPromoActive = hasPromo && activeIndex === slides.length;
   const activeChapterId = slides[Math.min(activeIndex, slides.length - 1)]?.chapterId ?? chapters[0]?.id ?? "";
 
+  // The homepage's own card picks whichever media this same slide happens
+  // to render first (see src/lib/caseStudyHero.ts) — not always slide 0,
+  // since a text-only opening slide (no media of its own) pushes the first
+  // real image/video further down. Matching that here is what makes the
+  // clicked card's view-transition-name actually land on a real element.
+  const firstMediaIndex = slides.findIndex((slide) => slide.media);
+
   // One shared value rather than per-slide state: only one slide is ever
   // active/audible at a time (see the video autoplay-sync effect below), so
   // there's nothing to keep separate.
@@ -455,7 +462,7 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
                   <Media
                     media={slide.media}
                     isMuted={isMuted}
-                    transitionName={index === 0 ? coverTransitionName : undefined}
+                    transitionName={index === firstMediaIndex ? coverTransitionName : undefined}
                   />
                   {slide.media?.type === "video" && slide.media.allowUnmute && (
                     <button
