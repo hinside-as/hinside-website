@@ -264,7 +264,7 @@ export default function PinnedPortfolioCarousel({
         }
         .pppc-image-frame {
           width: 100%;
-          aspect-ratio: 1 / 1;
+          aspect-ratio: 3 / 4;
           overflow: hidden;
         }
         /* .pppc-card's own height (what .pppc-track's align-items: center
