@@ -150,12 +150,18 @@ export default function TypewriterHero({
           margin-inline: auto;
           padding-inline: var(--space-5);
         }
-        /* Matches the original .hs__hero-headline treatment exactly —
-           --text-4xl with a fairly tight max-width so the sentence wraps
-           into several short lines, which is what actually fills the
-           vertical space, not font-size alone. */
+        /* A smaller local scale, not the shared --text-4xl (up to 10rem)
+           the original centered .hs__hero-headline used — that size was
+           tuned for a layout with the *full* 100svh to grow into
+           symmetrically. Top-anchored with a fixed padding-top eating into
+           that budget, the complete multi-line sentence at 10rem/line could
+           run past the bottom of .th-sticky's own overflow: hidden on
+           anything shorter than a tall desktop display, clipping the last
+           line's actual letters. This tops out at 6.5rem instead, keeping
+           the full revealed sentence comfortably inside the remaining
+           space on ordinary desktop viewport heights. */
         .th-headline {
-          font-size: var(--text-4xl);
+          font-size: clamp(2.5rem, 1.5rem + 6vw, 6.5rem);
           font-weight: var(--weight-regular);
           letter-spacing: var(--tracking-tighter);
           line-height: var(--leading-tight);
