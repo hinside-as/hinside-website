@@ -17,21 +17,6 @@ type TrackEntry =
 // the way to it.
 const PARALLAX_RANGE_PX = 70;
 
-// How many pixels of scroll one full swing (from -PARALLAX_RANGE_PX back to
-// +PARALLAX_RANGE_PX and back) takes. What actually matters is the *rate*
-// this implies relative to the track's own 1px-of-transform-per-1px-of-
-// scroll speed: one full swing covers 4 * PARALLAX_RANGE_PX of image
-// movement, so at a low wrap value (320 was tried first) the image was
-// drifting at 4*70/320 ≈ 0.88 — nearly as fast as the track itself. A
-// background depth layer needs to move at a small fraction of the
-// foreground's speed or it stops reading as "behind a window" and starts
-// reading as an independent, directly-grabbable thing (reported as
-// alternating between "I'm scrolling the page" and "I'm pushing the image
-// around" — a rate problem, not the image's own oversize percentage). At
-// 2000 the same ±70px range now implies 4*70/2000 = 0.14 — the image still
-// visibly drifts across its full range, just gently enough to read as a
-// slower plane behind the cards rather than competing with the scroll.
-const PARALLAX_WRAP_PX = 2000;
 
 /**
  * The homepage's Work section: a pinned viewport whose track moves
@@ -147,16 +132,22 @@ export default function PinnedPortfolioCarousel({
       // regardless of position, the way a background layer in any
       // multi-plane parallax scrolls independently of the foreground
       // elements passing in front of it rather than reacting to each one.
-      // A triangle wave driven directly by the track's own clamped scroll
-      // position (not wall-clock time) gives a constant-magnitude rate that
-      // only ever flips sign, never eases — a sine wave would slow down
-      // approaching each peak, which is exactly the kind of curve this
-      // isn't supposed to have. Setting it once here on .pppc-track lets
-      // ordinary CSS custom-property inheritance carry it down to every
-      // .pppc-image at once instead of writing it to each one individually.
-      const wavePosition = (clamped % PARALLAX_WRAP_PX) / PARALLAX_WRAP_PX; // 0..1
-      const triangle = wavePosition < 0.5 ? wavePosition * 4 - 1 : 3 - wavePosition * 4; // -1..1, linear both ways
-      track.style.setProperty("--pppc-parallax", `${(triangle * PARALLAX_RANGE_PX).toFixed(1)}px`);
+      //
+      // A repeating wave (tried next) was still wrong in a different way:
+      // it reset/reversed every couple thousand pixels of scroll, so the
+      // same conceptual point in the shared background swung back and
+      // forth locally instead of drifting in one direction across the
+      // *entire* carousel. A single linear ramp from -PARALLAX_RANGE_PX at
+      // the very start of the pin to +PARALLAX_RANGE_PX at the very end —
+      // driven by clamped/maxTranslate, the same 0..1 progress already
+      // used for everything else here — has no reversal and no easing,
+      // just one continuous sweep for the whole scroll journey. Setting it
+      // once here on .pppc-track lets ordinary CSS custom-property
+      // inheritance carry it down to every .pppc-image at once instead of
+      // writing it to each one individually.
+      const progress = maxTranslate > 0 ? clamped / maxTranslate : 0;
+      const parallaxOffset = (progress * 2 - 1) * PARALLAX_RANGE_PX;
+      track.style.setProperty("--pppc-parallax", `${parallaxOffset.toFixed(1)}px`);
     };
 
     let ticking = false;
