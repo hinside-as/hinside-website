@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { useActiveNavSection } from "../hooks/useActiveNavSection";
 
@@ -129,7 +129,20 @@ export default function SiteNav({
   const wrapRef = useRef<HTMLDivElement>(null);
   const trailRef = useRef<HTMLSpanElement>(null);
   const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
-  const [underline, setUnderline] = useState<{ left: number; width: number; top: number } | null>(null);
+  const [underline, setUnderline] = useState<{
+    left: number;
+    width: number;
+    top: number;
+    direction: "left-to-right" | "right-to-left";
+  } | null>(null);
+  // Which way the underline is about to travel — read once at the top of
+  // the position effect below (comparing this to the freshly measured
+  // left) and written back after, so the trail's gradient (see
+  // .site-nav__underline-trail) can always put its brightest color on
+  // whichever edge ends up adjacent to the solid bar's own new position,
+  // rather than a fixed left-to-right order that's only correct half the
+  // time depending on which link comes before which.
+  const prevLeftRef = useRef<number | null>(null);
 
   useLayoutEffect(() => {
     const list = listRef.current;
@@ -152,17 +165,23 @@ export default function SiteNav({
       // pure CSS, so it's measured live the same way left/width already
       // are. .closest() reaches up to Header.astro's row element, which
       // this component has no other reference to (it's a plain DOM
-      // ancestor, not something passed down as a prop).
+      // ancestor, not something passed down as a prop). The extra -1
+      // afterwards is a plain manual nudge, not part of that fraction.
       const GAP_FRACTION = 0.3;
       const row = wrap.closest<HTMLElement>(".site-header__row");
       const rowRect = row?.getBoundingClientRect();
       const midpointY = rowRect
         ? linkRect.bottom + (rowRect.bottom - linkRect.bottom) * GAP_FRACTION
         : linkRect.bottom;
+      const left = linkRect.left - listRect.left;
+      const direction: "left-to-right" | "right-to-left" =
+        prevLeftRef.current === null || left >= prevLeftRef.current ? "left-to-right" : "right-to-left";
+      prevLeftRef.current = left;
       setUnderline({
-        left: linkRect.left - listRect.left,
+        left,
         width: linkRect.width,
-        top: midpointY - wrapRect.top,
+        top: midpointY - wrapRect.top - 1,
+        direction,
       });
     };
     measure();
@@ -241,12 +260,23 @@ export default function SiteNav({
                 (see .site-nav__underline-trail's own comment) — it visibly
                 lags behind the solid bar below as both move, which is what
                 actually reads as "color caused by motion" rather than a
-                timed flash on the bar itself. */}
+                timed flash on the bar itself. --trail-direction flips the
+                gradient's own direction keyword (see that rule) so the
+                brightest segment always ends up on whichever edge is
+                adjacent to the solid bar's new position, regardless of
+                which way the underline is actually traveling. */}
             <span
               ref={trailRef}
               className="site-nav__underline-trail"
               aria-hidden="true"
-              style={{ left: `${underline.left}px`, width: `${underline.width}px`, top: `${underline.top}px` }}
+              style={
+                {
+                  left: `${underline.left}px`,
+                  width: `${underline.width}px`,
+                  top: `${underline.top}px`,
+                  "--trail-direction": underline.direction === "left-to-right" ? "to left" : "to right",
+                } as CSSProperties
+              }
             />
             <span
               className="site-nav__underline"
@@ -380,17 +410,23 @@ export default function SiteNav({
            every blended transition entirely, so the full saturation below
            is what's actually visible instead of being diluted by muddy
            in-between tones. Ordered brightest-first (yellow leading, violet
-           trailing) rather than around the hue wheel in order. Lightness is
-           tuned per hue, not a flat value, since green/cyan read as pale at
-           the same lightness that makes yellow/orange/red look vivid —
-           pure perceptual luminance, not a typo. */
+           trailing), and --trail-direction (set inline per the component's
+           own measured travel direction) points the gradient so that
+           leading edge always lands next to the solid underline's own new
+           position — "to left" when the underline is moving rightward puts
+           yellow on the trail's right edge (the one catching up to the bar
+           now to its right), and vice versa; a fixed direction would only
+           have gotten this right for travel one way. Lightness is tuned
+           per hue, not a flat value, since green/cyan read as pale at the
+           same lightness that makes yellow/orange/red look vivid — pure
+           perceptual luminance, not a typo. */
         .site-nav__underline-trail {
           position: absolute;
           height: 2px;
           filter: blur(0.5px);
           opacity: 0;
           background: linear-gradient(
-            to right,
+            var(--trail-direction, to right),
             hsl(50, 100%, 55%) 0%,
             hsl(50, 100%, 55%) 16.66%,
             hsl(30, 100%, 55%) 16.66%,
