@@ -17,7 +17,8 @@
   },
   "heroVideo": {
     "src": "/media/projects/samspill/video/hero-loop-desktop.mp4",
-    "mobileSrc": "/media/projects/samspill/video/hero-loop-mobile.mp4"
+    "mobileSrc": "/media/projects/samspill/video/hero-loop-mobile.mp4",
+    "poster": "projects/samspill/video-posters/hero-poster.png"
   },
   "sections": [
     {
