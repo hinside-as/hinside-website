@@ -245,13 +245,32 @@ export default function TypewriterHero({
             color: var(--color-fg);
           }
         }
+        /* Zero width itself — the visible bar is an absolutely positioned
+           ::after instead of the cursor's own box. Every letter's width is
+           reserved up front (see .th-letter--pending's own comment), but
+           the cursor moves to a new position in the text every time
+           revealCount advances; if it were a real, width-having inline
+           element, its own ~0.12em could still be the deciding factor in
+           whether the word right after it fits on the current line,
+           depending on exactly where that happened to land — a residual
+           source of the same mid-word line jump the letter fix was meant
+           to eliminate, just caused by the cursor instead of the letters.
+           Taking it out of the flow entirely removes that. */
         .th-cursor {
+          position: relative;
           display: inline-block;
-          width: 0.06em;
+          width: 0;
           height: 0.85em;
-          margin-left: 0.06em;
-          background: var(--color-fg);
           vertical-align: -0.05em;
+        }
+        .th-cursor::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 0.06em;
+          height: 100%;
+          background: var(--color-fg);
           animation: th-cursor-blink 1s step-end infinite;
         }
         @keyframes th-cursor-blink {

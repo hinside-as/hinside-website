@@ -379,10 +379,11 @@ export default function SiteNav({
            Giving each color a flat, same-color-to-same-color span removes
            every blended transition entirely, so the full saturation below
            is what's actually visible instead of being diluted by muddy
-           in-between tones. Lightness is tuned per hue, not a flat value,
-           since green/cyan read as pale at the same lightness that makes
-           red/yellow/violet look vivid — pure perceptual luminance, not a
-           typo. */
+           in-between tones. Ordered brightest-first (yellow leading, violet
+           trailing) rather than around the hue wheel in order. Lightness is
+           tuned per hue, not a flat value, since green/cyan read as pale at
+           the same lightness that makes yellow/orange/red look vivid —
+           pure perceptual luminance, not a typo. */
         .site-nav__underline-trail {
           position: absolute;
           height: 2px;
@@ -390,18 +391,18 @@ export default function SiteNav({
           opacity: 0;
           background: linear-gradient(
             to right,
-            hsl(0, 100%, 58%) 0%,
-            hsl(0, 100%, 58%) 16.66%,
-            hsl(45, 100%, 55%) 16.66%,
-            hsl(45, 100%, 55%) 33.33%,
-            hsl(120, 100%, 38%) 33.33%,
-            hsl(120, 100%, 38%) 50%,
-            hsl(190, 100%, 42%) 50%,
-            hsl(190, 100%, 42%) 66.66%,
-            hsl(230, 100%, 62%) 66.66%,
-            hsl(230, 100%, 62%) 83.33%,
-            hsl(285, 100%, 60%) 83.33%,
-            hsl(285, 100%, 60%) 100%
+            hsl(50, 100%, 55%) 0%,
+            hsl(50, 100%, 55%) 16.66%,
+            hsl(30, 100%, 55%) 16.66%,
+            hsl(30, 100%, 55%) 33.33%,
+            hsl(350, 100%, 60%) 33.33%,
+            hsl(350, 100%, 60%) 50%,
+            hsl(120, 100%, 40%) 50%,
+            hsl(120, 100%, 40%) 66.66%,
+            hsl(195, 100%, 45%) 66.66%,
+            hsl(195, 100%, 45%) 83.33%,
+            hsl(270, 100%, 60%) 83.33%,
+            hsl(270, 100%, 60%) 100%
           );
           transition:
             left var(--duration-slow) var(--ease-standard) 60ms,
@@ -415,11 +416,11 @@ export default function SiteNav({
           0% {
             opacity: 0;
           }
-          /* Peaks near-opaque, not the previous 0.8 — the dark header
-             background was still bleeding through and muting the segments
-             underneath at anything much less than this. */
+          /* Fully opaque at the peak, same as the solid underline itself —
+             anything less let the dark header background bleed through and
+             mute the segments underneath. */
           25% {
-            opacity: 0.95;
+            opacity: 1;
           }
           100% {
             opacity: 0;
