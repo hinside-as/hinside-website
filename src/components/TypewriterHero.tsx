@@ -157,11 +157,13 @@ export default function TypewriterHero({
            that budget, the complete multi-line sentence at 10rem/line could
            run past the bottom of .th-sticky's own overflow: hidden on
            anything shorter than a tall desktop display, clipping the last
-           line's actual letters. This tops out at 6.5rem instead, keeping
-           the full revealed sentence comfortably inside the remaining
-           space on ordinary desktop viewport heights. */
+           line's actual letters. An 8.25rem cap (the midpoint between that
+           10rem and a first, over-corrected pass at 6.5rem — floor and
+           vw-scaling averaged the same way) still leaves comfortable room
+           on ordinary desktop viewport heights without giving up as much
+           presence as the smaller version did. */
         .th-headline {
-          font-size: clamp(2.5rem, 1.5rem + 6vw, 6.5rem);
+          font-size: clamp(3rem, 1.65rem + 7vw, 8.25rem);
           font-weight: var(--weight-regular);
           letter-spacing: var(--tracking-tighter);
           line-height: var(--leading-tight);
