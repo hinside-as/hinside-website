@@ -396,8 +396,11 @@ export default function SiteNav({
            slower, delayed transition, so it visibly lags behind the solid
            bar rather than arriving with it — a real trailing "ghost" whose
            color only ever shows up as a consequence of that lag, not a
-           timer. Slightly taller and softly blurred so it reads as a
-           streak rather than a second crisp line. opacity is 0 by default;
+           timer. Same 1px height as the solid bar and no blur — a blurred,
+           thicker trail read as a second, mismatched line rather than a
+           color the same underline was briefly showing, and blur mixes
+           adjacent hard-edged segments at their boundary, undoing the flat,
+           fully saturated bands below. opacity is 0 by default;
            .site-nav__underline-trail--active (toggled via a classList
            restart in the component's own effect, replaying it on every
            real section change) fades it in as the lag begins and back out
@@ -422,8 +425,7 @@ export default function SiteNav({
            perceptual luminance, not a typo. */
         .site-nav__underline-trail {
           position: absolute;
-          height: 2px;
-          filter: blur(0.5px);
+          height: 1px;
           opacity: 0;
           background: linear-gradient(
             var(--trail-direction, to right),
