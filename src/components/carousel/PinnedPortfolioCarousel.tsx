@@ -10,12 +10,12 @@ type TrackEntry =
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
 // How far (in px) an image is allowed to drift inside its own frame as the
-// track scrolls it past center — see .pppc-image's oversized 140%/-20%
+// track scrolls it past center — see .pppc-image's oversized 160%/-30%
 // sizing below, which exists purely to give this room without exposing the
-// frame's edges. Kept comfortably inside that 20%-per-side budget (~56px on
+// frame's edges. Kept comfortably inside that 30%-per-side budget (~84px on
 // the smallest card this ever renders at, the min(384px, 78vw) mobile floor)
 // rather than pushing all the way to it.
-const PARALLAX_RANGE_PX = 48;
+const PARALLAX_RANGE_PX = 70;
 
 /**
  * The homepage's Work section: a pinned viewport whose track moves
@@ -127,23 +127,33 @@ export default function PinnedPortfolioCarousel({
       // CSS custom property), just measured horizontally here since that's
       // the axis this carousel actually moves on.
       //
-      // Normalized against the card's own width, not the sticky viewport's —
-      // a 384px card only ever travels roughly one card-width either side of
-      // center before it's off-screen, so dividing by the *viewport's* half
-      // width (easily 1000px+) kept the result pinned near zero for a
-      // card's entire visible transit and the drift never read as anything.
-      // Dividing by the card's own width means a card reaches full drift by
-      // the time it's about a card-width off center — exactly the span it's
-      // actually visible for. (/1.4 undoes .pppc-image's own 140% oversize,
-      // since getBoundingClientRect() reports that inflated box, not the
-      // frame's true width.)
+      // Normalized against half the sticky viewport's own width, not each
+      // card's own width — a card's own width was tried first (reasoning:
+      // a card only travels about one card-width either side of center
+      // before it's off-screen), but that's only true on a viewport barely
+      // wider than the card itself. On an ordinary desktop viewport a card
+      // is visible across a much wider band than its own width, so most of
+      // that band fell outside the card-width normalizer's ±1 range and
+      // just sat clamped at the max offset — frozen the instant it
+      // appeared, only actually animating for a brief window near center,
+      // and different cards visible at once could be in different halves
+      // of that (one already clamped-still, another mid-swing), reading as
+      // inconsistent rates rather than one shared rule. Using the
+      // viewport's own half-width means every visible card is within ±1 (a
+      // card literally cannot be more than half a viewport away from
+      // center while any part of it is still on screen), so the drift
+      // updates continuously for as long as anything is visible, in
+      // lockstep with the exact same track transform driving everything
+      // else — no separate easing curve, no per-card timing, just this
+      // frame's scroll position mapped through one shared, always-linear
+      // rule.
       const stickyRect = sticky.getBoundingClientRect();
       const stickyCenter = stickyRect.left + stickyRect.width / 2;
+      const parallaxNormalizer = stickyRect.width / 2;
       imageRefs.current.forEach((img) => {
         const cardRect = img.getBoundingClientRect();
         const cardCenter = cardRect.left + cardRect.width / 2;
-        const frameWidth = cardRect.width / 1.4;
-        const normalized = (cardCenter - stickyCenter) / frameWidth;
+        const normalized = parallaxNormalizer > 0 ? (cardCenter - stickyCenter) / parallaxNormalizer : 0;
         const offset = Math.max(-1, Math.min(1, normalized)) * PARALLAX_RANGE_PX;
         img.style.setProperty("--pppc-parallax", `${offset.toFixed(1)}px`);
       });
@@ -280,15 +290,15 @@ export default function PinnedPortfolioCarousel({
            so with meta out of the height calculation entirely, all four
            are now exactly the same height by construction, not just
            usually the same height. */
-        /* Oversized relative to its frame (140%, recentered with a -20%
+        /* Oversized relative to its frame (160%, recentered with a -30%
            inset) purely so the parallax transform below has room to pan
            without ever revealing an edge — see PARALLAX_RANGE_PX's own
            comment in the component for the budget this stays inside. */
         .pppc-image {
           display: block;
-          width: 140%;
-          height: 140%;
-          margin: -20%;
+          width: 160%;
+          height: 160%;
+          margin: -30%;
           max-width: none;
           object-fit: cover;
           filter: grayscale(1) saturate(0.28);
