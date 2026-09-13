@@ -44,6 +44,10 @@ type Props = {
    * rather than the site's dark default passes this through so the footer
    * beneath it stays readable. */
   footerTheme?: "light";
+  /** Case-study pages end in their own "next project" teaser instead of the
+   * site-wide footer — there's always somewhere further to scroll to, so
+   * the footer's contact/social links never actually get reached anyway. */
+  hideFooter?: boolean;
 };
 
 const {
@@ -56,6 +60,7 @@ const {
   footerNoBorder = false,
   footerWideMargin = false,
   footerTheme,
+  hideFooter = false,
 } = Astro.props;
 const t = useTranslations(locale);
 const canonicalPath = localizedPath(locale, Astro.url.pathname);
@@ -105,7 +110,7 @@ const navLinks = [
     <main id="main-content">
       <slot />
     </main>
-    <Footer locale={locale} noBorder={footerNoBorder} wideMargin={footerWideMargin} theme={footerTheme} />
+    {!hideFooter && <Footer locale={locale} noBorder={footerNoBorder} wideMargin={footerWideMargin} theme={footerTheme} />}
     {
       // PROD-only, same reasoning as the old inline GA snippet this
       // replaced — no banner, no analytics machinery at all, under

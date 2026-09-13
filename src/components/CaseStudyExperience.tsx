@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { navigate } from "astro:transitions/client";
 import { useActiveSection } from "../hooks/useActiveSection";
 import GalleryCarousel, { type GalleryCarouselItem } from "./carousel/GalleryCarousel";
-import PortfolioCarousel, { type PortfolioItem } from "./carousel/PortfolioCarousel";
 
 export type CaseStudySlideMedia =
   | {
@@ -63,15 +63,23 @@ export type CaseStudyMeta = {
   clientLabel: string;
 };
 
+export type CaseStudyNextProject = {
+  href: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+  imageAlt: string;
+  accent?: string;
+};
+
 type Props = {
   meta: CaseStudyMeta;
   slides: CaseStudySlide[];
-  otherProjects: PortfolioItem[];
+  nextProject: CaseStudyNextProject;
   /** Matches the `view-transition-name` the homepage's PinnedPortfolioCarousel
-   * (or this same promo carousel on another case study's page) declares on
-   * this project's cover image — see src/lib/viewTransitions.ts. Applied
-   * only to slide 0's own media below, so the clicked card visually expands
-   * into becoming this page's hero rather than the whole page just
+   * declares on this project's cover image — see src/lib/viewTransitions.ts.
+   * Applied only to slide 0's own media below, so the clicked card visually
+   * expands into becoming this page's hero rather than the whole page just
    * appearing. */
   coverTransitionName?: string;
 };
@@ -259,9 +267,10 @@ function CreditsSlide({
   );
 }
 
-export default function CaseStudyExperience({ meta, slides, otherProjects, coverTransitionName }: Props) {
+export default function CaseStudyExperience({ meta, slides, nextProject, coverTransitionName }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const hasPromo = otherProjects.length > 0;
+  const nextRef = useRef<HTMLAnchorElement>(null);
+  const [nextProgress, setNextProgress] = useState(0);
 
   // The only thing tracked here now is which video should autoplay — the
   // chapter TOC that used to be this observer's other consumer is gone
@@ -327,6 +336,60 @@ export default function CaseStudyExperience({ meta, slides, otherProjects, cover
     return () => window.removeEventListener("resize", syncVideoPlayback);
   }, [activeIndex]);
 
+  // Replaces the old cross-promo carousel as the page's ending: scrolling
+  // the "next project" teaser into view fills a bar across it, announcing
+  // the next case study before you reach it — reaching full triggers the
+  // actual navigation. Purely a read of scroll position via
+  // getBoundingClientRect (same technique as BaseLayout's own parallax
+  // effect), never a hijacked wheel/touch event; the anchor is a real link
+  // the whole time, so a click or keyboard Enter navigates immediately
+  // regardless of scroll progress.
+  useEffect(() => {
+    const link = nextRef.current;
+    if (!link) return;
+    // Reduced motion gets the honest fallback: a plain, static link with no
+    // fill animation and no scroll-triggered auto-navigation — the user
+    // decides when to go, same as every other link on the site.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setNextProgress(1);
+      return;
+    }
+
+    let navigated = false;
+    let ticking = false;
+
+    const apply = () => {
+      const rect = link.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      // 0 the moment the teaser's top edge appears at the bottom of the
+      // viewport, 1 a full viewport-height of scrolling later (its top
+      // edge has reached the top of the viewport) — viewport-relative, not
+      // tied to the teaser's own height, so it feels the same regardless
+      // of how tall the section renders at a given breakpoint.
+      const progress = Math.min(Math.max((viewportHeight - rect.top) / viewportHeight, 0), 1);
+      setNextProgress(progress);
+      if (progress >= 1 && !navigated) {
+        navigated = true;
+        navigate(nextProject.href);
+      }
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(apply);
+    };
+
+    apply();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [nextProject.href]);
+
   return (
     <div className="cse">
       {/* Renders on every viewport width, unlike the old sidebar's title/
@@ -389,22 +452,33 @@ export default function CaseStudyExperience({ meta, slides, otherProjects, cover
             )}
           </section>
         ))}
-        {hasPromo && (
-          <section className="cse__step cse__promo" data-slide-index={slides.length}>
-            <PortfolioCarousel items={otherProjects} />
-          </section>
-        )}
       </div>
+
+      <a
+        ref={nextRef}
+        href={nextProject.href}
+        className="cse__next"
+        style={{ "--next-progress": nextProgress } as CSSProperties}
+      >
+        <span className="cse__next-eyebrow">Next project</span>
+        <h2 className="cse__next-title">{nextProject.title}</h2>
+        <div className="cse__next-media">
+          <img src={nextProject.image} alt={nextProject.imageAlt} loading="lazy" />
+        </div>
+        <div className="cse__next-bar">
+          <div className="cse__next-bar-fill" />
+        </div>
+      </a>
 
       <style>{`
         /* A light theme, distinct from the site's dark-by-default root —
            redefined locally on .cse (not the global [data-theme="light"]
            toggle, which is a user preference, not a per-page choice) so
-           every descendant reading these same tokens (Media's own <img>
-           has none, but EyeCursorItem's card shell inside PortfolioCarousel,
-           any --color-border rule, etc.) adapts for free via normal CSS
-           cascade — same technique HomeExperience.tsx's own .hs__work
-           section already uses for its light Portfolio section. */
+           every descendant reading these same tokens (the recognition/
+           credits borders, the next-project bar's own --color-border
+           track, etc.) adapts for free via normal CSS cascade — same
+           technique HomeExperience.tsx's own .hs__work section already
+           uses for its light Portfolio section. */
         .cse {
           width: 100%;
           max-width: var(--content-max-width);
@@ -618,15 +692,60 @@ export default function CaseStudyExperience({ meta, slides, otherProjects, cover
           margin-top: var(--space-2);
         }
 
-        /* PortfolioCarousel's own background band (a radial-gradient panel
-           behind the cards) is tuned for sitting inside the homepage's own
-           section background — here it's this page's own light background
-           instead, so it would just show up as an out-of-place stripe. */
-        .cse__promo .pc-carousel-section::before {
-          display: none;
+        /* Closes the page in place of the site-wide footer — see
+           BaseLayout's hideFooter prop. --next-progress (0-1, set from JS as
+           this link scrolls into view) drives .cse__next-bar-fill's width;
+           reaching 1 triggers the actual navigation (see the component's own
+           effect for why this is a read of scroll position, not a hijack of
+           it) — but the whole block stays a real <a>, so clicking or
+           tabbing to it and pressing Enter navigates immediately regardless
+           of scroll progress. */
+        .cse__next {
+          display: block;
+          width: 100%;
+          padding-block: var(--space-10) var(--space-8);
+          text-decoration: none;
+          color: inherit;
         }
-        .cse__promo .pc-carousel-section {
-          --card-size: clamp(260px, 32vw, 420px);
+        .cse__next-eyebrow {
+          display: block;
+          font-size: var(--text-sm);
+          color: var(--color-fg-muted);
+          margin-bottom: var(--space-2);
+        }
+        .cse__next-title {
+          font-size: var(--text-3xl);
+          font-weight: var(--weight-regular);
+          letter-spacing: var(--tracking-tighter);
+          line-height: var(--leading-tight);
+          margin-bottom: var(--space-6);
+          transition: color var(--duration-base) var(--ease-standard);
+        }
+        .cse__next:hover .cse__next-title,
+        .cse__next:focus-visible .cse__next-title {
+          color: var(--accent, var(--color-fg));
+        }
+        .cse__next-media {
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          overflow: hidden;
+          margin-bottom: var(--space-4);
+        }
+        .cse__next-media img {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .cse__next-bar {
+          width: 100%;
+          height: 2px;
+          background: var(--color-border);
+        }
+        .cse__next-bar-fill {
+          height: 100%;
+          width: calc(var(--next-progress, 0) * 100%);
+          background: var(--accent, var(--color-fg));
         }
       `}</style>
     </div>

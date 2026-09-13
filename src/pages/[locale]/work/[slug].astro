@@ -194,28 +194,24 @@ if (credits.length) {
   slides.push({ chapterId: "credits", heading: t("case.credits"), credits });
 }
 
-// Cross-promo slide at the end of the experience: every OTHER case study,
-// so there's always somewhere to go next rather than a dead end before the
-// footer. Same card shape/image pipeline as the homepage's own portfolio
-// carousel (src/pages/[locale]/index.astro) — deliberately not filtered to
-// `featured` only, unlike the homepage, since "discover what else exists"
-// should surface everything, not just the showcase picks.
+// Closes the experience with a single "next project" teaser instead of a
+// full cross-promo carousel of every other case study — one clear next step
+// rather than a whole gallery to choose from, matching the reference site's
+// own minimal "Next Project" pattern. Sequential by collection order
+// (getCollection's own glob order — there's no explicit ordering field in
+// the schema), wrapping back to the first project after the last.
 const allCaseStudies = await getCollection("case-studies");
-const otherProjects = await Promise.all(
-  allCaseStudies
-    .filter((other) => other.id !== entry.id)
-    .map(async (other) => {
-      const optimized = await getImage({ src: getMediaImage(other.data.cover), width: 800 });
-      return {
-        href: localizedPath(locale, `/work/${other.id}`),
-        title: other.data.title[locale],
-        subtitle: other.data.description[locale],
-        image: optimized.src,
-        imageAlt: other.data.coverAlt[locale],
-        accent: other.data.accent,
-      };
-    }),
-);
+const currentIndex = allCaseStudies.findIndex((other) => other.id === entry.id);
+const nextEntry = allCaseStudies[(currentIndex + 1) % allCaseStudies.length];
+const nextImage = await getImage({ src: getMediaImage(nextEntry.data.cover), width: 1600 });
+const nextProject = {
+  href: localizedPath(locale, `/work/${nextEntry.id}`),
+  title: nextEntry.data.title[locale],
+  subtitle: nextEntry.data.description[locale],
+  image: nextImage.src,
+  imageAlt: nextEntry.data.coverAlt[locale],
+  accent: nextEntry.data.accent,
+};
 ---
 
 <BaseLayout
@@ -225,6 +221,7 @@ const otherProjects = await Promise.all(
   accent={entry.data.accent}
   bodyBackground="var(--color-soft-cream)"
   footerTheme="light"
+  hideFooter
 >
   <CaseStudyExperience
     client:load
@@ -235,7 +232,7 @@ const otherProjects = await Promise.all(
       clientLabel: t("case.client"),
     }}
     slides={slides}
-    otherProjects={otherProjects}
+    nextProject={nextProject}
     coverTransitionName={caseCoverTransitionName(entry.id)}
   />
 </BaseLayout>
