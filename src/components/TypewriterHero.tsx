@@ -129,8 +129,15 @@ export default function TypewriterHero({
           top: 0;
           height: 100svh;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           overflow: hidden;
+          /* Top-anchored, not vertically centered — centering meant the
+             whole block re-centered itself every time typing added a
+             wrapped line, so already-written text visibly jumped upward
+             each time the sentence grew. Anchoring the top instead means
+             new lines only ever extend downward; nothing already on
+             screen ever moves. */
+          padding-top: var(--space-8);
         }
         /* Same box model as .hs__content elsewhere on the homepage (own
            copy, not a shared class, to keep this component self-contained
