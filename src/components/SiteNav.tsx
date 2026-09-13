@@ -127,7 +127,7 @@ export default function SiteNav({
   // (see CaseStudyExperience.tsx).
   const listRef = useRef<HTMLUListElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const underlineRef = useRef<HTMLSpanElement>(null);
+  const trailRef = useRef<HTMLSpanElement>(null);
   const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
   const [underline, setUnderline] = useState<{ left: number; width: number; top: number } | null>(null);
 
@@ -173,25 +173,24 @@ export default function SiteNav({
     return () => window.removeEventListener("resize", measure);
   }, [activeSection]);
 
-  // Replays the chromatic sweep (same color-spectrum-to-white keyframe as
-  // TypewriterHero's own letter reveal, see .site-nav__underline--sweep
+  // Replays the trail's fade-in-then-out (see .site-nav__underline-trail
   // below) every time the underline actually moves to a new section — not
   // on the resize-triggered re-measurements above, which just correct
   // position after a viewport change rather than mark a genuine move.
   // Toggling the animation via a CSS class on the *same* element (rather
   // than remounting it, e.g. via a React `key`) is deliberate: remounting
-  // would also restart the left/width/top position transition from
-  // scratch, snapping it to the new spot instead of sliding — this needs
+  // would also restart the trail's own position transition from scratch,
+  // snapping it to the new spot instead of lagging toward it — this needs
   // the element to persist across the change. Removing the class, forcing
   // a synchronous reflow (the offsetWidth read), then re-adding it is the
   // standard way to make a CSS animation replay on an element that never
   // left the DOM.
   useEffect(() => {
-    const underlineEl = underlineRef.current;
-    if (!underlineEl) return;
-    underlineEl.classList.remove("site-nav__underline--sweep");
-    void underlineEl.offsetWidth;
-    underlineEl.classList.add("site-nav__underline--sweep");
+    const trailEl = trailRef.current;
+    if (!trailEl) return;
+    trailEl.classList.remove("site-nav__underline-trail--active");
+    void trailEl.offsetWidth;
+    trailEl.classList.add("site-nav__underline-trail--active");
   }, [activeSection]);
 
   return (
@@ -236,12 +235,25 @@ export default function SiteNav({
           </li>
         </ul>
         {underline && (
-          <span
-            ref={underlineRef}
-            className="site-nav__underline"
-            aria-hidden="true"
-            style={{ left: `${underline.left}px`, width: `${underline.width}px`, top: `${underline.top}px` }}
-          />
+          <>
+            {/* Colorful "ghost" of the underline, sharing the same target
+                left/width/top but with its own slower, delayed transition
+                (see .site-nav__underline-trail's own comment) — it visibly
+                lags behind the solid bar below as both move, which is what
+                actually reads as "color caused by motion" rather than a
+                timed flash on the bar itself. */}
+            <span
+              ref={trailRef}
+              className="site-nav__underline-trail"
+              aria-hidden="true"
+              style={{ left: `${underline.left}px`, width: `${underline.width}px`, top: `${underline.top}px` }}
+            />
+            <span
+              className="site-nav__underline"
+              aria-hidden="true"
+              style={{ left: `${underline.left}px`, width: `${underline.width}px`, top: `${underline.top}px` }}
+            />
+          </>
         )}
       </div>
 
@@ -346,40 +358,51 @@ export default function SiteNav({
             width var(--duration-base) var(--ease-standard),
             top var(--duration-base) var(--ease-standard);
         }
-        /* A glimpse of color exactly while the underline is in motion, then
-           back to the site's usual monochrome once it settles — same
-           spectrum-to-white sweep TypewriterHero's own letters use per
-           character (see that component's th-letter-reveal keyframes),
-           applied to the whole bar's background here instead. Same
-           duration as the left/width/top transition above so the color
-           settles right as the movement itself finishes, not before or
-           after. Replayed via a classList toggle + forced reflow in the
-           component's own effect — see that effect's comment for why a
-           class toggle on this same element, not a remount. */
-        .site-nav__underline--sweep {
-          animation: site-nav-underline-sweep var(--duration-base) ease-out;
+        /* A first pass animated the whole bar's own color through a flat
+           time-based keyframe — every letter of it flashing through the
+           spectrum in unison read as the underline just blinking, with no
+           visible connection to the fact that it had moved. This instead
+           shares the underline's own target left/width/top but on a
+           slower, delayed transition, so it visibly lags behind the solid
+           bar rather than arriving with it — a real trailing "ghost" whose
+           color only ever shows up as a consequence of that lag, not a
+           timer. Slightly taller and softly blurred so it reads as a
+           streak rather than a second crisp line. opacity is 0 by default;
+           .site-nav__underline-trail--active (toggled via a classList
+           restart in the component's own effect, replaying it on every
+           real section change) fades it in as the lag begins and back out
+           once it's caught up. */
+        .site-nav__underline-trail {
+          position: absolute;
+          height: 2px;
+          filter: blur(0.5px);
+          opacity: 0;
+          background: linear-gradient(
+            to right,
+            hsl(0, 90%, 60%),
+            hsl(45, 95%, 55%),
+            hsl(90, 85%, 50%),
+            hsl(160, 80%, 55%),
+            hsl(210, 90%, 60%),
+            hsl(270, 85%, 65%)
+          );
+          transition:
+            left var(--duration-slow) var(--ease-standard) 60ms,
+            width var(--duration-slow) var(--ease-standard) 60ms,
+            top var(--duration-slow) var(--ease-standard) 60ms;
         }
-        @keyframes site-nav-underline-sweep {
+        .site-nav__underline-trail--active {
+          animation: site-nav-underline-trail-fade var(--duration-slow) ease-out 60ms;
+        }
+        @keyframes site-nav-underline-trail-fade {
           0% {
-            background: hsl(0, 90%, 60%);
+            opacity: 0;
           }
-          16% {
-            background: hsl(45, 95%, 55%);
-          }
-          33% {
-            background: hsl(90, 85%, 50%);
-          }
-          50% {
-            background: hsl(160, 80%, 55%);
-          }
-          66% {
-            background: hsl(210, 90%, 60%);
-          }
-          83% {
-            background: hsl(270, 85%, 65%);
+          25% {
+            opacity: 0.8;
           }
           100% {
-            background: var(--color-fg);
+            opacity: 0;
           }
         }
         .site-nav__toggle {
@@ -473,8 +496,8 @@ export default function SiteNav({
           }
         }
         @media (prefers-reduced-motion: reduce) {
-          .site-nav__underline--sweep {
-            animation: none;
+          .site-nav__underline-trail {
+            display: none;
           }
         }
       `}</style>

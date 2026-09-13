@@ -103,12 +103,33 @@ export default function TypewriterHero({
                 characters as they "type" in. */}
             <span aria-hidden="true">
               {staticText}
-              {Array.from(revealText.slice(0, revealCount)).map((char, i) => (
-                <span key={i} className="th-letter">
+              {/* Every character of revealText is always in the DOM, not
+                  just the ones "typed" so far — only .th-letter--pending's
+                  visibility toggles per character. A word whose letters are
+                  still arriving one at a time has to reserve its own full,
+                  final width from the very first letter, or the browser's
+                  line-wrapping decision (does this word fit on the current
+                  line?) keeps being made against a shorter, still-growing
+                  word — and once enough of it is "typed" to no longer fit,
+                  the whole word visibly jumps to the next line mid-reveal.
+                  Rendering the complete text up front means wrapping is
+                  computed once, against the final text, and never changes
+                  as revealCount increases; visibility:hidden (not
+                  display:none) is what lets a not-yet-revealed character
+                  still occupy that reserved space invisibly. */}
+              {Array.from(revealText).flatMap((char, i) => [
+                // The cursor sits as its own sibling exactly at the reveal
+                // boundary, not nested inside the (invisible) pending
+                // character's span — visibility: hidden is inherited, so a
+                // cursor nested inside a pending span would disappear
+                // along with it.
+                i === revealCount && !isComplete ? (
+                  <span key={`cursor-${i}`} className="th-cursor" aria-hidden="true" />
+                ) : null,
+                <span key={i} className={i < revealCount ? "th-letter" : "th-letter th-letter--pending"}>
                   {char}
-                </span>
-              ))}
-              {!isComplete && <span className="th-cursor" aria-hidden="true" />}
+                </span>,
+              ])}
             </span>
             <span className="visually-hidden">
               {staticText}
@@ -175,17 +196,31 @@ export default function TypewriterHero({
             max-width: 22ch;
           }
         }
-        /* Runs once per letter, the moment its span first mounts — "both"
-           applies the 0% color immediately (no flash of the final white
-           before the sweep starts) and holds the 100% color afterwards.
-           Scrolling back up past this section unmounts these spans (see
-           the component's own revealText.slice), so scrubbing back down
-           replays the sweep — a deliberate consequence of driving this
-           purely off live scroll position rather than tracking "already
-           seen" state, and consistent with how the portfolio carousel's
-           own parallax behaves under the same back-and-forth scrubbing. */
+        /* Every character span exists in the DOM from the start (see the
+           component's own comment on why — locking in word-wrap ahead of
+           time); .th-letter--pending is what actually keeps a not-yet-
+           revealed one invisible and un-animated. Overriding animation:
+           none there matters, not just visibility — without it every
+           letter's sweep would start at mount and finish while still
+           hidden, so by the time revealCount actually reached it there'd
+           be nothing left to see. Removing that class (revealCount catches
+           up to it) changes animation-name from none to a real keyframe,
+           which reliably starts a fresh play — no reflow-restart trick
+           needed the way the nav underline's own trail effect needs one,
+           since here the value is genuinely changing each time rather than
+           being re-applied. Scrolling back up past this section re-adds
+           th-letter--pending to already-revealed letters, so scrubbing
+           back down replays their sweep — a deliberate consequence of
+           driving this purely off live scroll position rather than
+           tracking "already seen" state, consistent with how the
+           portfolio carousel's own parallax behaves under the same
+           back-and-forth scrubbing. */
         .th-letter {
           animation: th-letter-reveal 650ms ease-out both;
+        }
+        .th-letter--pending {
+          animation: none;
+          visibility: hidden;
         }
         @keyframes th-letter-reveal {
           0% {
