@@ -9,13 +9,20 @@ type TrackEntry =
   | { kind: "text"; key: string; text: string }
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
-// How far (in px) an image is allowed to drift inside its own frame as the
-// track scrolls it past center — see .pppc-image's oversized 160%/-30%
-// sizing below, which exists purely to give this room without exposing the
-// frame's edges. Kept comfortably inside that 30%-per-side budget (~84px on
-// the smallest card this ever renders at, the min(384px, 78vw) mobile floor)
-// rather than pushing all the way to it.
+// How far (in px) every image is allowed to drift inside its own frame — see
+// .pppc-image's oversized 160%/-30% sizing below, which exists purely to
+// give this room without exposing the frame's edges. Kept comfortably
+// inside that 30%-per-side budget (~84px on the smallest card this ever
+// renders at, the min(384px, 78vw) mobile floor) rather than pushing all
+// the way to it.
 const PARALLAX_RANGE_PX = 70;
+
+// How many pixels of scroll one full swing (from -PARALLAX_RANGE_PX back to
+// +PARALLAX_RANGE_PX and back) takes — a tuning knob for how often the
+// direction reverses, not a derived value. Roughly one card-and-gap's worth
+// of scroll, so a card transiting the screen sees a handful of complete
+// swings rather than a single slow drift spread across the whole carousel.
+const PARALLAX_WRAP_PX = 320;
 
 /**
  * The homepage's Work section: a pinned viewport whose track moves
@@ -44,7 +51,6 @@ export default function PinnedPortfolioCarousel({
   const sectionRef = useRef<HTMLElement | null>(null);
   const stickyRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const imageRefs = useRef<Map<string, HTMLImageElement>>(new Map());
   const introRef = useRef<HTMLParagraphElement | null>(null);
   const outroRef = useRef<HTMLParagraphElement | null>(null);
 
@@ -118,45 +124,30 @@ export default function PinnedPortfolioCarousel({
       const clamped = Math.min(Math.max(raw, 0), maxTranslate);
       track.style.transform = `translate3d(${-clamped}px, 0, 0)`;
 
-      // Parallax: each image drifts opposite its own card's position
-      // relative to the sticky viewport's center — zero exactly at center,
-      // growing as the card approaches either edge — so it reads as the
-      // photo lagging slightly behind the frame carrying it, not a fixed
-      // offset. Same technique BaseLayout's own [data-parallax] elements
-      // use for vertical drift (a distance-from-center factor written to a
-      // CSS custom property), just measured horizontally here since that's
-      // the axis this carousel actually moves on.
-      //
-      // Normalized against half the sticky viewport's own width, not each
-      // card's own width — a card's own width was tried first (reasoning:
-      // a card only travels about one card-width either side of center
-      // before it's off-screen), but that's only true on a viewport barely
-      // wider than the card itself. On an ordinary desktop viewport a card
-      // is visible across a much wider band than its own width, so most of
-      // that band fell outside the card-width normalizer's ±1 range and
-      // just sat clamped at the max offset — frozen the instant it
-      // appeared, only actually animating for a brief window near center,
-      // and different cards visible at once could be in different halves
-      // of that (one already clamped-still, another mid-swing), reading as
-      // inconsistent rates rather than one shared rule. Using the
-      // viewport's own half-width means every visible card is within ±1 (a
-      // card literally cannot be more than half a viewport away from
-      // center while any part of it is still on screen), so the drift
-      // updates continuously for as long as anything is visible, in
-      // lockstep with the exact same track transform driving everything
-      // else — no separate easing curve, no per-card timing, just this
-      // frame's scroll position mapped through one shared, always-linear
-      // rule.
-      const stickyRect = sticky.getBoundingClientRect();
-      const stickyCenter = stickyRect.left + stickyRect.width / 2;
-      const parallaxNormalizer = stickyRect.width / 2;
-      imageRefs.current.forEach((img) => {
-        const cardRect = img.getBoundingClientRect();
-        const cardCenter = cardRect.left + cardRect.width / 2;
-        const normalized = parallaxNormalizer > 0 ? (cardCenter - stickyCenter) / parallaxNormalizer : 0;
-        const offset = Math.max(-1, Math.min(1, normalized)) * PARALLAX_RANGE_PX;
-        img.style.setProperty("--pppc-parallax", `${offset.toFixed(1)}px`);
-      });
+      // Parallax: one shared value, the same for every image at every
+      // instant, not a per-card calculation — two earlier versions tied it
+      // to each card's own distance from the sticky viewport's center
+      // (first the card's own width, then the viewport's), and both still
+      // made a card's drift depend on *where it currently sat on screen*.
+      // That meant different cards visible at once were at different points
+      // in their own individual curve — one barely moving, another mid-
+      // swing — which reads as inconsistent rates even though each one's
+      // own math was internally consistent. What was actually wanted is
+      // simpler: every photo sits on one shared depth plane behind the
+      // cards' frames, so the *same* offset applies to all of them
+      // regardless of position, the way a background layer in any
+      // multi-plane parallax scrolls independently of the foreground
+      // elements passing in front of it rather than reacting to each one.
+      // A triangle wave driven directly by the track's own clamped scroll
+      // position (not wall-clock time) gives a constant-magnitude rate that
+      // only ever flips sign, never eases — a sine wave would slow down
+      // approaching each peak, which is exactly the kind of curve this
+      // isn't supposed to have. Setting it once here on .pppc-track lets
+      // ordinary CSS custom-property inheritance carry it down to every
+      // .pppc-image at once instead of writing it to each one individually.
+      const wavePosition = (clamped % PARALLAX_WRAP_PX) / PARALLAX_WRAP_PX; // 0..1
+      const triangle = wavePosition < 0.5 ? wavePosition * 4 - 1 : 3 - wavePosition * 4; // -1..1, linear both ways
+      track.style.setProperty("--pppc-parallax", `${(triangle * PARALLAX_RANGE_PX).toFixed(1)}px`);
     };
 
     let ticking = false;
@@ -212,10 +203,6 @@ export default function PinnedPortfolioCarousel({
                 <div className="pppc-image-frame">
                   <EyeCursorItem isCarouselDragging={() => false}>
                     <img
-                      ref={(el) => {
-                        if (el) imageRefs.current.set(entry.key, el);
-                        else imageRefs.current.delete(entry.key);
-                      }}
                       className="pppc-image"
                       src={entry.item.image}
                       alt={entry.item.imageAlt}
