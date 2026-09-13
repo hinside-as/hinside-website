@@ -224,8 +224,8 @@ export default function PinnedPortfolioCarousel({
         .pppc-pin {
           position: relative;
           width: 100%;
-          background: #ebebeb;
-          color: #141414;
+          background: var(--color-white);
+          color: var(--color-black);
         }
         .pppc-sticky {
           position: sticky;

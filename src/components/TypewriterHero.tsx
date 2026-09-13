@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { TypewriterChars } from "./TypewriterText";
 
 // Tuning knob, not a derived value (unlike the portfolio carousel's own
 // scroll-travel distance, which falls out of real content width) — there's
@@ -90,8 +91,6 @@ export default function TypewriterHero({
     };
   }, [revealText]);
 
-  const isComplete = revealCount >= revealText.length;
-
   return (
     <section ref={sectionRef} className="th-pin" data-nav-section={navSection}>
       <div ref={stickyRef} className="th-sticky">
@@ -103,33 +102,7 @@ export default function TypewriterHero({
                 characters as they "type" in. */}
             <span aria-hidden="true">
               {staticText}
-              {/* Every character of revealText is always in the DOM, not
-                  just the ones "typed" so far — only .th-letter--pending's
-                  visibility toggles per character. A word whose letters are
-                  still arriving one at a time has to reserve its own full,
-                  final width from the very first letter, or the browser's
-                  line-wrapping decision (does this word fit on the current
-                  line?) keeps being made against a shorter, still-growing
-                  word — and once enough of it is "typed" to no longer fit,
-                  the whole word visibly jumps to the next line mid-reveal.
-                  Rendering the complete text up front means wrapping is
-                  computed once, against the final text, and never changes
-                  as revealCount increases; visibility:hidden (not
-                  display:none) is what lets a not-yet-revealed character
-                  still occupy that reserved space invisibly. */}
-              {Array.from(revealText).flatMap((char, i) => [
-                // The cursor sits as its own sibling exactly at the reveal
-                // boundary, not nested inside the (invisible) pending
-                // character's span — visibility: hidden is inherited, so a
-                // cursor nested inside a pending span would disappear
-                // along with it.
-                i === revealCount && !isComplete ? (
-                  <span key={`cursor-${i}`} className="th-cursor" aria-hidden="true" />
-                ) : null,
-                <span key={i} className={i < revealCount ? "th-letter" : "th-letter th-letter--pending"}>
-                  {char}
-                </span>,
-              ])}
+              <TypewriterChars text={revealText} revealCount={revealCount} />
             </span>
             <span className="visually-hidden">
               {staticText}
@@ -143,7 +116,7 @@ export default function TypewriterHero({
         .th-pin {
           position: relative;
           width: 100%;
-          background: #000000;
+          background: var(--color-black);
         }
         .th-sticky {
           position: sticky;
@@ -196,106 +169,21 @@ export default function TypewriterHero({
             max-width: 22ch;
           }
         }
-        /* Every character span exists in the DOM from the start (see the
-           component's own comment on why — locking in word-wrap ahead of
-           time); .th-letter--pending is what actually keeps a not-yet-
-           revealed one invisible and un-animated. Overriding animation:
-           none there matters, not just visibility — without it every
-           letter's sweep would start at mount and finish while still
-           hidden, so by the time revealCount actually reached it there'd
-           be nothing left to see. Removing that class (revealCount catches
-           up to it) changes animation-name from none to a real keyframe,
-           which reliably starts a fresh play — no reflow-restart trick
-           needed the way the nav underline's own trail effect needs one,
-           since here the value is genuinely changing each time rather than
-           being re-applied. Scrolling back up past this section re-adds
-           th-letter--pending to already-revealed letters, so scrubbing
-           back down replays their sweep — a deliberate consequence of
-           driving this purely off live scroll position rather than
-           tracking "already seen" state, consistent with how the
-           portfolio carousel's own parallax behaves under the same
-           back-and-forth scrubbing. */
-        /* The exact same six hues, in the same brightest-first order, as
-           the nav underline's own trail (see .site-nav__underline-trail in
-           SiteNav.tsx) — one shared chromatic signature for the site's
-           single color rule: color only ever shows up as a byproduct of
-           something being *made* or *moved* (a letter being written here,
-           the underline sliding to a new section there), settling back to
-           the site's usual monochrome the instant that action finishes.
-           Reusing the identical spectrum in both places is what actually
-           makes that legible as one rule rather than two coincidentally
-           similar rainbow effects. */
-        .th-letter {
-          animation: th-letter-reveal 650ms ease-out both;
-        }
-        .th-letter--pending {
-          animation: none;
-          visibility: hidden;
-        }
-        @keyframes th-letter-reveal {
-          0% {
-            color: hsl(50, 100%, 55%);
-          }
-          16% {
-            color: hsl(30, 100%, 55%);
-          }
-          33% {
-            color: hsl(350, 100%, 60%);
-          }
-          50% {
-            color: hsl(120, 100%, 40%);
-          }
-          66% {
-            color: hsl(195, 100%, 45%);
-          }
-          83% {
-            color: hsl(270, 100%, 60%);
-          }
-          100% {
-            color: var(--color-fg);
-          }
-        }
-        /* Zero width itself — the visible bar is an absolutely positioned
-           ::after instead of the cursor's own box. Every letter's width is
-           reserved up front (see .th-letter--pending's own comment), but
-           the cursor moves to a new position in the text every time
-           revealCount advances; if it were a real, width-having inline
-           element, its own ~0.12em could still be the deciding factor in
-           whether the word right after it fits on the current line,
-           depending on exactly where that happened to land — a residual
-           source of the same mid-word line jump the letter fix was meant
-           to eliminate, just caused by the cursor instead of the letters.
-           Taking it out of the flow entirely removes that. */
-        .th-cursor {
-          position: relative;
-          display: inline-block;
-          width: 0;
-          height: 0.85em;
-          vertical-align: -0.05em;
-        }
-        .th-cursor::after {
-          content: "";
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 0.06em;
-          height: 100%;
-          background: var(--color-fg);
-          animation: th-cursor-blink 1s step-end infinite;
-        }
-        @keyframes th-cursor-blink {
-          50% {
-            opacity: 0;
-          }
-        }
+        /* .tw-letter/.tw-letter--pending/.tw-cursor (global.css) carry the
+           actual letter-reveal animation, cursor, and six-hue color sweep —
+           shared with CaseStudyExperience's title via the same
+           TypewriterChars component, see global.css's own comment for why
+           that's a single definition rather than one per component.
+           Scrolling back up past this section re-adds .tw-letter--pending
+           to already-revealed letters, so scrubbing back down replays their
+           sweep — a deliberate consequence of driving this purely off live
+           scroll position rather than tracking "already seen" state,
+           consistent with how the portfolio carousel's own parallax
+           behaves under the same back-and-forth scrubbing. */
         @media (prefers-reduced-motion: reduce) {
           .th-sticky {
             position: static;
             height: auto;
-          }
-          .th-letter {
-            animation: none;
-            color: var(--color-fg);
           }
         }
       `}</style>

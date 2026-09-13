@@ -178,7 +178,7 @@ export default function HomeExperience({
         .hs__ascii {
           flex-direction: column;
           gap: var(--space-6);
-          background: #000000;
+          background: var(--color-black);
           padding-inline: clamp(1rem, 3vw, var(--space-6));
         }
         /* .hs__content here holds nothing but the heading (no paragraph
@@ -201,10 +201,10 @@ export default function HomeExperience({
            step. */
         .hs__work {
           align-items: stretch;
-          background: #ebebeb;
+          background: var(--color-white);
           padding-block: 0;
-          --color-fg: #141414;
-          --color-fg-muted: color-mix(in srgb, #141414 65%, transparent);
+          --color-fg: var(--color-black);
+          --color-fg-muted: color-mix(in srgb, var(--color-black) 65%, transparent);
           color: var(--color-fg);
           /* Cancels the header's own reserved flow space (position: sticky
              still reserves its natural, un-offset box — see Header.astro's

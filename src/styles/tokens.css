@@ -1,31 +1,28 @@
 :root {
-  /* Greyscale — the base palette for the whole site. Tuned for a dark
-     surface first: near-black rather than pure #000, off-white text
-     rather than pure #fff, so contrast stays confident without glare. */
-  --color-black: #08090a;
+  /* Greyscale — the base palette for the whole site. */
+  --color-black: #050505;
   --color-grey-900: #131416;
   --color-grey-800: #1c1d20;
   --color-grey-700: #2b2d31;
   --color-grey-500: #6b6e76;
   --color-grey-300: #a8abb3;
   --color-grey-100: #e8e9eb;
-  --color-white: #f7f7f8;
+  --color-white: #fafafa;
 
   /* Deliberate accent — the one spot of colour, overridable per section/case study */
   --color-accent: #ff4d1c;
   --color-accent-muted: color-mix(in srgb, var(--color-accent) 35%, transparent);
 
-  /* New redesign palette — soft, warm near-black/near-cream (not pure
-     #000/#fff) for alternating full-bleed sections, per the
-     contentarchitecture.dev reference. Deliberately separate from
-     --color-black/--color-white above rather than overwriting them: those
-     still drive the rest of the (not-yet-redesigned) site, and a global
-     swap here would silently recolor pages that haven't been reviewed
-     against this new palette yet. Once every page has migrated, these
-     should absorb into the main greyscale tokens instead of living
-     alongside them. */
-  --color-soft-black: #232323;
-  --color-soft-cream: #f1eee7;
+  /* Case-study-page light theme — now the same 050505/fafafa as the main
+     greyscale tokens (an earlier warm near-black/near-cream pairing read as
+     yellow-tinted against the rest of the site). Kept as its own alias
+     rather than referencing --color-black/--color-white directly at each
+     call site: this is still a separate, page-scoped light theme layered
+     on top of the site's dark-by-default root, not every page's greyscale
+     tokens flipping — see CaseStudyExperience.tsx's .cse and Footer.astro's
+     theme="light" for where it's actually applied. */
+  --color-soft-black: var(--color-black);
+  --color-soft-cream: var(--color-white);
 
   /* Semantic surface roles, built from the greyscale + accent above.
      Dark is the default reading of the brand; data-theme="light" flips it. */

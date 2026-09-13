@@ -48,6 +48,12 @@ type Props = {
    * site-wide footer — there's always somewhere further to scroll to, so
    * the footer's contact/social links never actually get reached anyway. */
   hideFooter?: boolean;
+  /** Stamps data-case-study on <html> — see global.css's own
+   * [data-case-study]::view-transition-old/new(root) rules for why this is
+   * enough, on its own, to give every case-study page its own vertical
+   * slide-and-fade transition (leaving OR arriving at one) instead of
+   * Astro's default crossfade, with no other JS/event wiring needed. */
+  caseStudyTransition?: boolean;
 };
 
 const {
@@ -61,6 +67,7 @@ const {
   footerWideMargin = false,
   footerTheme,
   hideFooter = false,
+  caseStudyTransition = false,
 } = Astro.props;
 const t = useTranslations(locale);
 const canonicalPath = localizedPath(locale, Astro.url.pathname);
@@ -74,7 +81,7 @@ const navLinks = [
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={locale} data-case-study={caseStudyTransition ? "true" : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

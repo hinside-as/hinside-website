@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { navigate } from "astro:transitions/client";
 import { useActiveSection } from "../hooks/useActiveSection";
+import { TypewriterChars } from "./TypewriterText";
 import GalleryCarousel, { type GalleryCarouselItem } from "./carousel/GalleryCarousel";
 
 export type CaseStudySlideMedia =
@@ -271,6 +272,44 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
   const containerRef = useRef<HTMLDivElement>(null);
   const nextRef = useRef<HTMLAnchorElement>(null);
   const [nextProgress, setNextProgress] = useState(0);
+  const [titleRevealCount, setTitleRevealCount] = useState(0);
+
+  // Types the title in once the page has settled — after the hero image's
+  // own view-transition morph (or, arriving via the next-project link, the
+  // whole page's slide-and-fade — see global.css's [data-case-study] rules)
+  // has finished, not while it's still animating in. There's no reliable
+  // cross-browser hook into the *browser's* view-transition finished
+  // promise from the page it lands on, so this is a duration-matched delay
+  // (matching --duration-slow, the same token that transition runs on)
+  // rather than a real completion signal — a deliberate approximation, not
+  // an oversight. Every mount re-runs this fresh (React islands aren't
+  // transition:persist'd, so Astro remounts this component on every
+  // case-study navigation), so it replays correctly whether the page was
+  // just navigated to or freshly loaded.
+  useEffect(() => {
+    const title = meta.title;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setTitleRevealCount(title.length);
+      return;
+    }
+    const MS_PER_CHARACTER = 45;
+    const SETTLE_DELAY_MS = 650;
+    let frame = 0;
+    let start = 0;
+    const tick = (now: number) => {
+      if (!start) start = now;
+      const count = Math.min(title.length, Math.floor((now - start) / MS_PER_CHARACTER));
+      setTitleRevealCount(count);
+      if (count < title.length) frame = requestAnimationFrame(tick);
+    };
+    const timer = window.setTimeout(() => {
+      frame = requestAnimationFrame(tick);
+    }, SETTLE_DELAY_MS);
+    return () => {
+      window.clearTimeout(timer);
+      cancelAnimationFrame(frame);
+    };
+  }, [meta.title]);
 
   // The only thing tracked here now is which video should autoplay — the
   // chapter TOC that used to be this observer's other consumer is gone
@@ -397,7 +436,15 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
           longer a dedicated back-link or chapter TOC (the persistent header
           nav is the only way back now, a deliberate choice). */}
       <header className="cse__intro">
-        <h1 className="cse__title">{meta.title}</h1>
+        <h1 className="cse__title">
+          {/* The animated reveal is decorative — a screen reader gets the
+              complete, stable title from the visually-hidden span below
+              instead of narrating individual characters as they "type" in. */}
+          <span aria-hidden="true">
+            <TypewriterChars text={meta.title} revealCount={titleRevealCount} />
+          </span>
+          <span className="visually-hidden">{meta.title}</span>
+        </h1>
         {meta.description && <p className="cse__description">{meta.description}</p>}
       </header>
 

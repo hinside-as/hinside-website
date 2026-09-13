@@ -78,7 +78,7 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     max-width: calc(var(--content-max-width) - var(--space-4) * 2);
     margin-inline: auto;
     border-radius: 8px;
-    background: color-mix(in srgb, #000 70%, transparent);
+    background: color-mix(in srgb, var(--color-black) 70%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     transition: transform var(--duration-base) var(--ease-standard);

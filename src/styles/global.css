@@ -157,3 +157,111 @@ h3 {
     transition-delay: 270ms;
   }
 }
+
+/* Shared letter-by-letter reveal treatment — used by both TypewriterHero's
+   headline (scroll-scrubbed) and CaseStudyExperience's title (time-based,
+   after the page settles), via the shared TypewriterText component. One
+   definition here rather than duplicated per component keeps the "color
+   only ever appears as a byproduct of something being made/moved" rule (see
+   the nav underline's own trail) actually true in code, not just in intent.
+   Every character exists in the DOM from the start (see TypewriterText's
+   own comment) — .tw-letter--pending is what keeps a not-yet-revealed one
+   invisible and un-animated, so the browser's line-wrap decision is made
+   once against the final text and never changes as more letters reveal. */
+.tw-letter {
+  animation: tw-letter-reveal 650ms ease-out both;
+}
+.tw-letter--pending {
+  animation: none;
+  visibility: hidden;
+}
+@keyframes tw-letter-reveal {
+  0% {
+    color: hsl(50, 100%, 55%);
+  }
+  16% {
+    color: hsl(30, 100%, 55%);
+  }
+  33% {
+    color: hsl(350, 100%, 60%);
+  }
+  50% {
+    color: hsl(120, 100%, 40%);
+  }
+  66% {
+    color: hsl(195, 100%, 45%);
+  }
+  83% {
+    color: hsl(270, 100%, 60%);
+  }
+  100% {
+    color: var(--color-fg);
+  }
+}
+/* Zero width itself — the visible bar is an absolutely positioned ::after
+   instead of the cursor's own box, so it never affects word-wrapping (see
+   TypewriterHero's own longer version of this comment for the full
+   reasoning) — this is the trimmed, component-agnostic version. */
+.tw-cursor {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 0.85em;
+  vertical-align: -0.05em;
+}
+.tw-cursor::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0.06em;
+  height: 100%;
+  background: var(--color-fg);
+  animation: tw-cursor-blink 1s step-end infinite;
+}
+@keyframes tw-cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tw-letter {
+    animation: none;
+    color: var(--color-fg);
+  }
+}
+
+/* Case-study pages get their own root view-transition treatment (see
+   BaseLayout's caseStudyTransition prop, which stamps data-case-study on
+   <html>) instead of Astro's default crossfade — leaving OR arriving at one
+   slides the whole page vertically while it fades, rather than a flat fade.
+   Works without any JS transition-type plumbing: the *old* snapshot is
+   styled by whichever document is live when the browser captures it (the
+   page being left, before swap), and the *new* snapshot by whichever
+   document is live once the swap completes (the page being arrived at) —
+   since swapping a page's own <html> attributes onto the live document is
+   already how Astro's router works, this Just Works for every case-study
+   entry/exit, next-project included, with no extra event wiring. See
+   CaseStudyExperience.tsx's own next-project effect for what triggers the
+   navigation itself. */
+@keyframes cse-exit {
+  to {
+    opacity: 0;
+    transform: translateY(-8vh);
+  }
+}
+@keyframes cse-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8vh);
+  }
+}
+html[data-case-study]::view-transition-old(root) {
+  animation: var(--duration-slow) var(--ease-standard) both cse-exit;
+}
+html[data-case-study]::view-transition-new(root) {
+  animation: var(--duration-slow) var(--ease-standard) both cse-enter;
+}
+/* No separate prefers-reduced-motion override needed — tokens.css already
+   zeroes --duration-slow under reduced motion, which collapses this to an
+   instant swap the same way every other timed transition on the site does. */
