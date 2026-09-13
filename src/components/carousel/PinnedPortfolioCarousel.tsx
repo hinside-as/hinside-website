@@ -18,11 +18,20 @@ type TrackEntry =
 const PARALLAX_RANGE_PX = 70;
 
 // How many pixels of scroll one full swing (from -PARALLAX_RANGE_PX back to
-// +PARALLAX_RANGE_PX and back) takes — a tuning knob for how often the
-// direction reverses, not a derived value. Roughly one card-and-gap's worth
-// of scroll, so a card transiting the screen sees a handful of complete
-// swings rather than a single slow drift spread across the whole carousel.
-const PARALLAX_WRAP_PX = 320;
+// +PARALLAX_RANGE_PX and back) takes. What actually matters is the *rate*
+// this implies relative to the track's own 1px-of-transform-per-1px-of-
+// scroll speed: one full swing covers 4 * PARALLAX_RANGE_PX of image
+// movement, so at a low wrap value (320 was tried first) the image was
+// drifting at 4*70/320 ≈ 0.88 — nearly as fast as the track itself. A
+// background depth layer needs to move at a small fraction of the
+// foreground's speed or it stops reading as "behind a window" and starts
+// reading as an independent, directly-grabbable thing (reported as
+// alternating between "I'm scrolling the page" and "I'm pushing the image
+// around" — a rate problem, not the image's own oversize percentage). At
+// 2000 the same ±70px range now implies 4*70/2000 = 0.14 — the image still
+// visibly drifts across its full range, just gently enough to read as a
+// slower plane behind the cards rather than competing with the scroll.
+const PARALLAX_WRAP_PX = 2000;
 
 /**
  * The homepage's Work section: a pinned viewport whose track moves
