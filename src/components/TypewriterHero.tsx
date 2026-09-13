@@ -215,6 +215,16 @@ export default function TypewriterHero({
            tracking "already seen" state, consistent with how the
            portfolio carousel's own parallax behaves under the same
            back-and-forth scrubbing. */
+        /* The exact same six hues, in the same brightest-first order, as
+           the nav underline's own trail (see .site-nav__underline-trail in
+           SiteNav.tsx) — one shared chromatic signature for the site's
+           single color rule: color only ever shows up as a byproduct of
+           something being *made* or *moved* (a letter being written here,
+           the underline sliding to a new section there), settling back to
+           the site's usual monochrome the instant that action finishes.
+           Reusing the identical spectrum in both places is what actually
+           makes that legible as one rule rather than two coincidentally
+           similar rainbow effects. */
         .th-letter {
           animation: th-letter-reveal 650ms ease-out both;
         }
@@ -224,22 +234,22 @@ export default function TypewriterHero({
         }
         @keyframes th-letter-reveal {
           0% {
-            color: hsl(0, 90%, 60%);
+            color: hsl(50, 100%, 55%);
           }
           16% {
-            color: hsl(45, 95%, 55%);
+            color: hsl(30, 100%, 55%);
           }
           33% {
-            color: hsl(90, 85%, 50%);
+            color: hsl(350, 100%, 60%);
           }
           50% {
-            color: hsl(160, 80%, 55%);
+            color: hsl(120, 100%, 40%);
           }
           66% {
-            color: hsl(210, 90%, 60%);
+            color: hsl(195, 100%, 45%);
           }
           83% {
-            color: hsl(270, 85%, 65%);
+            color: hsl(270, 100%, 60%);
           }
           100% {
             color: var(--color-fg);
