@@ -372,6 +372,17 @@ export default function SiteNav({
            restart in the component's own effect, replaying it on every
            real section change) fades it in as the lag begins and back out
            once it's caught up. */
+        /* Hard-edged bands, not a smooth multi-stop blend — linear-gradient
+           interpolates between hue stops in raw RGB by default, and wide
+           hue jumps (red toward green, blue toward violet) pass through
+           dull, grayish-brown zones on the way rather than staying vivid.
+           Giving each color a flat, same-color-to-same-color span removes
+           every blended transition entirely, so the full saturation below
+           is what's actually visible instead of being diluted by muddy
+           in-between tones. Lightness is tuned per hue, not a flat value,
+           since green/cyan read as pale at the same lightness that makes
+           red/yellow/violet look vivid — pure perceptual luminance, not a
+           typo. */
         .site-nav__underline-trail {
           position: absolute;
           height: 2px;
@@ -379,12 +390,18 @@ export default function SiteNav({
           opacity: 0;
           background: linear-gradient(
             to right,
-            hsl(0, 90%, 60%),
-            hsl(45, 95%, 55%),
-            hsl(90, 85%, 50%),
-            hsl(160, 80%, 55%),
-            hsl(210, 90%, 60%),
-            hsl(270, 85%, 65%)
+            hsl(0, 100%, 58%) 0%,
+            hsl(0, 100%, 58%) 16.66%,
+            hsl(45, 100%, 55%) 16.66%,
+            hsl(45, 100%, 55%) 33.33%,
+            hsl(120, 100%, 38%) 33.33%,
+            hsl(120, 100%, 38%) 50%,
+            hsl(190, 100%, 42%) 50%,
+            hsl(190, 100%, 42%) 66.66%,
+            hsl(230, 100%, 62%) 66.66%,
+            hsl(230, 100%, 62%) 83.33%,
+            hsl(285, 100%, 60%) 83.33%,
+            hsl(285, 100%, 60%) 100%
           );
           transition:
             left var(--duration-slow) var(--ease-standard) 60ms,
@@ -398,8 +415,11 @@ export default function SiteNav({
           0% {
             opacity: 0;
           }
+          /* Peaks near-opaque, not the previous 0.8 — the dark header
+             background was still bleeding through and muting the segments
+             underneath at anything much less than this. */
           25% {
-            opacity: 0.8;
+            opacity: 0.95;
           }
           100% {
             opacity: 0;
