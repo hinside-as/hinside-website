@@ -127,6 +127,7 @@ export default function SiteNav({
   // (see CaseStudyExperience.tsx).
   const listRef = useRef<HTMLUListElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const underlineRef = useRef<HTMLSpanElement>(null);
   const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
   const [underline, setUnderline] = useState<{ left: number; width: number; top: number } | null>(null);
 
@@ -142,17 +143,22 @@ export default function SiteNav({
       const wrapRect = wrap.getBoundingClientRect();
       const listRect = list.getBoundingClientRect();
       const linkRect = link.getBoundingClientRect();
-      // Vertically, the underline sits halfway between the link text's own
+      // Vertically, the underline sits partway between the link text's own
       // bottom edge and the header row's bottom edge — not flush with
-      // either. That midpoint depends on the row's real height and the
-      // link's own rendered line height, neither a clean constant to
-      // compute in pure CSS, so it's measured live the same way left/width
-      // already are. .closest() reaches up to Header.astro's row element,
-      // which this component has no other reference to (it's a plain DOM
+      // either. GAP_FRACTION of the way down that gap (rather than the
+      // exact halfway point) keeps it closer to the text itself. Both
+      // reference points depend on the row's real height and the link's
+      // own rendered line height, neither a clean constant to compute in
+      // pure CSS, so it's measured live the same way left/width already
+      // are. .closest() reaches up to Header.astro's row element, which
+      // this component has no other reference to (it's a plain DOM
       // ancestor, not something passed down as a prop).
+      const GAP_FRACTION = 0.3;
       const row = wrap.closest<HTMLElement>(".site-header__row");
       const rowRect = row?.getBoundingClientRect();
-      const midpointY = rowRect ? (linkRect.bottom + rowRect.bottom) / 2 : linkRect.bottom;
+      const midpointY = rowRect
+        ? linkRect.bottom + (rowRect.bottom - linkRect.bottom) * GAP_FRACTION
+        : linkRect.bottom;
       setUnderline({
         left: linkRect.left - listRect.left,
         width: linkRect.width,
@@ -165,6 +171,27 @@ export default function SiteNav({
     // let the underline drift out of sync.
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
+  }, [activeSection]);
+
+  // Replays the chromatic sweep (same color-spectrum-to-white keyframe as
+  // TypewriterHero's own letter reveal, see .site-nav__underline--sweep
+  // below) every time the underline actually moves to a new section — not
+  // on the resize-triggered re-measurements above, which just correct
+  // position after a viewport change rather than mark a genuine move.
+  // Toggling the animation via a CSS class on the *same* element (rather
+  // than remounting it, e.g. via a React `key`) is deliberate: remounting
+  // would also restart the left/width/top position transition from
+  // scratch, snapping it to the new spot instead of sliding — this needs
+  // the element to persist across the change. Removing the class, forcing
+  // a synchronous reflow (the offsetWidth read), then re-adding it is the
+  // standard way to make a CSS animation replay on an element that never
+  // left the DOM.
+  useEffect(() => {
+    const underlineEl = underlineRef.current;
+    if (!underlineEl) return;
+    underlineEl.classList.remove("site-nav__underline--sweep");
+    void underlineEl.offsetWidth;
+    underlineEl.classList.add("site-nav__underline--sweep");
   }, [activeSection]);
 
   return (
@@ -210,6 +237,7 @@ export default function SiteNav({
         </ul>
         {underline && (
           <span
+            ref={underlineRef}
             className="site-nav__underline"
             aria-hidden="true"
             style={{ left: `${underline.left}px`, width: `${underline.width}px`, top: `${underline.top}px` }}
@@ -307,9 +335,8 @@ export default function SiteNav({
            are all driven by real measured geometry (see the component's
            own useLayoutEffect) so it can slide continuously between two
            links of different widths ("Arbeid" vs "Kontakt") rather than
-           jumping, and sit at the exact midpoint between the text's own
-           bottom edge and the header row's bottom edge rather than flush
-           with either. */
+           jumping, and sit closer to the text's own bottom edge than to
+           the header row's bottom edge rather than flush with either. */
         .site-nav__underline {
           position: absolute;
           height: 1px;
@@ -318,6 +345,42 @@ export default function SiteNav({
             left var(--duration-base) var(--ease-standard),
             width var(--duration-base) var(--ease-standard),
             top var(--duration-base) var(--ease-standard);
+        }
+        /* A glimpse of color exactly while the underline is in motion, then
+           back to the site's usual monochrome once it settles — same
+           spectrum-to-white sweep TypewriterHero's own letters use per
+           character (see that component's th-letter-reveal keyframes),
+           applied to the whole bar's background here instead. Same
+           duration as the left/width/top transition above so the color
+           settles right as the movement itself finishes, not before or
+           after. Replayed via a classList toggle + forced reflow in the
+           component's own effect — see that effect's comment for why a
+           class toggle on this same element, not a remount. */
+        .site-nav__underline--sweep {
+          animation: site-nav-underline-sweep var(--duration-base) ease-out;
+        }
+        @keyframes site-nav-underline-sweep {
+          0% {
+            background: hsl(0, 90%, 60%);
+          }
+          16% {
+            background: hsl(45, 95%, 55%);
+          }
+          33% {
+            background: hsl(90, 85%, 50%);
+          }
+          50% {
+            background: hsl(160, 80%, 55%);
+          }
+          66% {
+            background: hsl(210, 90%, 60%);
+          }
+          83% {
+            background: hsl(270, 85%, 65%);
+          }
+          100% {
+            background: var(--color-fg);
+          }
         }
         .site-nav__toggle {
           display: flex;
@@ -407,6 +470,11 @@ export default function SiteNav({
           }
           .site-nav__toggle {
             display: none;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .site-nav__underline--sweep {
+            animation: none;
           }
         }
       `}</style>
