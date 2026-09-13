@@ -54,7 +54,6 @@ export type CaseStudySlide = {
 
 export type CaseStudyMeta = {
   title: string;
-  description: string;
   // Still used by CreditsSlide's own "Client" row — studio (also part of
   // the content model, see content.config.ts) isn't surfaced anywhere in
   // this component; the Credits slide's own credit entries are what keep
@@ -292,7 +291,7 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
       setTitleRevealCount(title.length);
       return;
     }
-    const MS_PER_CHARACTER = 45;
+    const MS_PER_CHARACTER = 65;
     const SETTLE_DELAY_MS = 650;
     let frame = 0;
     let start = 0;
@@ -431,10 +430,10 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
 
   return (
     <div className="cse">
-      {/* Renders on every viewport width, unlike the old sidebar's title/
-          description, which only ever showed up at >=60rem — there is no
-          longer a dedicated back-link or chapter TOC (the persistent header
-          nav is the only way back now, a deliberate choice). */}
+      {/* Renders on every viewport width, unlike the old sidebar's title,
+          which only ever showed up at >=60rem — there is no longer a
+          dedicated back-link or chapter TOC (the persistent header nav is
+          the only way back now, a deliberate choice). */}
       <header className="cse__intro">
         <h1 className="cse__title">
           {/* The animated reveal is decorative — a screen reader gets the
@@ -445,7 +444,6 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
           </span>
           <span className="visually-hidden">{meta.title}</span>
         </h1>
-        {meta.description && <p className="cse__description">{meta.description}</p>}
       </header>
 
       <div className="cse__slides" ref={containerRef}>
@@ -539,20 +537,24 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
           color: var(--color-fg);
         }
         .cse__intro {
-          padding-block: var(--space-8) var(--space-6);
+          padding-block: var(--space-8) var(--space-3);
         }
         .cse__title {
-          font-size: var(--text-3xl);
+          font-size: var(--text-2xl);
           font-weight: var(--weight-regular);
           letter-spacing: var(--tracking-tighter);
           line-height: var(--leading-tight);
-          margin-bottom: var(--space-3);
         }
-        .cse__description {
-          font-size: var(--text-base);
-          color: var(--color-fg-muted);
-          line-height: var(--leading-normal);
-          max-width: 42rem;
+        /* Slower and easing-standard, not the shared .tw-letter default
+           (see global.css) — that 45ms/650ms-ease-out pace was tuned for
+           TypewriterHero's scroll-scrubbed reveal, where the actual rate is
+           the user's own scroll speed and "easing" only shapes each
+           letter's color sweep. Here the whole cadence is time-driven, so
+           it reads as the animation's actual pacing — ease-out alone felt
+           abrupt; --ease-standard (the site's one motion curve everywhere
+           else) plus a slightly slower per-letter interval reads calmer. */
+        .cse__title .tw-letter {
+          animation-timing-function: var(--ease-standard);
         }
 
         /* No viewport-height floor and no per-step background — that floor
@@ -564,6 +566,12 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
         .cse__step {
           position: relative;
           padding-block: var(--space-8);
+        }
+        /* Tighter than every other slide's own top padding — the hero
+           should sit close under the title, not have the same generous gap
+           used to separate later, unrelated slides from each other. */
+        .cse__slides > .cse__step:first-child {
+          padding-top: 0;
         }
         .cse__media-wrap {
           position: relative;
