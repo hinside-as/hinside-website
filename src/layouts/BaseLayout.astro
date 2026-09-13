@@ -34,16 +34,16 @@ type Props = {
    * default), but a page whose first section is light needs this so a
    * mismatched dark sliver doesn't show above it. */
   bodyBackground?: string;
-  /** Case-study pages drive the header's data-hidden themselves (visible
-   * only on the first slide — see CaseStudyExperience's activeIndex effect
-   * — not this component's own scroll-direction-based show/hide) and want
-   * it to always match the sidebar's solid black background rather than
-   * the usual transparent/blurred floating look. */
+  /** False on slide-based pages (the homepage) that drive the header's
+   * visibility themselves rather than this component's own scroll-
+   * direction-based show/hide. */
   headerScrollControlsVisibility?: boolean;
-  headerSolidBackground?: boolean;
-  headerWideMargin?: boolean;
   footerNoBorder?: boolean;
   footerWideMargin?: boolean;
+  /** See Footer.astro's own `theme` prop — a page whose content is light
+   * rather than the site's dark default passes this through so the footer
+   * beneath it stays readable. */
+  footerTheme?: "light";
 };
 
 const {
@@ -53,10 +53,9 @@ const {
   accent,
   bodyBackground,
   headerScrollControlsVisibility = true,
-  headerSolidBackground = false,
-  headerWideMargin = false,
   footerNoBorder = false,
   footerWideMargin = false,
+  footerTheme,
 } = Astro.props;
 const t = useTranslations(locale);
 const canonicalPath = localizedPath(locale, Astro.url.pathname);
@@ -102,13 +101,11 @@ const navLinks = [
       closeLabel={t("nav.close")}
       otherLocaleLabel={t("lang.switchTo")}
       scrollControlsVisibility={headerScrollControlsVisibility}
-      solidBackground={headerSolidBackground}
-      wideMargin={headerWideMargin}
     />
     <main id="main-content">
       <slot />
     </main>
-    <Footer locale={locale} noBorder={footerNoBorder} wideMargin={footerWideMargin} />
+    <Footer locale={locale} noBorder={footerNoBorder} wideMargin={footerWideMargin} theme={footerTheme} />
     {
       // PROD-only, same reasoning as the old inline GA snippet this
       // replaced — no banner, no analytics machinery at all, under

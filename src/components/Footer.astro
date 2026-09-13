@@ -4,18 +4,25 @@ import { localizedPath, type Locale } from "../i18n/utils";
 
 type Props = {
   locale: Locale;
-  /** Case-study pages want the footer to read as the same continuous black
-   * surface as the header/sidebar above it, with no hairline breaking that
-   * up — elsewhere on the site the border is the intended separator between
-   * page content and footer. */
+  /** Elsewhere on the site the border is the intended separator between
+   * page content and footer — a page that wants its footer to read as a
+   * continuous surface with whatever's above it instead (no hairline
+   * break) sets this. */
   noBorder?: boolean;
-  /** Case-study pages' sidebar uses --space-5 horizontal padding (wider than
-   * the site's usual --space-4), so the footer's brand mark below it needs
-   * the same value to keep both flush with the same left edge. */
+  /** Pages using --space-5 horizontal padding elsewhere (wider than the
+   * site's usual --space-4) pass this so the footer's own brand mark stays
+   * flush with that same left edge. */
   wideMargin?: boolean;
+  /** Case-study pages are light (white/cream), not the site's dark
+   * default — redefines --color-bg/-fg/-fg-muted/-border locally (same
+   * cascade technique HomeExperience.tsx's own .hs__work section and
+   * CaseStudyExperience.tsx's .cse use for their own light sections)
+   * rather than a global theme change, so every descendant reading those
+   * tokens (link colors, the border above) adapts for free. */
+  theme?: "light";
 };
 
-const { locale, noBorder = false, wideMargin = false } = Astro.props;
+const { locale, noBorder = false, wideMargin = false, theme } = Astro.props;
 
 const socials = [
   { label: "LinkedIn", href: "https://www.linkedin.com/company/hinside" },
@@ -29,6 +36,7 @@ const socials = [
   class="site-footer"
   data-no-border={noBorder ? "true" : undefined}
   data-wide-margin={wideMargin ? "true" : undefined}
+  data-theme={theme}
 >
   <div class="site-footer__brand">
     <div class="site-footer__mark">
@@ -72,6 +80,13 @@ const socials = [
   }
   .site-footer[data-no-border="true"] {
     border-top: none;
+  }
+  .site-footer[data-theme="light"] {
+    --color-bg: var(--color-soft-cream);
+    --color-fg: var(--color-soft-black);
+    --color-fg-muted: color-mix(in srgb, var(--color-soft-black) 65%, transparent);
+    --color-border: var(--color-grey-300);
+    color: var(--color-fg-muted);
   }
   .site-footer a {
     color: var(--color-fg);

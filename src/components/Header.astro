@@ -9,32 +9,13 @@ type Props = {
   menuLabel: string;
   closeLabel: string;
   otherLocaleLabel: string;
-  /** False on slide-based pages (case studies, the homepage), which drive
-   * the header's visibility themselves via --header-reveal (visible only on
-   * their first slide) rather than this component's own scroll-direction-
-   * based show/hide. */
+  /** False on slide-based pages (the homepage), which drive the header's
+   * visibility themselves rather than this component's own scroll-
+   * direction-based show/hide. */
   scrollControlsVisibility?: boolean;
-  /** Case-study pages (not yet redesigned) want the OLD flush, square-
-   * cornered, opaque-background header — edge to edge, matching the
-   * sidebar/footer's own flat surface — rather than the new detached
-   * floating pill every other page uses by default. */
-  solidBackground?: boolean;
-  /** Case-study pages' sidebar/footer use --space-5 horizontal padding
-   * (wider than the site's usual --space-4) — the header's own row needs
-   * the same value to stay flush with the same left edge as both. */
-  wideMargin?: boolean;
 };
 
-const {
-  locale,
-  links,
-  menuLabel,
-  closeLabel,
-  otherLocaleLabel,
-  scrollControlsVisibility = true,
-  solidBackground = false,
-  wideMargin = false,
-} = Astro.props;
+const { locale, links, menuLabel, closeLabel, otherLocaleLabel, scrollControlsVisibility = true } = Astro.props;
 const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
 ---
 
@@ -43,8 +24,6 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
   data-site-header
   data-hidden="false"
   data-scroll-controls-visibility={String(scrollControlsVisibility)}
-  data-solid={solidBackground ? "true" : undefined}
-  data-wide-margin={wideMargin ? "true" : undefined}
 >
   <div class="site-header__row">
     <div class="site-header__brand">
@@ -70,16 +49,18 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
 </header>
 
 <style>
-  /* Detached floating pill (the default, every page except case studies —
-     see [data-solid="true"] below): inset from the viewport on all sides
-     rather than flush, so it reads as its own surface floating above the
-     page instead of a bar spanning it edge to edge. Solid background, not
-     a translucent backdrop-filter blur — a blur samples whatever's directly
-     behind it, so it rendered visibly differently over a light section
-     versus over one of the portfolio carousel's own images, reading as two
-     mismatched rectangles rather than one consistent bar. A flat color
-     stays uniform regardless of what scrolls underneath, which is also
-     just "black" the way it was asked for — no per-section variation. */
+  /* Detached floating pill, used on every page: inset from the viewport
+     on all sides rather than flush, so it reads as its own surface
+     floating above the page instead of a bar spanning it edge to edge.
+     A translucent blurred
+     black, not the flat solid color an earlier pass switched to — that
+     switch was specifically to avoid backdrop-filter sampling different
+     content behind it (a light section vs. one of the portfolio carousel's
+     own images) and reading as two mismatched rectangles; reintroduced
+     here deliberately, with that same variance now an accepted trade-off
+     rather than an oversight. No box-shadow — the blur itself is what
+     separates the pill from the page now, a drop shadow on top of that
+     read as redundant. */
   .site-header {
     position: sticky;
     top: 24px;
@@ -97,8 +78,9 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     max-width: calc(var(--content-max-width) - var(--space-4) * 2);
     margin-inline: auto;
     border-radius: 8px;
-    background: var(--color-bg);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    background: color-mix(in srgb, #000 70%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     transition: transform var(--duration-base) var(--ease-standard);
   }
   .site-header__row {
@@ -108,9 +90,7 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     justify-content: space-between;
     height: var(--header-height);
     /* --space-4 is exactly 24px — the same on both sides, at every
-       viewport width. Case studies' own solid header wants a different,
-       wider value to match their sidebar/footer; see [data-wide-margin]
-       below, now scoped to that state only. */
+       viewport width, on every page. */
     padding-inline: var(--space-4);
   }
   /* Positioning context for the mobile panel's own position: absolute
@@ -128,42 +108,10 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
   .site-header[data-hidden="true"] {
     transform: translateY(-100%);
   }
-  /* Case-study pages only: reverts every "detached pill" property above
-     back to the original flush, opaque, square-cornered bar — those pages
-     haven't been redesigned yet and still want their header to read as
-     one continuous surface with the sidebar/footer beneath it (see
-     CLAUDE.md's case-study notes on why they share one flat background
-     with no border/shadow between them). transform is still driven by
-     --header-reveal (see HomeExperience/CaseStudyExperience's own scroll
-     effect) rather than the data-hidden flag + timed transition above —
-     a fixed-duration transition triggered by a one-off flag can finish
-     well after a fast scroll-snap fling has already settled, reading as
-     the header lagging/bouncing into place; tying it straight to scroll
-     position removes that independent timer entirely. */
-  .site-header[data-solid="true"] {
-    top: 0;
-    width: 100%;
-    max-width: none;
-    margin-inline: 0;
-    border-radius: 0;
-    box-shadow: none;
-    transition: none;
-    transform: translateY(calc((var(--header-reveal, 1) - 1) * 100%));
-  }
   .site-header__brand {
     width: var(--brand-mark-width);
     height: var(--brand-mark-height);
     flex: 0 0 auto;
-  }
-  @media (min-width: 60rem) {
-    /* Scoped to the case-study solid header specifically, not every page
-       that happens to pass wideMargin — the default floating pill always
-       wants the flat 24px gap above, regardless of viewport width; it's
-       only the case study's flush sidebar/footer-aligned bar that needs
-       the wider --space-5 value to match. */
-    .site-header[data-solid="true"][data-wide-margin="true"] .site-header__row {
-      padding-inline: var(--space-5);
-    }
   }
 </style>
 

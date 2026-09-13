@@ -1,6 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useActiveSection } from "../hooks/useActiveSection";
-import { useHeaderReveal } from "../hooks/useHeaderReveal";
 import GalleryCarousel, { type GalleryCarouselItem } from "./carousel/GalleryCarousel";
 import PortfolioCarousel, { type PortfolioItem } from "./carousel/PortfolioCarousel";
 
@@ -52,8 +51,6 @@ export type CaseStudySlide = {
   credits?: CaseStudyCreditItem[];
 };
 
-export type CaseStudyChapter = { id: string; label: string };
-
 export type CaseStudyMeta = {
   title: string;
   description: string;
@@ -63,14 +60,11 @@ export type CaseStudyMeta = {
   // legacy agency authorship transparent instead (e.g. a "Design studio"
   // credit line), see docs/case-study-assets.md.
   client: string;
-  backHref: string;
-  backLabel: string;
   clientLabel: string;
 };
 
 type Props = {
   meta: CaseStudyMeta;
-  chapters: CaseStudyChapter[];
   slides: CaseStudySlide[];
   otherProjects: PortfolioItem[];
   /** Matches the `view-transition-name` the homepage's PinnedPortfolioCarousel
@@ -265,21 +259,16 @@ function CreditsSlide({
   );
 }
 
-const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-export default function CaseStudyExperience({ meta, chapters, slides, otherProjects, coverTransitionName }: Props) {
+export default function CaseStudyExperience({ meta, slides, otherProjects, coverTransitionName }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const hasPromo = otherProjects.length > 0;
 
-  // The only thing tracked here is *which* section the visitor has scrolled
-  // to, purely by observation — nothing in this component ever reads a
-  // wheel/touch/keyboard event or calls scrollTo/scrollIntoView except in
-  // direct response to a TOC click. All slide-to-slide movement is plain
-  // continuous native scrolling.
+  // The only thing tracked here now is which video should autoplay — the
+  // chapter TOC that used to be this observer's other consumer is gone
+  // (see CaseStudyExperience's history: a sidebar with a chapter rail used
+  // to read activeIndex too). Purely observational, same as before: nothing
+  // here reads a wheel/touch/keyboard event or calls scrollTo/scrollIntoView.
   const activeIndex = useActiveSection(containerRef, ".cse__step");
-
-  const isPromoActive = hasPromo && activeIndex === slides.length;
-  const activeChapterId = slides[Math.min(activeIndex, slides.length - 1)]?.chapterId ?? chapters[0]?.id ?? "";
 
   // The homepage's own card picks whichever media this same slide happens
   // to render first (see src/lib/caseStudyHero.ts) — not always slide 0,
@@ -293,47 +282,6 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
   // there's nothing to keep separate.
   const [isMuted, setIsMuted] = useState(true);
 
-  // Rail fill jumps to the vertical middle of the active chapter's own
-  // label (of the whole wrapped block, for the ones spanning two lines —
-  // not per-line) rather than interpolating smoothly as a fraction of
-  // total chapters/slides — the rail is meant to point at a specific line
-  // of text, not describe continuous scroll position. Measured in px off
-  // the DOM (not derived from index/chapters.length) since chapter labels
-  // don't all take the same number of lines, so a percentage-of-N-chapters
-  // formula wouldn't land on the actual text.
-  const tocRailRef = useRef<HTMLDivElement | null>(null);
-  const chapterButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const [railFillHeight, setRailFillHeight] = useState(0);
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      // activeChapterId already resolves to the last chapter while the
-      // promo slide is active (see its own Math.min clamp above), so no
-      // separate isPromoActive branch is needed here.
-      const rail = tocRailRef.current;
-      const button = chapterButtonRefs.current[activeChapterId];
-      if (!rail || !button) return;
-      const railRect = rail.getBoundingClientRect();
-      // The last chapter fills the whole bar rather than stopping at its
-      // own label's middle (which would leave a visible gap below it) —
-      // reaching the last chapter reads as "done," same idea as the promo
-      // slide's own fully-parked fill.
-      const isLastChapter = chapters.length > 0 && activeChapterId === chapters[chapters.length - 1].id;
-      if (isLastChapter) {
-        setRailFillHeight(railRect.height);
-      } else {
-        const buttonRect = button.getBoundingClientRect();
-        setRailFillHeight(buttonRect.top + buttonRect.height / 2 - railRect.top);
-      }
-    };
-    measure();
-    // Chapter labels can reflow (wrap onto a different number of lines) on
-    // viewport resize, which moves every button below the resized one —
-    // re-measure rather than let the fill drift out of sync with the text.
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [chapters, activeChapterId]);
-
   // Autoplay the active slide's video only, pausing any others — a video
   // scrolled out of view has no business consuming decode/playback
   // resources. Driven by the same observed activeIndex as everything else;
@@ -341,7 +289,7 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const reducedMotion = prefersReducedMotion();
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const syncVideoPlayback = () => {
       container.querySelectorAll<HTMLVideoElement>("[data-cse-video]").forEach((video) => {
@@ -379,61 +327,16 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
     return () => window.removeEventListener("resize", syncVideoPlayback);
   }, [activeIndex]);
 
-  // Visible only on the first slide, hidden for every slide after it — see
-  // useHeaderReveal for why this is driven continuously by scroll position
-  // rather than by activeIndex's discrete flip plus a CSS transition. The
-  // sidebar's own padding-top below reads the same --header-reveal value
-  // this sets, so the two can never fall out of sync with each other.
-  useHeaderReveal(containerRef, '[data-slide-index="0"]');
-
-  const scrollToChapter = (chapterId: string) => {
-    const slideIndex = slides.findIndex((slide) => slide.chapterId === chapterId);
-    if (slideIndex === -1) return;
-    const target = containerRef.current?.querySelector<HTMLElement>(`[data-slide-index="${slideIndex}"]`);
-    target?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
-  };
-
   return (
     <div className="cse">
-      <aside className="cse__sidebar">
+      {/* Renders on every viewport width, unlike the old sidebar's title/
+          description, which only ever showed up at >=60rem — there is no
+          longer a dedicated back-link or chapter TOC (the persistent header
+          nav is the only way back now, a deliberate choice). */}
+      <header className="cse__intro">
         <h1 className="cse__title">{meta.title}</h1>
-        <p className="cse__description">{meta.description}</p>
-        <a className="cse__back" href={meta.backHref}>
-          &larr; {meta.backLabel}
-        </a>
-        <nav className="cse__toc" aria-label="Chapters">
-          <div className="cse__toc-rail" ref={tocRailRef}>
-            <div
-              className="cse__toc-rail-fill"
-              data-parked={isPromoActive}
-              style={{ height: `${railFillHeight}px` }}
-            />
-          </div>
-          <ol>
-            {chapters.map((chapter) => (
-              <li key={chapter.id}>
-                <button
-                  type="button"
-                  ref={(el) => {
-                    chapterButtonRefs.current[chapter.id] = el;
-                  }}
-                  // The promo slide (cross-project carousel) has no chapter
-                  // of its own — activeChapterId keeps resolving to the last
-                  // real chapter there (see its own Math.min clamp) so the
-                  // rail still has somewhere to park fully extended, but
-                  // that chapter's *label* shouldn't keep reading as the
-                  // current one once you've scrolled past it into other
-                  // projects.
-                  data-active={!isPromoActive && chapter.id === activeChapterId}
-                  onClick={() => scrollToChapter(chapter.id)}
-                >
-                  {chapter.label}
-                </button>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      </aside>
+        {meta.description && <p className="cse__description">{meta.description}</p>}
+      </header>
 
       <div className="cse__slides" ref={containerRef}>
         {slides.map((slide, index) => (
@@ -494,223 +397,63 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
       </div>
 
       <style>{`
+        /* A light theme, distinct from the site's dark-by-default root —
+           redefined locally on .cse (not the global [data-theme="light"]
+           toggle, which is a user preference, not a per-page choice) so
+           every descendant reading these same tokens (Media's own <img>
+           has none, but EyeCursorItem's card shell inside PortfolioCarousel,
+           any --color-border rule, etc.) adapts for free via normal CSS
+           cascade — same technique HomeExperience.tsx's own .hs__work
+           section already uses for its light Portfolio section. */
         .cse {
           width: 100%;
-        }
-        .cse__sidebar {
-          padding: var(--space-6) var(--space-4);
-          background: var(--color-bg);
-        }
-        /* Below the same 60rem breakpoint that turns .cse into a sidebar +
-           slides row further down, the sidebar doesn't get a mobile
-           layout of its own — it's hidden outright, matching this
-           template's original intent (full-bleed media + the floating
-           show/hide text card carry the experience on mobile, not a
-           second stacked block of title/back-link/TOC/credits-nav ahead
-           of slide 0). The back link and title info aren't lost: the
-           site header (still visible on slide 0) already provides a way
-           back, and the chapter TOC has no mobile equivalent yet if this
-           ever needs one. */
-        @media (max-width: 59.9375rem) {
-          .cse__sidebar {
-            display: none;
-          }
-        }
-        .cse__title {
-          font-size: var(--text-xl);
-          font-weight: var(--weight-regular);
-          letter-spacing: var(--tracking-tighter);
-          margin-bottom: var(--space-4);
-        }
-        .cse__description {
-          font-size: var(--text-sm);
-          color: var(--color-fg-muted);
-          line-height: var(--leading-normal);
-          margin-bottom: var(--space-5);
-        }
-        .cse__back {
-          display: inline-block;
-          margin-bottom: var(--space-5);
-          color: var(--color-fg-muted);
-          text-decoration: none;
-          font-size: var(--text-sm);
-          transition: color var(--duration-base) var(--ease-standard);
-        }
-        .cse__back:hover {
-          /* Plain neutral brighten, not the per-project --accent — this
-             link leaves the project rather than navigating within it, so
-             it shouldn't borrow that project's own accent color. */
+          max-width: var(--content-max-width);
+          margin-inline: auto;
+          padding-inline: var(--space-5);
+          --color-bg: var(--color-soft-cream);
+          --color-fg: var(--color-soft-black);
+          --color-fg-muted: color-mix(in srgb, var(--color-soft-black) 65%, transparent);
+          --color-bg-raised: var(--color-grey-100);
+          --color-border: var(--color-grey-300);
           color: var(--color-fg);
         }
-        .cse__toc {
-          display: flex;
-          gap: var(--space-3);
-          margin-bottom: var(--space-5);
+        .cse__intro {
+          padding-block: var(--space-8) var(--space-6);
         }
-        .cse__toc-rail {
-          position: relative;
-          flex: 0 0 2px;
-          width: 2px;
-          background: var(--color-border);
-        }
-        .cse__toc-rail-fill {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          background: var(--accent, var(--color-fg));
-          opacity: 1;
-          transition:
-            height var(--duration-base) var(--ease-standard),
-            background-color var(--duration-base) var(--ease-standard),
-            opacity var(--duration-base) var(--ease-standard);
-        }
-        /* Past the last real slide (the cross-project promo carousel) no
-           chapter reads as active anymore — see data-active on the TOC
-           buttons above — so the fill shouldn't keep pointing at the last
-           chapter in that chapter's own accent color either. Fades to the
-           same neutral grey the inactive labels themselves use (see
-           .cse__toc button above), rather than just disappearing, since
-           the rail itself stays parked full-length. Opacity is lower than
-           the labels' own 0.7, not matched to it: a solid 2px fill reads
-           far more saturated than the same color used as thin,
-           anti-aliased text strokes with page background showing through
-           the gaps, so matching the raw value made the line visibly
-           brighter than the "equally muted" text next to it. */
-        .cse__toc-rail-fill[data-parked="true"] {
-          background: var(--color-fg-muted);
-          opacity: 0.4;
-        }
-        .cse__toc ol {
-          list-style: none;
-          margin: 0;
-          padding: 0;
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-2);
-        }
-        .cse__toc button {
-          all: unset;
-          cursor: pointer;
-          font-size: var(--text-sm);
+        .cse__title {
+          font-size: var(--text-3xl);
           font-weight: var(--weight-regular);
+          letter-spacing: var(--tracking-tighter);
+          line-height: var(--leading-tight);
+          margin-bottom: var(--space-3);
+        }
+        .cse__description {
+          font-size: var(--text-base);
           color: var(--color-fg-muted);
-          opacity: 0.7;
-          /* Same duration/easing as .cse__toc-rail-fill's own height
-             transition — was --duration-fast, noticeably quicker than the
-             rail, so the previous chapter's label snapped back to muted
-             the instant the new one activated instead of fading in step
-             with the rail's own glide, reading as a blink. font-weight is
-             in the list too (not just color/opacity): JetBrains Mono
-             Variable makes it a genuinely interpolatable axis rather than
-             a value that jumps at the transition's midpoint. */
-          transition:
-            color var(--duration-base) var(--ease-standard),
-            opacity var(--duration-base) var(--ease-standard),
-            font-weight var(--duration-base) var(--ease-standard);
-        }
-        .cse__toc button[data-active="true"] {
-          color: var(--accent, var(--color-fg));
-          font-weight: var(--weight-medium);
-          opacity: 1;
-        }
-        .cse__toc button:hover:not([data-active="true"]) {
-          color: var(--accent, var(--color-fg));
-          opacity: 1;
-        }
-        /* A real outline, not a color match to [data-active="true"]: a
-           button clicked with the mouse keeps DOM focus afterwards, and
-           switching to keyboard arrow keys to keep scrolling (which
-           doesn't move focus off it) promotes that lingering focus to
-           :focus-visible — coloring it the same as the *actual* active
-           chapter made it look permanently stuck highlighted even after
-           scrolling elsewhere. Focus and "is the current chapter" are two
-           different facts; only the outline should track the former. */
-        .cse__toc button:focus-visible {
-          outline: 2px solid var(--color-fg);
-          outline-offset: 4px;
+          line-height: var(--leading-normal);
+          max-width: 42rem;
         }
 
-        /* min-height, not a fixed height: a floor, not a cap. The sidebar
-           (desktop) is position: sticky; height: 100dvh alongside
-           .cse__slides — its sticky-release depends on .cse__slides' total
-           height being at least one viewport, which this floor guarantees
-           even for a case study with very few/short slides; content that
-           needs more room than one viewport (an image plus a full
-           paragraph, say) simply grows past it. Real native scrolling, real
-           momentum, real keyboard paging — nothing here intercepts,
-           cancels, or redirects a scroll gesture.
-
-           svh, not dvh: dvh tracks the *current* viewport live, which
-           shrinks/grows continuously as mobile Chrome's toolbar hides and
-           reveals on scroll — every step using it as a min-height floor
-           visibly resized in step, reading as the whole page jumping. svh
-           is the viewport size with the toolbar fully expanded (the
-           smallest it's ever going to be), so a floor sized off it never
-           has to move. */
+        /* No viewport-height floor and no per-step background — that floor
+           only ever existed to guarantee the old sidebar's sticky-release
+           point, and every step sharing one flat surface with the page
+           (rather than each getting its own --color-bg-raised) is what the
+           reference's clean, continuous white actually looks like. Vertical
+           rhythm between sections now comes from padding-block alone. */
         .cse__step {
           position: relative;
-          min-height: 100svh;
-          background: var(--color-bg-raised);
+          padding-block: var(--space-8);
         }
         .cse__media-wrap {
           position: relative;
         }
-        /* No horizontal padding, unlike other slides' text inset —
-           PortfolioCarousel already has its own internal edge-fade mask
-           tuned to sit flush with whatever container it fills (the same
-           one the homepage uses full-bleed); adding padding here just
-           inset the whole carousel a further --space-4 short of the
-           slide's actual edge instead of letting that mask do its job.
-
-           Background is --color-bg specifically, not the --color-bg-raised
-           every other .cse__step gets by default: PortfolioCarousel's own
-           card "shell" (EyeCursorItem) is itself --color-bg-raised with a
-           box-shadow meant to read as a subtly raised tile against a
-           *different*-colored background. With this slide also at
-           --color-bg-raised, the shell's background stopped contrasting
-           with the page behind it at all, leaving the box-shadow as the
-           only remaining cue — which then reads as a sudden, out-of-place
-           dark halo around each tile instead of a subtle lift. --color-bg
-           restores the same contrast the homepage's own carousel already
-           has, matching CLAUDE.md's "header, sidebar, and footer share one
-           flat background" spirit in reverse: slides are their own
-           surface, distinct from the chrome around them. */
-        /* min-height: 0 overrides .cse__step's own 100svh floor — that
-           floor exists to guarantee the sidebar's sticky-release has at
-           least one viewport of content to release against, which the ~10
-           other regular slides already satisfy on their own. Without this
-           override, the promo carousel (much shorter than one viewport)
-           would flex-center inside a forced extra viewport, leaving a
-           large dead gap before the footer instead of flowing straight
-           into it. */
-        .cse__promo {
-          min-height: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding-block: var(--space-6);
-          background: var(--color-bg);
-        }
-        .cse__promo .pc-carousel-section {
-          --card-size: clamp(260px, 32vw, 420px);
-        }
-        /* PortfolioCarousel's own background band (a radial-gradient panel
-           behind the cards) is tuned for sitting inside the homepage's own
-           section background — here it's the whole slide's plain
-           background instead, so it would just show up as an out-of-place
-           horizontal stripe. */
-        .cse__promo .pc-carousel-section::before {
-          display: none;
-        }
         .cse__recognition,
         .cse__credits {
-          padding: var(--space-8) var(--space-6);
+          padding-block: var(--space-8);
         }
         .cse__list-slide {
           width: 100%;
           max-width: 48rem;
-          margin-inline: auto;
         }
         .cse__list-slide-heading {
           font-size: var(--text-2xl);
@@ -783,7 +526,8 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
            shows through as a margin around the media, for images that need
            real inset space rather than sitting edge-to-edge (e.g. a UI
            mockup screenshot where cropping tight to the frame is worse
-           than showing it smaller, whole). */
+           than showing it smaller, whole). Extra inset *within* the
+           already-inset page column, not an alternative to it. */
         .cse__media--padded {
           width: calc(100% - var(--space-4) * 2);
           margin-inline: var(--space-4);
@@ -851,20 +595,15 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
            up to fill more of the slide would just blow up flat vector
            linework past the size it was drawn at. Circle/icon items (real
            photography/product screenshots) don't have that constraint and
-           still scale up to better fill the full-bleed slide. */
+           still scale up to better fill the slide. */
         .cse__media--carousel .gallery-carousel--circle .gallery-carousel__item,
         .cse__media--carousel .gallery-carousel--icon .gallery-carousel__item {
           width: min(34vh, 340px);
           height: min(34vh, 340px);
         }
         .cse__text {
-          padding: var(--space-6) var(--space-4);
+          padding-block: var(--space-6) 0;
           max-width: 42rem;
-        }
-        @media (min-width: 721px) {
-          .cse__text {
-            padding-inline: var(--space-6);
-          }
         }
         .cse__text h2 {
           font-size: var(--text-xl);
@@ -879,46 +618,15 @@ export default function CaseStudyExperience({ meta, chapters, slides, otherProje
           margin-top: var(--space-2);
         }
 
-        @media (min-width: 60rem) {
-          .cse {
-            display: flex;
-            align-items: flex-start;
-          }
-          .cse__sidebar {
-            width: 25%;
-            flex: 0 0 25%;
-            position: sticky;
-            /* top:0, not header-height: the header sits visually on top
-               (higher z-index, same solid background) rather than the
-               sidebar starting below it. */
-            top: 0;
-            height: 100dvh;
-            overflow-y: auto;
-            /* Top padding clears the header's own height while it's visible,
-               since the header sits on top of this box rather than beside
-               it — see the top:0 comment above. --header-reveal (see the
-               component's own scroll effect) interpolates this continuously
-               between --space-5 (header fully hidden) and header-height +
-               --space-5 (header fully visible), in lockstep with the
-               header's own transform (see Header.astro's [data-solid]
-               rule) — same driving value, so the two can never fall out of
-               sync or lag behind one another regardless of scroll speed,
-               the same continuous, untransitioned quality the sidebar's
-               own footer-end position:sticky release already has for free. */
-            padding-top: calc(var(--space-5) + var(--header-height) * var(--header-reveal, 1));
-            padding-inline: var(--space-5);
-            padding-bottom: var(--space-5);
-          }
-          .cse__slides {
-            width: 75%;
-            flex: 0 0 75%;
-          }
+        /* PortfolioCarousel's own background band (a radial-gradient panel
+           behind the cards) is tuned for sitting inside the homepage's own
+           section background — here it's this page's own light background
+           instead, so it would just show up as an out-of-place stripe. */
+        .cse__promo .pc-carousel-section::before {
+          display: none;
         }
-
-        @media (prefers-reduced-motion: reduce) {
-          .cse__sidebar {
-            transition: none;
-          }
+        .cse__promo .pc-carousel-section {
+          --card-size: clamp(260px, 32vw, 420px);
         }
       `}</style>
     </div>

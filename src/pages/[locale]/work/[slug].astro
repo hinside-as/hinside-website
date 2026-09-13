@@ -2,7 +2,7 @@
 import { getCollection } from "astro:content";
 import { getImage } from "astro:assets";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import CaseStudyExperience, { type CaseStudySlide, type CaseStudyChapter } from "../../../components/CaseStudyExperience.tsx";
+import CaseStudyExperience, { type CaseStudySlide } from "../../../components/CaseStudyExperience.tsx";
 import { getMediaImage } from "../../../lib/media";
 import { caseCoverTransitionName } from "../../../lib/viewTransitions";
 import { locales, useTranslations, localizedPath, type Locale } from "../../../i18n/utils";
@@ -20,17 +20,6 @@ export async function getStaticPaths() {
 const { locale } = Astro.params as { locale: Locale };
 const { entry } = Astro.props;
 const t = useTranslations(locale);
-
-const chapters: CaseStudyChapter[] = entry.data.sections.map((section) => ({
-  id: section.id,
-  label: section.heading[locale],
-}));
-if (entry.data.recognition?.length) {
-  chapters.push({ id: "recognition", label: t("case.recognition") });
-}
-if (entry.data.credits?.length) {
-  chapters.push({ id: "credits", label: t("case.credits") });
-}
 
 // Flattens each content section into one or more full-bleed slides: a
 // "gallery" section (2+ images) becomes one slide per image, since the new
@@ -234,11 +223,8 @@ const otherProjects = await Promise.all(
   title={`${entry.data.title[locale]} — Hinside`}
   description={entry.data.description[locale]}
   accent={entry.data.accent}
-  headerScrollControlsVisibility={false}
-  headerSolidBackground
-  headerWideMargin
-  footerNoBorder
-  footerWideMargin
+  bodyBackground="var(--color-soft-cream)"
+  footerTheme="light"
 >
   <CaseStudyExperience
     client:load
@@ -246,11 +232,8 @@ const otherProjects = await Promise.all(
       title: entry.data.title[locale],
       client: entry.data.client,
       description: entry.data.description[locale],
-      backHref: `${localizedPath(locale, "/")}#work`,
-      backLabel: t("case.back"),
       clientLabel: t("case.client"),
     }}
-    chapters={chapters}
     slides={slides}
     otherProjects={otherProjects}
     coverTransitionName={caseCoverTransitionName(entry.id)}
