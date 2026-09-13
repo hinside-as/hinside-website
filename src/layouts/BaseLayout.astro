@@ -178,4 +178,40 @@ const navLinks = [
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
   }
+
+  // Case-study pages get their own root slide+fade view-transition (see
+  // global.css's [data-case-study-linked] rules) instead of the default
+  // crossfade — but only for a transition BETWEEN two case studies (the
+  // next-project link, or the browser's back button reversing one). Either
+  // side of that transition touching the homepage instead already has its
+  // own motion: the portfolio card's own shared-element morph into/out of
+  // the hero image (same view-transition-name on both — the browser pairs
+  // them automatically regardless of how the navigation happened, back
+  // button included). Running the root slide at the same time as that morph
+  // read as jumpy, two independent motions competing, rather than clean —
+  // so this only stamps data-case-study-linked when BOTH ends are case
+  // studies, leaving every homepage-boundary crossing to the browser's own
+  // plain default fade instead.
+  //
+  // Destination is checked by URL shape (/work/<slug>), not by waiting for
+  // the fetched page's own data-case-study attribute — simpler, and it
+  // needs to run twice regardless, for two different reasons: once on
+  // astro:before-preparation (fires before startViewTransition captures the
+  // *old* snapshot, early enough that setting the attribute on the live
+  // document here actually affects it) and again on astro:before-swap
+  // (fires after the swap — which overwrites the live document's own
+  // attributes with the new page's — would otherwise erase it; mutating
+  // the pre-swap event.newDocument instead survives that overwrite, since
+  // that's exactly what gets copied onto the live document moments later).
+  const isCaseStudyPath = (pathname: string) => /\/work\/[^/]+\/?$/.test(pathname);
+  const updateCaseStudyLinked = (to: URL, target: HTMLElement) => {
+    const linked = document.documentElement.hasAttribute("data-case-study") && isCaseStudyPath(to.pathname);
+    target.toggleAttribute("data-case-study-linked", linked);
+  };
+  document.addEventListener("astro:before-preparation", (event) => {
+    updateCaseStudyLinked(event.to, document.documentElement);
+  });
+  document.addEventListener("astro:before-swap", (event) => {
+    updateCaseStudyLinked(event.to, event.newDocument.documentElement);
+  });
 </script>

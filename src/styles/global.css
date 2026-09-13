@@ -231,36 +231,36 @@ h3 {
   }
 }
 
-/* Case-study pages get their own root view-transition treatment (see
-   BaseLayout's caseStudyTransition prop, which stamps data-case-study on
-   <html>) instead of Astro's default crossfade — leaving OR arriving at one
-   slides the whole page vertically while it fades, rather than a flat fade.
-   Works without any JS transition-type plumbing: the *old* snapshot is
-   styled by whichever document is live when the browser captures it (the
-   page being left, before swap), and the *new* snapshot by whichever
-   document is live once the swap completes (the page being arrived at) —
-   since swapping a page's own <html> attributes onto the live document is
-   already how Astro's router works, this Just Works for every case-study
-   entry/exit, next-project included, with no extra event wiring. See
-   CaseStudyExperience.tsx's own next-project effect for what triggers the
-   navigation itself. */
+/* Case-study pages get their own root view-transition treatment instead of
+   the browser's default crossfade, but only for a transition BETWEEN two
+   case studies — data-case-study-linked (see BaseLayout's own
+   astro:before-preparation/astro:before-swap listeners) is set on exactly
+   those, deliberately excluding a homepage boundary on either end: that
+   already has its own motion, the portfolio card's shared-element morph
+   into/out of the hero image, and running the root slide at the same time
+   read as jumpy rather than clean. Distinct easing per direction, not the
+   same curve both ways: --ease-standard's symmetric in-out for exit
+   (content leaving), --ease-out-expressive (already used for the
+   card/logo hover "lift" — the site's one "settling into place" curve) for
+   enter, so arriving reads as decelerating into rest rather than sharing
+   the exit's more even pace. */
 @keyframes cse-exit {
   to {
     opacity: 0;
-    transform: translateY(-8vh);
+    transform: translateY(-4vh);
   }
 }
 @keyframes cse-enter {
   from {
     opacity: 0;
-    transform: translateY(8vh);
+    transform: translateY(4vh);
   }
 }
-html[data-case-study]::view-transition-old(root) {
+html[data-case-study-linked]::view-transition-old(root) {
   animation: var(--duration-slow) var(--ease-standard) both cse-exit;
 }
-html[data-case-study]::view-transition-new(root) {
-  animation: var(--duration-slow) var(--ease-standard) both cse-enter;
+html[data-case-study-linked]::view-transition-new(root) {
+  animation: var(--duration-slow) var(--ease-out-expressive) both cse-enter;
 }
 /* No separate prefers-reduced-motion override needed — tokens.css already
    zeroes --duration-slow under reduced motion, which collapses this to an
