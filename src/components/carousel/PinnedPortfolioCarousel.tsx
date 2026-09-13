@@ -9,12 +9,12 @@ type TrackEntry =
   | { kind: "text"; key: string; text: string }
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
-// How far (in px) every image is allowed to drift inside its own frame — a
-// deliberately modest value relative to even the smallest card this ever
-// renders at (the min(384px, 78vw) mobile floor), since object-fit: contain
-// (see .pppc-image below) only has its own letterbox space to absorb the
-// pan in before it'd start revealing the frame's bare background on the
-// trailing edge.
+// How far (in px) every image is allowed to drift inside its own frame — see
+// .pppc-image's oversized 160%/-30% sizing below, which exists purely to
+// give this room without exposing the frame's edges. Kept comfortably
+// inside that 30%-per-side budget (~84px on the smallest card this ever
+// renders at, the min(384px, 78vw) mobile floor) rather than pushing all
+// the way to it.
 const PARALLAX_RANGE_PX = 70;
 
 
@@ -277,23 +277,17 @@ export default function PinnedPortfolioCarousel({
            so with meta out of the height calculation entirely, all four
            are now exactly the same height by construction, not just
            usually the same height. */
-        /* object-fit: contain, not cover — a project's hero photo isn't
-           always close to the frame's own 3:4 portrait ratio (a wide
-           landscape shot, say), and cropping it to fill would cut away
-           most of the image rather than showing what it actually is. The
-           frame's own background shows through as letterboxing on
-           whichever axis the photo doesn't reach — same reference-site
-           behavior as a photo inset on its own matte, not force-cropped to
-           a fixed frame. No oversizing trick needed either (an earlier
-           version scaled this to 160%/-30% purely to give the parallax
-           pan room without ever exposing cover's cropped edge) — contain's
-           own letterbox space already absorbs a small pan without needing
-           that. */
+        /* Oversized relative to its frame (160%, recentered with a -30%
+           inset) purely so the parallax transform below has room to pan
+           without ever revealing an edge — see PARALLAX_RANGE_PX's own
+           comment in the component for the budget this stays inside. */
         .pppc-image {
           display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
+          width: 160%;
+          height: 160%;
+          margin: -30%;
+          max-width: none;
+          object-fit: cover;
           filter: grayscale(1) saturate(0.28);
           transform: translateX(var(--pppc-parallax, 0px));
           transition: filter var(--duration-base) var(--ease-standard);
