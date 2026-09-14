@@ -265,3 +265,39 @@ html[data-case-study-linked]::view-transition-new(root) {
 /* No separate prefers-reduced-motion override needed — tokens.css already
    zeroes --duration-slow under reduced motion, which collapses this to an
    instant swap the same way every other timed transition on the site does. */
+
+/* The homepage portfolio card's shared-element morph into a case-study's
+   hero image (same view-transition-name on both — see
+   src/lib/viewTransitions.ts) otherwise runs on the browser's own default
+   view-transition timing, which is brisk (~250ms, no real easing curve) —
+   fine for a small UI swap, too quick to read as a deliberate "this card
+   is becoming that hero" glide. ::view-transition-group(*) is every named
+   element's own size/position interpolation (the actual morph); root
+   itself never changes size or position, so this is a no-op for root and
+   only actually does anything for the named cover-image group(s) — safe
+   to set broadly with the wildcard rather than needing a selector per
+   project slug (which plain CSS can't express anyway — view-transition
+   pseudo-elements only match an exact name or *). --ease-out-expressive
+   (this project's one "settling into place" curve) reads as decelerating
+   into its final size/position rather than a mechanical linear resize. */
+::view-transition-group(*) {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-out-expressive);
+}
+/* The REST of the page (root) during a homepage <-> case-study crossing
+   needs its own matching duration too, or the named image would glide
+   smoothly while everything else around it still snapped through the
+   browser's brisk default fade underneath it — two different paces in
+   the same transition reading as unsettled even with the image itself
+   fixed. Deliberately excludes [data-case-study-linked] (case-study <->
+   case-study): that already has its own, differently-tuned root
+   animation above, and re-declaring plain crossfade timing here would
+   just be dead weight overridden by the more specific rule anyway. */
+html:not([data-case-study-linked])::view-transition-old(root) {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-standard);
+}
+html:not([data-case-study-linked])::view-transition-new(root) {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-out-expressive);
+}
