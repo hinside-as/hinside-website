@@ -499,7 +499,14 @@ export default function SiteNav({
           right: 0;
           z-index: 1;
           overflow: hidden;
-          background: var(--color-bg);
+          /* Same translucent-blur treatment as .site-header itself (see
+           * Header.astro) — a flat var(--color-bg) here used to read as one
+           * continuous shape with the row above it, but the header moved to
+           * a blurred/translucent pill and this panel was left behind,
+           * showing up as a solid black box glued under a see-through one. */
+          background: color-mix(in srgb, var(--color-black) 85%, transparent);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           border-radius: 0 0 8px 8px;
           transition: height var(--duration-base) var(--ease-standard);
         }
