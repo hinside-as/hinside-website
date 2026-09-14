@@ -241,8 +241,19 @@ export default function HomeExperience({
           left: 0;
           right: 0;
         }
+        /* Light section — the studio storytelling break right after the
+           ASCII/identity visual break above, same local-cascade-override
+           technique .hs__work already uses for its own light section: the
+           two tokens most things actually read (--color-fg, its own
+           -muted variant) are redefined here, so the shared .hs__step h2
+           rule and this section's own paragraph both adapt for free via
+           normal inheritance, no separate light-mode rule needed for
+           either. */
         .hs__studio {
-          background: #0a0a0a;
+          background: var(--color-white);
+          --color-fg: var(--color-black);
+          --color-fg-muted: color-mix(in srgb, var(--color-black) 65%, transparent);
+          color: var(--color-fg);
         }
         .hs__studio-paragraph {
           font-size: var(--text-base);
