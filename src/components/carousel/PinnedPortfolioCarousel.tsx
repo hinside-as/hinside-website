@@ -13,23 +13,30 @@ type TrackEntry =
 // center — each card reaches exactly this, in either direction, right as
 // its own edge crosses the viewport's edge (see apply()'s own per-card
 // rate calculation), and exactly 0 when the card is centered. See
-// .pppc-image's own width-only oversize below (220%/-60%) for the OTHER
+// .pppc-image's own width-only oversize below (230%/-65%) for the OTHER
 // constraint on this number — it's NOT free to keep pushing up, despite
 // width-only oversizing being safe from the both-axes bug an earlier
-// version had (see .pppc-image's own comment): it has its OWN ceiling.
-// Oversizing width changes the img box's own aspect ratio away from the
-// frame's 3:4 — push it far enough (past source photo's aspect ÷ frame's
-// aspect, 16:9 ÷ 3:4 ≈ 2.37, i.e. 237%) and the box becomes proportionally
-// WIDER than the source photo itself, which flips which axis object-fit:
-// cover treats as the tight one. Once width is the tight axis, cover crops
-// the photo's TOP/BOTTOM to compensate — the exact "why is this cropped
-// vertically again" bug, just from pushing this value instead of
-// oversizing height. 220% (safely under 237%, with margin for a hero
-// photo that isn't pixel-exactly 16:9) is the practical ceiling for how
-// generous the oversize — and so this range — can get while every
-// project's hero photo stays around the documented 2560x1440 — see
-// docs/case-study-assets.md.
-const PARALLAX_RANGE_PX = 140;
+// version had (see .pppc-image's own comment): it has its OWN hard
+// ceiling, and this is deliberately close to it. Oversizing width changes
+// the img box's own aspect ratio away from the frame's 3:4 — push it far
+// enough (past source photo's aspect ÷ frame's aspect, 16:9 ÷ 3:4 ≈ 2.37,
+// i.e. 237%) and the box becomes proportionally WIDER than the source
+// photo itself, which flips which axis object-fit: cover treats as the
+// tight one. Once width is the tight axis, cover crops the photo's
+// TOP/BOTTOM to compensate — the exact "why is this cropped vertically
+// again" bug, just from pushing this value instead of oversizing height.
+// Crucially, the oversize percentage itself never changes the actual zoom
+// level (object-fit: cover's scale stays fixed at whatever fills the
+// frame's height, regardless of how much extra width room the box has) —
+// it only changes how much of the photo's *existing* rendered width the
+// pan is allowed to reach into. At exactly the 237% ceiling, the box
+// width equals the ENTIRE rendered width of a 2560x1440 photo — the pan
+// would already be using every available pixel at that natural scale,
+// zero extra cropping. There is no way to get more range than that
+// without either actual extra zoom or a wider source photo; 230% (with a
+// few points of margin below 237%, for a hero photo that isn't pixel-
+// exactly 16:9) is as close to that hard ceiling as is safe to sit.
+const PARALLAX_RANGE_PX = 155;
 
 
 /**
@@ -332,25 +339,26 @@ export default function PinnedPortfolioCarousel({
            are now exactly the same height by construction, not just
            usually the same height. */
         /* Oversized on WIDTH ONLY (not both axes, unlike an earlier 160%/
-           -30% version) — see PARALLAX_RANGE_PX's own comment for the
-           ceiling this has to stay under (220% is deliberately well inside
-           it, not pushed to the edge). object-fit: cover's own scale is
-           set by whichever axis needs more zoom to fully cover the box:
-           height, as long as the box stays proportionally narrower than
-           the source photo. Leaving height at a plain 100% keeps that true
-           regardless of how much extra WIDTH room this gives the parallax
-           pan below — the full height always shows, cropping only ever
-           eats into the sides. Oversizing height too (an earlier version's
-           mistake) changes the box's own aspect ratio the same way pushing
-           width too far does — either one flips cover's tight axis and
-           crops the top/bottom instead. Margin only on the inline axis to
-           recenter the extra width; no vertical margin needed since height
-           was never oversized. */
+           -30% version) — see PARALLAX_RANGE_PX's own comment for the hard
+           ceiling this has to stay under (230% sits close to it, on
+           purpose — this is as much pan room as the photo's own rendered
+           width can give without extra cropping). object-fit: cover's own
+           scale is set by whichever axis needs more zoom to fully cover
+           the box: height, as long as the box stays proportionally
+           narrower than the source photo. Leaving height at a plain 100%
+           keeps that true regardless of how much extra WIDTH room this
+           gives the parallax pan below — the full height always shows,
+           cropping only ever eats into the sides. Oversizing height too
+           (an earlier version's mistake) changes the box's own aspect
+           ratio the same way pushing width too far does — either one
+           flips cover's tight axis and crops the top/bottom instead.
+           Margin only on the inline axis to recenter the extra width; no
+           vertical margin needed since height was never oversized. */
         .pppc-image {
           display: block;
-          width: 220%;
+          width: 230%;
           height: 100%;
-          margin-inline: -60%;
+          margin-inline: -65%;
           max-width: none;
           object-fit: cover;
           filter: grayscale(1) saturate(0.28);
