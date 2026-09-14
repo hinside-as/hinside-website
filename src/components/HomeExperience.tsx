@@ -81,18 +81,21 @@ export default function HomeExperience({
         <TypewriterHero navSection="work" staticText={heroHeadlineStatic} revealText={heroHeadlineReveal} />
       </section>
 
-      <section className="hs__step hs__ascii" data-nav-section="work">
-        <div className="hs__content">
-          <h2>{identityHeading}</h2>
-        </div>
-        <AsciiLogo />
-      </section>
-
+      {/* The studio storytelling section: white, directly after the
+          typewriter hero's own animated quote — not after the ASCII/
+          identity break below, which sits after it instead now. */}
       <section id="studio" className="hs__step hs__studio" data-nav-section="studio">
         <div className="hs__content">
           <h2>{studioHeading}</h2>
           <p className="hs__studio-paragraph">{studioParagraph}</p>
         </div>
+      </section>
+
+      <section className="hs__step hs__ascii" data-nav-section="work">
+        <div className="hs__content">
+          <h2>{identityHeading}</h2>
+        </div>
+        <AsciiLogo />
       </section>
 
       <section className="hs__step hs__clients" data-nav-section="contact">
