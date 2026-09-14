@@ -10,13 +10,21 @@ type TrackEntry =
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
 // How far (in px) every image is allowed to drift inside its own frame —
-// see .pppc-image's own width-only oversize below (320%/-110%, sized to
-// safely cover this). Free to be generous: oversizing *width* alone (not
-// height) never affects cover's own vertical scale, so there's no tradeoff
-// here between pan room and how much of the photo's height stays visible,
-// the way an earlier both-axes 160%/-30% version had (see .pppc-image's
-// own comment).
-const PARALLAX_RANGE_PX = 250;
+// see .pppc-image's own width-only oversize below (220%/-60%). NOT free to
+// keep pushing up, despite width-only oversizing being safe from the
+// both-axes bug an earlier version had (see .pppc-image's own comment): it
+// has its OWN ceiling. Oversizing width changes the img box's own aspect
+// ratio away from the frame's 3:4 — push it far enough (past source
+// photo's aspect ÷ frame's aspect, 16:9 ÷ 3:4 ≈ 2.37, i.e. 237%) and the
+// box becomes proportionally WIDER than the source photo itself, which
+// flips which axis object-fit: cover treats as the tight one. Once width
+// is the tight axis, cover crops the photo's TOP/BOTTOM to compensate —
+// the exact "why is this cropped vertically again" bug, just from pushing
+// this value instead of oversizing height. 220% (safely under 237%, with
+// margin for a hero photo that isn't pixel-exactly 16:9) is the practical
+// ceiling for how generous this can get while every project's hero photo
+// stays around the documented 2560x1440 — see docs/case-study-assets.md.
+const PARALLAX_RANGE_PX = 140;
 
 
 /**
@@ -279,28 +287,25 @@ export default function PinnedPortfolioCarousel({
            are now exactly the same height by construction, not just
            usually the same height. */
         /* Oversized on WIDTH ONLY (not both axes, unlike an earlier 160%/
-           -30% version), and generously — 320%/-110% is sized to safely
-           cover PARALLAX_RANGE_PX's full pan even on the smallest card
-           this ever renders at. object-fit: cover's own scale is set by
-           whichever axis needs more zoom to fully cover the box, and for
-           every project photo here (all meaningfully wider than the
-           frame's own 3:4 portrait shape) that's always height. Leaving
-           height at a plain 100% means that scale — and so how much of the
-           photo's actual top-to-bottom extent stays visible — is
-           completely unaffected by how much extra width room this gives
-           the parallax pan below: the full height always shows, cropping
-           only ever eats into the sides. Oversizing height too (the
-           earlier version's mistake) changes the box's own aspect ratio,
-           which changes cover's scale, which crops the top/bottom as well
-           — exactly the "why isn't this filling vertically" bug this
-           fixes. Margin only on the inline axis to recenter the extra
-           width; no vertical margin needed since height was never
-           oversized. */
+           -30% version) — see PARALLAX_RANGE_PX's own comment for the
+           ceiling this has to stay under (220% is deliberately well inside
+           it, not pushed to the edge). object-fit: cover's own scale is
+           set by whichever axis needs more zoom to fully cover the box:
+           height, as long as the box stays proportionally narrower than
+           the source photo. Leaving height at a plain 100% keeps that true
+           regardless of how much extra WIDTH room this gives the parallax
+           pan below — the full height always shows, cropping only ever
+           eats into the sides. Oversizing height too (an earlier version's
+           mistake) changes the box's own aspect ratio the same way pushing
+           width too far does — either one flips cover's tight axis and
+           crops the top/bottom instead. Margin only on the inline axis to
+           recenter the extra width; no vertical margin needed since height
+           was never oversized. */
         .pppc-image {
           display: block;
-          width: 320%;
+          width: 220%;
           height: 100%;
-          margin-inline: -110%;
+          margin-inline: -60%;
           max-width: none;
           object-fit: cover;
           filter: grayscale(1) saturate(0.28);
