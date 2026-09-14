@@ -76,6 +76,23 @@ export default function SiteNav({
     header?.toggleAttribute("data-menu-open", isOpen);
   }, [isOpen]);
 
+  // Resizing past the desktop breakpoint (same 48rem the CSS below uses
+  // to swap .site-nav__toggle for .site-nav__desktop-wrap) while the
+  // mobile panel happens to be open left it stuck open with no way to
+  // close it — the toggle button that would close it is exactly the
+  // element that breakpoint hides. matchMedia's change event, not a
+  // plain resize listener, since it only fires when the query's own
+  // result actually flips (crossing 48rem), not on every pixel of window
+  // resizing.
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 48rem)");
+    const onChange = (event: MediaQueryListEvent) => {
+      if (event.matches) setIsOpen(false);
+    };
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+
   useEffect(() => {
     if (!isOpen) return;
 
