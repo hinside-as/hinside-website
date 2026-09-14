@@ -266,25 +266,35 @@ html[data-case-study-linked]::view-transition-new(root) {
    zeroes --duration-slow under reduced motion, which collapses this to an
    instant swap the same way every other timed transition on the site does. */
 
-/* Homepage <-> case-study (the shared hero-image morph, via matching
-   view-transition-name — see src/lib/viewTransitions.ts) deliberately has
-   NO custom timing here. Three separate attempts at overriding it (a
-   600ms uniform version; a staggered 360ms-image/240ms-root version with
-   everything starting at once; a sequenced version using animation-delay
-   to make root-old clear before root-new faded in) each introduced a
-   DIFFERENT visible bug instead of fixing anything — a double-image
-   flash at the handoff (root resolving before the named group's own
-   morph finished, letting the real destination content peek through
-   under the still-animating snapshot); then, from the delay-based
-   version, a flash of solid near-black — root-old had already finished
-   fading out and root-new's own delay hadn't elapsed yet, so for that
-   window NEITHER was opaque, and <html>'s own default (near-black on
-   this dark-themed site) painted through underneath both. None of these
-   were ever visually verified in this environment — three attempts, three
-   different bugs, is a pattern to stop pushing on blind rather than a
-   reason to try a fourth. The browser's own default timing is internally
-   consistent (old and new always sum to full coverage, nothing ever gaps
-   or races) and known-stable. If this gets revisited: keep root's old
-   and new on the SAME duration with NO delay on either (a plain
-   overlapping crossfade, never a gap), and don't let root fully resolve
-   before the named group's own — separately timed — morph finishes. */
+/* Homepage <-> case-study. Four attempts at crossfading root smoothly (a
+   600ms uniform version; a staggered 360/240ms version; a sequenced
+   animation-delay version; the plain browser default) each either broke
+   outright or, per a user-supplied screenshot sequence, still showed the
+   old page's snapshot and the new page's content visible at once for
+   multiple frames — a stuck-looking ghost of the old page sitting under
+   the new title and the still-growing hero image, well past when a
+   crossfade should have resolved. The common thread isn't a bad number,
+   it's the premise: the homepage and a case-study page are ENTIRELY
+   different layouts (nav+carousel vs. a full scrollytelling page), so
+   root has to reconcile nearly everything changing at once, at the same
+   time as the one thing that's actually supposed to read as continuous
+   (the hero photo) is also animating. Two competing full-page animations
+   fighting for the same few hundred ms is what kept reading as jumpy no
+   matter how the numbers were tuned.
+   This version gives up on animating root at all — old and new both
+   swap instantly, no crossfade, nothing to get stuck or fall out of sync
+   with anything else — and puts the whole transition's motion budget on
+   the ONE element actually worth animating: the shared hero photo, which
+   still glides smoothly from its card position/size to its hero
+   position/size via its own view-transition-name. This can't reproduce
+   the "old content lingers under new content" bug specifically, because
+   there's no second, competing animation left for the photo's own morph
+   to fall out of step with. */
+html:not([data-case-study-linked])::view-transition-old(root),
+html:not([data-case-study-linked])::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-group(*) {
+  animation-duration: 380ms;
+  animation-timing-function: var(--ease-out-expressive);
+}
