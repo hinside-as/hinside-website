@@ -541,6 +541,17 @@ export default function SiteNav({
           -webkit-backdrop-filter: blur(12px);
           border-radius: 0 0 8px 8px;
           transition: height var(--duration-base) var(--ease-standard);
+          /* Safari/WebKit has a well-documented bug where backdrop-filter
+             fails to render (or renders once and then never updates)
+             on an element whose own height is being CSS-transitioned —
+             exactly what happens every time this panel opens/closes.
+             .site-header never has this problem since its own size never
+             changes. Promoting this to its own compositing layer up
+             front (rather than one WebKit creates/tears down mid-
+             transition, which is what the bug actually trips on) is the
+             standard workaround. */
+          will-change: height, backdrop-filter;
+          transform: translateZ(0);
         }
         /* Shadow only while open, not on the base rule above — collapsed to
            height: 0 it's still a real (if invisible) box, and a blurred
