@@ -266,34 +266,35 @@ html[data-case-study-linked]::view-transition-new(root) {
    zeroes --duration-slow under reduced motion, which collapses this to an
    instant swap the same way every other timed transition on the site does. */
 
-/* Homepage <-> case-study. Four attempts at crossfading root smoothly (a
-   600ms uniform version; a staggered 360/240ms version; a sequenced
-   animation-delay version; the plain browser default) each either broke
-   outright or, per a user-supplied screenshot sequence, still showed the
-   old page's snapshot and the new page's content visible at once for
-   multiple frames — a stuck-looking ghost of the old page sitting under
-   the new title and the still-growing hero image, well past when a
-   crossfade should have resolved. The common thread isn't a bad number,
-   it's the premise: the homepage and a case-study page are ENTIRELY
-   different layouts (nav+carousel vs. a full scrollytelling page), so
-   root has to reconcile nearly everything changing at once, at the same
-   time as the one thing that's actually supposed to read as continuous
-   (the hero photo) is also animating. Two competing full-page animations
-   fighting for the same few hundred ms is what kept reading as jumpy no
-   matter how the numbers were tuned.
-   This version gives up on animating root at all — old and new both
-   swap instantly, no crossfade, nothing to get stuck or fall out of sync
-   with anything else — and puts the whole transition's motion budget on
-   the ONE element actually worth animating: the shared hero photo, which
-   still glides smoothly from its card position/size to its hero
-   position/size via its own view-transition-name. This can't reproduce
-   the "old content lingers under new content" bug specifically, because
-   there's no second, competing animation left for the photo's own morph
-   to fall out of step with. */
-html:not([data-case-study-linked])::view-transition-old(root),
-html:not([data-case-study-linked])::view-transition-new(root) {
-  animation: none;
-}
+/* Homepage <-> case-study. The actual root cause of every previous
+   attempt looking broken (a "stuck ghost" of the old page sweeping
+   underneath the growing hero image, per a user-supplied screenshot
+   sequence) turned out not to be root's own timing at all: the
+   view-transition-name lived on .pppc-image, the homepage carousel
+   card's deliberately OVERSIZED (230% width) raw <img> — see its own
+   comment in PinnedPortfolioCarousel.tsx — not on .pppc-image-frame, the
+   correctly-sized box that actually clips it down to what a visitor sees.
+   That meant the captured snapshot was the full oversized, uncropped
+   photo, animating from a starting size far bigger than its real card,
+   and (when root was briefly made non-animating, an intermediate
+   mistake) sweeping visibly across the other, still-fully-visible cards
+   as it grew. Moving the name to the frame (done) fixes both: the
+   snapshot now matches what's actually on screen, and its size/aspect
+   ratio naturally interpolates toward the case-study hero's shape as
+   part of the browser's ordinary group morph — no extra code needed for
+   that part.
+   With the *right* element named, root goes back to doing a normal fade
+   — the other, non-morphing cards actually need to fade away rather than
+   sit frozen through the transition (an instant swap was tried in
+   between and made that specific problem worse, not better). No custom
+   duration/easing on root itself: every override attempted here so far
+   has introduced its own new bug, and the browser's own default old/new
+   timing is internally consistent by construction (always sums to full
+   coverage, no gaps, nothing to fall out of sync with root itself). The
+   named group (the frame, now correctly sized) gets a real, dedicated
+   glide — this is the one motion the transition is actually built to
+   sell, so it's worth a touch longer and a deliberate ease than
+   whatever's happening around it. */
 ::view-transition-group(*) {
   animation-duration: 380ms;
   animation-timing-function: var(--ease-out-expressive);

@@ -261,14 +261,23 @@ export default function PinnedPortfolioCarousel({
                 aria-label={`${entry.item.title} — ${entry.item.subtitle}`}
                 style={entry.item.accent ? ({ "--accent": entry.item.accent } as CSSProperties) : undefined}
               >
-                <div className="pppc-image-frame">
+                {/* view-transition-name lives on the FRAME (the clipped,
+                    correctly-cropped 3:4 box), not on .pppc-image itself —
+                    that image is deliberately oversized (230% width, see
+                    its own CSS comment) to give the parallax pan room to
+                    move within, clipped by this frame's own
+                    overflow:hidden. Naming the raw oversized image instead
+                    would capture the browser's view-transition snapshot at
+                    that full, uncropped 230% size — showing far more of
+                    the photo than the card ever actually displays, and
+                    growing from that oversized starting point instead of
+                    from what the visitor actually saw. The frame's own box
+                    already matches what's on screen, and its size/aspect
+                    naturally interpolates toward the case-study hero's
+                    shape as part of the browser's ordinary group morph. */}
+                <div className="pppc-image-frame" style={{ viewTransitionName: caseCoverTransitionName(entry.item.slug) }}>
                   <EyeCursorItem isCarouselDragging={() => false}>
-                    <img
-                      className="pppc-image"
-                      src={entry.item.image}
-                      alt={entry.item.imageAlt}
-                      style={{ viewTransitionName: caseCoverTransitionName(entry.item.slug) }}
-                    />
+                    <img className="pppc-image" src={entry.item.image} alt={entry.item.imageAlt} />
                   </EyeCursorItem>
                 </div>
                 <div className="pppc-meta">
