@@ -9,13 +9,17 @@ type TrackEntry =
   | { kind: "text"; key: string; text: string }
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
-// How far (in px) every image is allowed to drift inside its own frame — see
-// .pppc-image's oversized 160%/-30% sizing below, which exists purely to
-// give this room without exposing the frame's edges. Kept comfortably
-// inside that 30%-per-side budget (~84px on the smallest card this ever
-// renders at, the min(384px, 78vw) mobile floor) rather than pushing all
-// the way to it.
-const PARALLAX_RANGE_PX = 70;
+// How far (in px) every image is allowed to drift inside its own frame —
+// see .pppc-image's 115%/-7.5% sizing below, which exists purely to give
+// this room without exposing the frame's edge. Deliberately a small
+// oversize (not the 160%/-30% an earlier version used): that gave far more
+// slack than this drift actually needs, and stacked on cover's own crop it
+// was zooming every photo in well beyond the frame's own 3:4 aspect —
+// noticeably cropping a wide hero shot down to a sliver of itself. 15px
+// stays safely inside the ~19px of slack the 115% oversize gives even at
+// the smallest card this ever renders at (the min(384px, 78vw) mobile
+// floor, ~250px on a narrow phone).
+const PARALLAX_RANGE_PX = 15;
 
 
 /**
@@ -277,15 +281,19 @@ export default function PinnedPortfolioCarousel({
            so with meta out of the height calculation entirely, all four
            are now exactly the same height by construction, not just
            usually the same height. */
-        /* Oversized relative to its frame (160%, recentered with a -30%
-           inset) purely so the parallax transform below has room to pan
-           without ever revealing an edge — see PARALLAX_RANGE_PX's own
-           comment in the component for the budget this stays inside. */
+        /* A small 115%/-7.5% oversize — just enough slack for the parallax
+           pan (see PARALLAX_RANGE_PX's own comment) — not the 160%/-30% an
+           earlier version used, which gave far more slack than that drift
+           needs and, stacked on top of cover's own crop, was zooming every
+           photo in well beyond what the frame's 3:4 aspect alone demands
+           (most of a wide hero shot like Samspill's disappearing off the
+           sides). Cover alone already fills the frame top-to-bottom,
+           cropping the sides as needed — the correct, expected amount. */
         .pppc-image {
           display: block;
-          width: 160%;
-          height: 160%;
-          margin: -30%;
+          width: 115%;
+          height: 115%;
+          margin: -7.5%;
           max-width: none;
           object-fit: cover;
           filter: grayscale(1) saturate(0.28);
