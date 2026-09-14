@@ -17,7 +17,7 @@
   },
   "heroVideo": {
     "src": "/media/projects/grieg-connect/video/hero-loop.mp4",
-    "poster": "projects/grieg-connect/video-posters/hero-poster.jpg"
+    "poster": "projects/grieg-connect/hero.jpg"
   },
   "sections": [
     {

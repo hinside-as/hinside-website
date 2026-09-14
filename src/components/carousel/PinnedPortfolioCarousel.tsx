@@ -10,12 +10,13 @@ type TrackEntry =
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
 // How far (in px) every image is allowed to drift inside its own frame —
-// see .pppc-image's own width-only oversize below. Safe to be generous
-// again: oversizing *width* alone (not height) never affects cover's own
-// vertical scale, so there's no tradeoff here between pan room and how
-// much of the photo's height stays visible, the way an earlier
-// both-axes 160%/-30% version had (see .pppc-image's own comment).
-const PARALLAX_RANGE_PX = 70;
+// see .pppc-image's own width-only oversize below (250%/-75%, sized to
+// safely cover this). Free to be generous: oversizing *width* alone (not
+// height) never affects cover's own vertical scale, so there's no tradeoff
+// here between pan room and how much of the photo's height stays visible,
+// the way an earlier both-axes 160%/-30% version had (see .pppc-image's
+// own comment).
+const PARALLAX_RANGE_PX = 150;
 
 
 /**
@@ -278,7 +279,9 @@ export default function PinnedPortfolioCarousel({
            are now exactly the same height by construction, not just
            usually the same height. */
         /* Oversized on WIDTH ONLY (not both axes, unlike an earlier 160%/
-           -30% version) — object-fit: cover's own scale is set by
+           -30% version), and generously — 250%/-75% is sized to safely
+           cover PARALLAX_RANGE_PX's full pan even on the smallest card
+           this ever renders at. object-fit: cover's own scale is set by
            whichever axis needs more zoom to fully cover the box, and for
            every project photo here (all meaningfully wider than the
            frame's own 3:4 portrait shape) that's always height. Leaving
@@ -295,9 +298,9 @@ export default function PinnedPortfolioCarousel({
            oversized. */
         .pppc-image {
           display: block;
-          width: 160%;
+          width: 250%;
           height: 100%;
-          margin-inline: -30%;
+          margin-inline: -75%;
           max-width: none;
           object-fit: cover;
           filter: grayscale(1) saturate(0.28);

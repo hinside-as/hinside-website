@@ -16,7 +16,7 @@ Three locations, not interchangeable (see CLAUDE.md for the full reasoning):
 
 | What | Location | Why |
 |---|---|---|
-| Raster photos/mockups (`.png`/`.jpg`/`.webp`) used as `"image"` or `"gallery"` section media, or as `cover`/video posters | `src/assets/media/projects/<slug>/...` | Goes through `astro:assets` (`getMediaImage()` + `getImage()`) for optimization/resizing. Referenced in JSON with a **relative path, no leading slash**. |
+| Raster photos/mockups (`.png`/`.jpg`/`.webp`) used as `"image"` or `"gallery"` section media, or as `cover`/hero photo | `src/assets/media/projects/<slug>/...` | Goes through `astro:assets` (`getMediaImage()` + `getImage()`) for optimization/resizing. Referenced in JSON with a **relative path, no leading slash**. |
 | SVGs (icons, illustrations, portraits) used as `"carousel"` items, and video files | `public/media/projects/<slug>/...` | Served as-is, not processed by `astro:assets` — vector art doesn't benefit from raster optimization, and video files aren't run through it either. Referenced in JSON with a **leading `/media/...` path**. |
 | Original/pre-export source files (Figma exports, PSDs, raw footage) | `media-archive/` (gitignored) | Reference only — never read at build or runtime. Keep it there so the source is recoverable, but don't point any JSON `src` at it. |
 
@@ -28,9 +28,9 @@ Based on the two existing case studies (`grieg-connect`, `samspill`) — match t
 
 ```
 src/assets/media/projects/<slug>/
-  cover.png                                    — homepage & work-carousel cover (schema: cover)
-  video-posters/<name>[-desktop|-mobile].jpg   — poster frame(s) for a video (schema: heroVideo.poster / .mobilePoster)
-  sections/<name>[-desktop|-mobile].png        — one file (or desktop/mobile pair) per "image"/"gallery" section (schema: sections[].media.src / .mobileSrc)
+  cover.png                            — the square card used elsewhere on the site (schema: cover) — see "Recommended source specs" for how this differs from hero below
+  hero[-desktop|-mobile].<ext>         — the project's main hero photo. Currently only wired up via schema: heroVideo.poster / .mobilePoster — a project without a heroVideo has no dedicated hero file yet, and resolveCaseStudyHeroImage instead falls back to the first section image, or cover (see src/lib/caseStudyHero.ts). Where present, this one file drives the homepage portfolio carousel card, the case-study page's own opening slide, AND the hero video's poster frame — not nested under a video-specific folder, since it's the project's primary photo first, a video poster only incidentally.
+  sections/<name>[-desktop|-mobile].png — one file (or desktop/mobile pair) per "image"/"gallery" section (schema: sections[].media.src / .mobileSrc)
 
 public/media/projects/<slug>/
   video/<name>[-desktop|-mobile].mp4     — heroVideo.src/.mobileSrc and any in-body "video" section media
@@ -46,7 +46,7 @@ Rules:
 - **Desktop/mobile pair** (only when the image or video has a genuinely different crop per breakpoint — see "Do you need separate desktop and mobile images?" above): same `<name>`, with a literal `-desktop` / `-mobile` suffix appended right before the extension. No suffix at all when there's just one file shared at every width.
   - Single: `hero-loop.mp4`
   - Pair: `hero-loop-desktop.mp4` + `hero-loop-mobile.mp4`
-  - Same pattern for posters: `hero-poster.jpg`, or `hero-poster-desktop.jpg` + `hero-poster-mobile.jpg`
+  - Same pattern for the hero photo: `hero.jpg`, or `hero-desktop.jpg` + `hero-mobile.jpg`
 - Extension must match the file's actual format — don't rename a PNG to `.jpg` (or vice versa) just to match a neighboring file; `sips -g pixelWidth <file>` or `file <file>` will tell you what a file actually is if its extension looks suspect.
 - Numbered SVG sets (`icon-01.svg`...) use **zero-padded two-digit** numbers in a flat sequence, matching `GalleryCarousel`'s shape prop (`icon` / `square` / `illustration` naming / `circle` / `portrait` naming — see `src/content.config.ts`'s `sectionMedia` union for the three allowed `shape` values).
 - Client logos are shared across all case studies, not per-project — they live in `public/media/shared/client-logos/` and are wired up in `src/data/clients.ts`, not in a case study's own JSON.
@@ -54,7 +54,8 @@ Rules:
 ## Recommended source specs
 
 - **Cover** (`cover.png`): **1600×1600px, square.** The homepage work-carousel and cross-promo cards render it in a fixed square frame (`getImage({ width: 800 })`, then `object-fit: cover`) — 1600 is exactly 2x the requested display size, which is what keeps it sharp on retina/high-DPI screens. Export square (or crop to square) with the subject centered; a tall/narrow source loses content off the sides once cropped.
-- **Section images / video posters**: **at least 2400px on the long edge.** These are requested at `width: 1920` for full-bleed slides, so this one file has to hold up at full-bleed on the largest screens too. Astro can only downsample, never sharpen a source back up, so 2400px+ leaves real headroom instead of cutting it exactly at what's requested. Orientation doesn't change the target — "long edge" means whichever dimension is bigger; `object-fit: cover` crops the other one to fill the frame regardless. Astro re-encodes to `.webp` automatically; you don't need to pre-convert.
+- **Section images**: **at least 2400px on the long edge.** These are requested at `width: 1920` for full-bleed slides, so this one file has to hold up at full-bleed on the largest screens too. Astro can only downsample, never sharpen a source back up, so 2400px+ leaves real headroom instead of cutting it exactly at what's requested. Orientation doesn't change the target — "long edge" means whichever dimension is bigger; `object-fit: cover` crops the other one to fill the frame regardless. Astro re-encodes to `.webp` automatically; you don't need to pre-convert.
+- **Hero photo** (`hero.<ext>`): **the same fixed size across every case study — 2560×1440 (16:9)**, matching the existing `grieg-connect`/`samspill` files. This one photo gets cropped into the homepage carousel's 3:4 portrait frame (`object-fit: cover`, full height always shown, sides cropped as needed — see `PinnedPortfolioCarousel.tsx`), so a consistent source size and aspect ratio is what keeps that crop behaving predictably project to project, rather than each one needing its own tuning. Compose with the subject roughly centered horizontally: the carousel only ever shows the center portion of the width.
 - **Optional `mobileSrc` crop**: **at least 1080px wide** (requested at `width: 1080`, see "Do you need separate desktop and mobile images?" above) — a genuinely different composition for the tall mobile frame, not just a smaller export of the desktop file.
 - **Video**: `.mp4`, muted/loop/autoplay-safe (no audio dependency — see `heroVideo` handling in `CaseStudyExperience.tsx`, which always renders `muted loop playsInline`). Keep an eye on file size; these aren't compressed by the build pipeline the way images are.
 - **Icons/illustrations/portraits**: flat SVG, single-color where possible to match the site's monochrome-plus-accent system (see `docs/design-direction.md` if present, or the "Default lenses" section of `CLAUDE.md`) — these render through `GalleryCarousel`'s own grayscale-by-default treatment, so an SVG with lots of internal color won't read as intended until hovered.
@@ -76,7 +77,7 @@ Before writing the actual `body` copy, check [`docs/text-length-limits.md`](./te
   "coverAlt": { "no": "REPLACE_ALT_TEXT_NO", "en": "REPLACE_ALT_TEXT_EN" },
   "heroVideo": {
     "src": "/media/projects/REPLACE_SLUG/video/hero-loop.mp4",
-    "poster": "projects/REPLACE_SLUG/video-posters/hero-poster.jpg"
+    "poster": "projects/REPLACE_SLUG/hero.jpg"
   },
   "sections": [
     {
