@@ -356,27 +356,44 @@ export default function SiteNav({
             aria-hidden={!isOpen}
             style={{ height: isOpen ? `${panelHeight}px` : "0px" }}
           >
-            <ul>
-              {links.map((link, index) => (
-                <li key={link.href} style={{ transitionDelay: isOpen ? `${index * 40}ms` : "0ms" }}>
-                  <a
-                    href={link.href}
-                    data-nav-hash={link.href.split("#")[1]}
-                    tabIndex={isOpen ? 0 : -1}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {link.label}
+            {/* The blurred surface is a SEPARATE element from the one whose
+                height animates (#mobile-nav-panel, above) — see its own
+                comment for why: Safari has a documented bug where
+                backdrop-filter breaks on an element that's simultaneously
+                having its own height CSS-transitioned, and a first attempt
+                at working around that with will-change/translateZ(0) on the
+                SAME element introduced a worse, visible layer-corruption
+                bug (part of the panel rendering as if clipped to a stale,
+                mid-transition size). This surface's own height is always
+                just its natural content height — never animated, never
+                transformed — so it's never in the situation that triggers
+                either bug in the first place. #mobile-nav-panel's own
+                overflow: hidden + animated height still produces the
+                reveal effect from outside; this element just has to sit
+                still while that happens around it. */}
+            <div className="mobile-nav-panel-surface">
+              <ul>
+                {links.map((link, index) => (
+                  <li key={link.href} style={{ transitionDelay: isOpen ? `${index * 40}ms` : "0ms" }}>
+                    <a
+                      href={link.href}
+                      data-nav-hash={link.href.split("#")[1]}
+                      tabIndex={isOpen ? 0 : -1}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+                <li style={{ transitionDelay: isOpen ? `${links.length * 40}ms` : "0ms" }}>
+                  {/* data-astro-reload — see the desktop locale link's own
+                      comment above. */}
+                  <a href={otherLocaleHref} tabIndex={isOpen ? 0 : -1} data-astro-reload>
+                    {otherLocaleLabel}
                   </a>
                 </li>
-              ))}
-              <li style={{ transitionDelay: isOpen ? `${links.length * 40}ms` : "0ms" }}>
-                {/* data-astro-reload — see the desktop locale link's own
-                    comment above. */}
-                <a href={otherLocaleHref} tabIndex={isOpen ? 0 : -1} data-astro-reload>
-                  {otherLocaleLabel}
-                </a>
-              </li>
-            </ul>
+              </ul>
+            </div>
           </div>,
           panelTarget,
         )}
@@ -531,27 +548,7 @@ export default function SiteNav({
           right: 0;
           z-index: 1;
           overflow: hidden;
-          /* Same translucent-blur treatment as .site-header itself (see
-           * Header.astro) — a flat var(--color-bg) here used to read as one
-           * continuous shape with the row above it, but the header moved to
-           * a blurred/translucent pill and this panel was left behind,
-           * showing up as a solid black box glued under a see-through one. */
-          background: color-mix(in srgb, var(--color-black) 85%, transparent);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-radius: 0 0 8px 8px;
           transition: height var(--duration-base) var(--ease-standard);
-          /* Safari/WebKit has a well-documented bug where backdrop-filter
-             fails to render (or renders once and then never updates)
-             on an element whose own height is being CSS-transitioned —
-             exactly what happens every time this panel opens/closes.
-             .site-header never has this problem since its own size never
-             changes. Promoting this to its own compositing layer up
-             front (rather than one WebKit creates/tears down mid-
-             transition, which is what the bug actually trips on) is the
-             standard workaround. */
-          will-change: height, backdrop-filter;
-          transform: translateZ(0);
         }
         /* Shadow only while open, not on the base rule above — collapsed to
            height: 0 it's still a real (if invisible) box, and a blurred
@@ -560,6 +557,20 @@ export default function SiteNav({
            closed. */
         #mobile-nav-panel[data-open="true"] {
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+        }
+        /* Same translucent-blur treatment as .site-header itself (see
+           Header.astro) — deliberately a SEPARATE element from
+           #mobile-nav-panel above, not that element's own background, so
+           the blur never has to coexist with an animated height on the
+           same box (see this element's own JSX comment for the Safari bug
+           that combination trips). Its own height is just its natural
+           content height, full stop — #mobile-nav-panel's overflow:hidden
+           + animated height is what produces the reveal from outside. */
+        .mobile-nav-panel-surface {
+          background: color-mix(in srgb, var(--color-black) 85%, transparent);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-radius: 0 0 8px 8px;
         }
         #mobile-nav-panel ul {
           list-style: none;
