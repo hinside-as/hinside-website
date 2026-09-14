@@ -16,6 +16,13 @@
     "no": "To Krone-flasker i mattslipt glass, grønn pilsner og brun bayer, på gullfargede sokler",
     "en": "Two frosted-glass Krone bottles, a green pilsner and a brown bayer, on gold pedestals"
   },
+  "heroImage": {
+    "src": "projects/krone/hero.png",
+    "alt": {
+      "no": "To Krone-flasker, grønn pilsner og brun bayer, på gullfargede terninger mot lys bakgrunn",
+      "en": "Two Krone bottles, a green pilsner and a brown bayer, on gold cubes against a light background"
+    }
+  },
   "sections": [
     {
       "id": "problem",
