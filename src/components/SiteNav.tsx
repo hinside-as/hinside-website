@@ -61,6 +61,21 @@ export default function SiteNav({
     setPanelTarget(document.getElementById("mobile-nav-panel-target"));
   }, []);
 
+  // .site-header itself (Astro-rendered, [data-site-header] — see
+  // Header.astro) has no way to know this component's own isOpen state on
+  // its own, so it's reached directly here, the same way panelTarget above
+  // is. Needed so its own border-radius can square off its bottom corners
+  // while the panel is open (see Header.astro's own [data-menu-open]
+  // rule) — left rounded on all four corners regardless of open state,
+  // the header row's own curved bottom corner and the panel's square top
+  // corner (only its bottom is rounded, to read as one shape with the row
+  // above it) don't line up, showing as a small notch of the page's own
+  // background cut into what should be one continuous blurred surface.
+  useEffect(() => {
+    const header = document.querySelector<HTMLElement>("[data-site-header]");
+    header?.toggleAttribute("data-menu-open", isOpen);
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) return;
 

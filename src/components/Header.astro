@@ -81,7 +81,20 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     background: color-mix(in srgb, var(--color-black) 85%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    transition: transform var(--duration-base) var(--ease-standard);
+    transition:
+      transform var(--duration-base) var(--ease-standard),
+      border-radius var(--duration-fast) var(--ease-standard);
+  }
+  /* Squares off the row's own bottom corners while the mobile menu panel
+     is open beneath it (see SiteNav.tsx's own effect, which is what sets
+     this — the header itself has no way to know that component's isOpen
+     state on its own) — otherwise the row's rounded bottom corner and the
+     panel's square top corner (only ITS bottom is rounded, in
+     SiteNav.tsx, to read as one shape with the row above it) don't align,
+     leaving a small notch of the page's own background cut into what
+     should be one continuous blurred surface. */
+  .site-header[data-menu-open="true"] {
+    border-radius: 8px 8px 0 0;
   }
   .site-header__row {
     flex: 0 0 auto;
