@@ -15,10 +15,16 @@
     "no": "Abstrakt rasterillustrasjon i Samspills grønne identitetssystem",
     "en": "Abstract halftone graphic in Samspill's green identity system"
   },
+  "heroImage": {
+    "src": "projects/samspill/hero.png",
+    "alt": {
+      "no": "Abstrakt rasterillustrasjon i Samspills grønne identitetssystem",
+      "en": "Abstract halftone graphic in Samspill's green identity system"
+    }
+  },
   "heroVideo": {
     "src": "/media/projects/samspill/video/hero-loop-desktop.mp4",
-    "mobileSrc": "/media/projects/samspill/video/hero-loop-mobile.mp4",
-    "poster": "projects/samspill/hero.png"
+    "mobileSrc": "/media/projects/samspill/video/hero-loop-mobile.mp4"
   },
   "sections": [
     {

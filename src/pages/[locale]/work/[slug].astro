@@ -5,7 +5,6 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 import CaseStudyExperience, { type CaseStudySlide } from "../../../components/CaseStudyExperience.tsx";
 import { getMediaImage } from "../../../lib/media";
 import { caseCoverTransitionName } from "../../../lib/viewTransitions";
-import { resolveCaseStudyHeroImage } from "../../../lib/caseStudyHero";
 import { locales, useTranslations, localizedPath, type Locale } from "../../../i18n/utils";
 
 export async function getStaticPaths() {
@@ -156,53 +155,54 @@ for (const section of entry.data.sections) {
   }
 }
 
-// The project's hero video (if any) opens the experience with the video
-// pushed down to its own slide, right after a static opening image — not
-// the video replacing slide 0 outright. Slide 0 shows the exact same photo
-// resolveCaseStudyHeroImage resolves for the homepage's own portfolio card
-// (the video's poster frame), so the shared-element view-transition morph
-// on arrival lands <img> onto <img>. Morphing straight onto a <video>
-// element read as jumpy/glitchy in practice — a poster-frame flash, then
-// autoplay kicking in a beat later, sometimes mid-transition — where two
-// plain images morph cleanly.
-if (entry.data.heroVideo && slides.length > 0) {
-  if (entry.data.heroVideo.poster) {
-    const heroImage = resolveCaseStudyHeroImage(entry, locale);
-    const heroPoster = await getImage({ src: getMediaImage(entry.data.heroVideo.poster), width: 1920 });
-    const heroMobilePoster = entry.data.heroVideo.mobilePoster
-      ? await getImage({ src: getMediaImage(entry.data.heroVideo.mobilePoster), width: 1080 })
-      : undefined;
-    slides[0] = {
-      ...slides[0],
-      media: {
-        type: "image",
-        src: heroPoster.src,
-        alt: heroImage.alt,
-        mobileSrc: heroMobilePoster?.src,
-      },
-    };
+// The project's hero photo (if set) opens the experience as slide 0,
+// replacing whatever the first section's own media would otherwise be —
+// this is the exact same photo the homepage's portfolio card uses (see
+// resolveCaseStudyHeroImage), so the shared-element view-transition morph
+// on arrival lands <img> onto <img>. A heroVideo, if the project also has
+// one, is pushed to its own slide right after, using this same photo as
+// its poster — the hero is always a static image, never the video itself
+// (see content.config.ts's own comment on heroImage/heroVideo). Morphing
+// straight onto a <video> element read as jumpy/glitchy in practice (a
+// poster-frame flash, then autoplay kicking in a beat later, sometimes
+// mid-transition), where two plain images morph cleanly.
+if (entry.data.heroImage && slides.length > 0) {
+  const heroSrc = await resolveImageSrc(entry.data.heroImage.src);
+  const heroMobileSrc = entry.data.heroImage.mobileSrc
+    ? await resolveImageSrc(entry.data.heroImage.mobileSrc, 1080)
+    : undefined;
+  slides[0] = {
+    ...slides[0],
+    media: {
+      type: "image",
+      src: heroSrc,
+      alt: entry.data.heroImage.alt[locale],
+      mobileSrc: heroMobileSrc,
+    },
+  };
+  if (entry.data.heroVideo) {
     slides.splice(1, 0, {
       chapterId: `${entry.data.sections[0].id}-video`,
       media: {
         type: "video",
         src: entry.data.heroVideo.src,
         mobileSrc: entry.data.heroVideo.mobileSrc,
-        poster: heroPoster.src,
-        mobilePoster: heroMobilePoster?.src,
+        poster: heroSrc,
+        mobilePoster: heroMobileSrc,
       },
     });
-  } else {
-    // No poster to build a static opening slide from — fall back to the
-    // video replacing slide 0 directly, same as before this split existed.
-    slides[0] = {
-      ...slides[0],
-      media: {
-        type: "video",
-        src: entry.data.heroVideo.src,
-        mobileSrc: entry.data.heroVideo.mobileSrc,
-      },
-    };
   }
+} else if (entry.data.heroVideo && slides.length > 0) {
+  // No dedicated hero photo to split it from — fall back to the video
+  // replacing slide 0 directly.
+  slides[0] = {
+    ...slides[0],
+    media: {
+      type: "video",
+      src: entry.data.heroVideo.src,
+      mobileSrc: entry.data.heroVideo.mobileSrc,
+    },
+  };
 }
 
 const credits = (entry.data.credits ?? []).map((credit) => ({

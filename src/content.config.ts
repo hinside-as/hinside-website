@@ -130,18 +130,29 @@ const caseStudies = defineCollection({
     accent: z.string().optional(),
     cover: z.string(),
     coverAlt: localized,
+    // The project's hero photo — drives the homepage portfolio carousel
+    // card, this page's own opening slide, and (if heroVideo is also set)
+    // the video's poster frame. Always a static image, independent of
+    // heroVideo: the hero is never the video itself, only ever a photo,
+    // with video (where present) pushed to its own slide right after —
+    // see [slug].astro's slide-building and resolveCaseStudyHeroImage.
+    // Optional only because not every case study has one yet (falls back
+    // to the first section image, then cover — see resolveCaseStudyHeroImage).
+    heroImage: z
+      .object({
+        src: z.string(),
+        alt: localized,
+        // See sectionMedia's "image" mobileSrc comment — same idea, same
+        // reasoning, applied to the hero photo.
+        mobileSrc: z.string().optional(),
+      })
+      .optional(),
     heroVideo: z
       .object({
         src: z.string(),
-        poster: z.string().optional(),
         // See sectionMedia's "video" mobileSrc comment — same idea, same
         // reasoning, applied to the opening hero loop.
         mobileSrc: z.string().optional(),
-        // <video poster> has no per-<source> equivalent — unlike src,
-        // which a media-query <source> can swap declaratively, the poster
-        // frame is an attribute of <video> itself. Falls back to the
-        // desktop poster if omitted.
-        mobilePoster: z.string().optional(),
       })
       .optional(),
     sections: z.array(section).default([]),

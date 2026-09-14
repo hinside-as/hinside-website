@@ -29,7 +29,7 @@ Based on the two existing case studies (`grieg-connect`, `samspill`) — match t
 ```
 src/assets/media/projects/<slug>/
   cover.png                            — the square card used elsewhere on the site (schema: cover) — see "Recommended source specs" for how this differs from hero below
-  hero[-desktop|-mobile].<ext>         — the project's main hero photo. Currently only wired up via schema: heroVideo.poster / .mobilePoster — a project without a heroVideo has no dedicated hero file yet, and resolveCaseStudyHeroImage instead falls back to the first section image, or cover (see src/lib/caseStudyHero.ts). Where present, this one file drives the homepage portfolio carousel card, the case-study page's own opening slide, AND the hero video's poster frame — not nested under a video-specific folder, since it's the project's primary photo first, a video poster only incidentally.
+  hero[-desktop|-mobile].<ext>         — the project's main hero photo (schema: heroImage.src / .mobileSrc). Drives the homepage portfolio carousel card, the case-study page's own opening slide, and — for the rare project with a heroVideo too — that video's poster frame. Independent of heroVideo: the hero is always a static photo, never the video itself (video, where a project has one, is pushed to its own slide right after — see [slug].astro). A project without heroImage yet falls back to its first section's own image, or cover (see resolveCaseStudyHeroImage in src/lib/caseStudyHero.ts).
   sections/<name>[-desktop|-mobile].png — one file (or desktop/mobile pair) per "image"/"gallery" section (schema: sections[].media.src / .mobileSrc)
 
 public/media/projects/<slug>/
@@ -75,9 +75,9 @@ Before writing the actual `body` copy, check [`docs/text-length-limits.md`](./te
   "accent": "#RRGGBB",
   "cover": "projects/REPLACE_SLUG/cover.png",
   "coverAlt": { "no": "REPLACE_ALT_TEXT_NO", "en": "REPLACE_ALT_TEXT_EN" },
-  "heroVideo": {
-    "src": "/media/projects/REPLACE_SLUG/video/hero-loop.mp4",
-    "poster": "projects/REPLACE_SLUG/hero.jpg"
+  "heroImage": {
+    "src": "projects/REPLACE_SLUG/hero.jpg",
+    "alt": { "no": "REPLACE_ALT_TEXT_NO", "en": "REPLACE_ALT_TEXT_EN" }
   },
   "sections": [
     {
@@ -126,6 +126,7 @@ Notes on things that are easy to get wrong (both mismatches below fail `npm run 
 - A `"gallery"`/`"carousel"` item's `src` needs the leading `/media/...` slash only if it's an SVG living in `public/`; a raster image living in `src/assets/media/` stays relative (no leading slash), same rule as the top-level `cover`/section `src`.
 - Chapter headings for the first and last sections are conventionally "Utfordring"/"Problem/Challenge" and "Løsning"/"Solution" (matching the `[slug].astro` template's presentation structure — see `CONTENT.md`'s "Work / Portfolio" section), but `id` values are free-form strings used only to key chapters/slides together — they don't need to match `context`/`strategy`/`result` exactly, name them for whatever chapters the specific project actually has.
 - `featured: true` is what makes a case study appear in the homepage's work carousel (`src/pages/[locale]/index.astro` filters on it) — a case study with `featured: false` (or omitted) still gets its own `/work/<slug>/` page, it just won't surface there.
+- `heroVideo` is optional and left out of the skeleton above — most case studies are a static `heroImage` only. Add it (see `content.config.ts`) only for the rare project that actually has a hero loop to show; when present, it's pushed to its own slide right after the `heroImage` opening slide, never used as the hero itself.
 
 ## Checklist
 

@@ -15,9 +15,15 @@
     "no": "Skjermbilde av Grieg Connect-plattformen som viser et fartøy valgt i havneoversikten",
     "en": "Screenshot of the Grieg Connect platform showing a vessel selected in the port overview"
   },
+  "heroImage": {
+    "src": "projects/grieg-connect/hero.jpg",
+    "alt": {
+      "no": "Isometrisk illustrasjon av et mannskapsmedlem i uniform om bord på et fartøy",
+      "en": "Isometric illustration of a uniformed crew member aboard a vessel"
+    }
+  },
   "heroVideo": {
-    "src": "/media/projects/grieg-connect/video/hero-loop.mp4",
-    "poster": "projects/grieg-connect/hero.jpg"
+    "src": "/media/projects/grieg-connect/video/hero-loop.mp4"
   },
   "sections": [
     {
