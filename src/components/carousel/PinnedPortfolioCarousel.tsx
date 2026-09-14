@@ -86,6 +86,15 @@ export default function PinnedPortfolioCarousel({
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let maxTranslate = 0;
+    let stickyLeft = 0;
+    let stickyWidth = 0;
+    let cardWidth = 0;
+    // Each card's offset from the track's own left edge — transform-
+    // invariant (a translateX shifts the track and everything inside it by
+    // the same amount, so the *difference* between a card's edge and the
+    // track's own edge never changes because of it), which is exactly what
+    // makes it safe to measure once here instead of every scroll frame.
+    let cardOffsets: number[] = [];
     let cardEls: HTMLElement[] = [];
 
     // 1px of vertical scroll == 1px of horizontal track movement, and the
@@ -119,11 +128,26 @@ export default function PinnedPortfolioCarousel({
       maxTranslate = Math.max(0, track.scrollWidth - sticky.clientWidth);
       section.style.height = `${sticky.clientHeight + maxTranslate}px`;
 
-      // Cached here rather than re-queried every scroll frame — the set of
-      // cards never changes at runtime (items is fixed per page load), so
-      // this only needs to happen on mount and on resize, same as
-      // everything else measure() already handles.
+      // Everything the per-frame parallax math (in apply(), the actual
+      // scroll hot path) needs, measured once here instead of via its own
+      // getBoundingClientRect() calls every frame. That distinction matters:
+      // apply() already writes track.style.transform earlier in the same
+      // frame, and a getBoundingClientRect() read right after a style write
+      // forces the browser to synchronously flush layout to answer it
+      // accurately — six-plus forced reflows a frame (sticky, every card)
+      // stacked on top of that write is real main-thread work, exactly the
+      // kind that shows up as dropped frames / a less smooth scroll. None of
+      // these values actually change mid-scroll (sticky's own left/width are
+      // fixed by the page layout; a card's offset from the track's own edge
+      // is transform-invariant — see cardOffsets' own comment), so there's
+      // nothing lost by only ever measuring them here, on mount and resize.
+      const stickyRect = sticky.getBoundingClientRect();
+      stickyLeft = stickyRect.left;
+      stickyWidth = stickyRect.width;
+      const trackRect = track.getBoundingClientRect();
       cardEls = Array.from(track.querySelectorAll<HTMLElement>(".pppc-card"));
+      cardWidth = cardEls[0]?.getBoundingClientRect().width ?? 0;
+      cardOffsets = cardEls.map((card) => card.getBoundingClientRect().left - trackRect.left);
     };
 
     const apply = () => {
@@ -159,14 +183,19 @@ export default function PinnedPortfolioCarousel({
       // crosses the viewport's edge — the offset is actively changing for
       // the entire time a card is visible at all, not just somewhere in
       // the middle of its pass.
-      const viewportRect = sticky.getBoundingClientRect();
-      const viewportCenter = viewportRect.left + viewportRect.width / 2;
-      const cardWidth = cardEls[0]?.getBoundingClientRect().width ?? 0;
-      const halfSpan = viewportRect.width / 2 + cardWidth / 2;
+      //
+      // Every position used here is computed from cardOffsets/stickyLeft/
+      // stickyWidth (measure()'s own cached values) plus the clamped/
+      // -clamped already worked out above — no getBoundingClientRect() in
+      // this function at all, deliberately: a read right after the
+      // transform write above would force a synchronous layout flush to
+      // answer it, once per card, every single scroll frame.
+      const viewportCenter = stickyLeft + stickyWidth / 2;
+      const halfSpan = stickyWidth / 2 + cardWidth / 2;
       const rate = halfSpan > 0 ? PARALLAX_RANGE_PX / halfSpan : 0;
-      cardEls.forEach((card) => {
-        const cardRect = card.getBoundingClientRect();
-        const cardCenter = cardRect.left + cardRect.width / 2;
+      const trackLeft = stickyLeft - clamped;
+      cardEls.forEach((card, i) => {
+        const cardCenter = trackLeft + cardOffsets[i] + cardWidth / 2;
         const offset = Math.max(
           -PARALLAX_RANGE_PX,
           Math.min(PARALLAX_RANGE_PX, (cardCenter - viewportCenter) * rate),
@@ -327,6 +356,13 @@ export default function PinnedPortfolioCarousel({
           filter: grayscale(1) saturate(0.28);
           transform: translateX(var(--pppc-parallax, 0px));
           transition: filter var(--duration-base) var(--ease-standard);
+          /* This is the element actually getting a new transform every
+             scroll frame (the per-card --pppc-parallax custom property) —
+             .pppc-track's own will-change only promotes the track itself,
+             not each image, to its own compositor layer. Without this, the
+             browser can end up repainting instead of purely compositing
+             the transform change on scroll. */
+          will-change: transform;
         }
         .pppc-card:hover .pppc-image,
         .pppc-card:focus-visible .pppc-image {
