@@ -267,17 +267,41 @@ html[data-case-study-linked]::view-transition-new(root) {
    instant swap the same way every other timed transition on the site does. */
 
 /* Homepage <-> case-study (the shared hero-image morph, via matching
-   view-transition-name — see src/lib/viewTransitions.ts) deliberately has
-   NO custom timing here — two separate attempts at overriding it (a
-   600ms version, then a staggered 360ms-image/240ms-root version) both
-   introduced visible flicker/jumpiness instead of fixing anything. The
-   staggered version's most likely problem: root resolving before the
-   named group's own morph finished let the *real* destination content
-   (including the destination page's own static copy of this same hero
-   photo, already sitting in its final position) become visible slightly
-   before the animated snapshot arrived there, reading as a brief double-
-   image flash right at the handoff. The browser's own default timing is
-   internally consistent (nothing resolves out of step with anything
-   else) and known-stable — safer than a third speculative override this
-   session can't actually see rendered. If this gets revisited, keep
-   root and the named group on the SAME duration, not staggered ones. */
+   view-transition-name — see src/lib/viewTransitions.ts). Two earlier
+   attempts at custom timing here (a 600ms version, then a staggered
+   360ms-image/240ms-root version with everything starting at once) both
+   introduced visible flicker instead of fixing anything — running root
+   and the named image's own morph in the SAME window meant the real
+   destination content (including its own static copy of this exact
+   photo, already sitting in its final position) could become visible
+   while the animated snapshot was still sliding toward that same spot, a
+   brief double-image flash at the handoff.
+   This version sequences the three phases instead of overlapping them,
+   via animation-delay (the browser's own default view-transition
+   animations already carry animation-fill-mode: both, so an element
+   correctly holds its "from" state for the length of its own delay
+   rather than flashing its un-animated state — these rules only ever set
+   the longhand duration/delay/easing, never the fill-mode, so that
+   default keeps applying): the page being LEFT clears first (root-old,
+   no delay) with nothing else competing for attention; the hero image
+   then has the stage almost entirely to itself to do its own scale/move;
+   only once it's essentially arrived does the REST of the destination
+   page (root-new — headings, layout, everything except the hero photo
+   itself) fade in around it. Each individual phase still stays inside
+   the ~300-400ms window real View Transitions guidance recommends
+   (longer reads as sluggish) — it's the total sequence that runs longer,
+   not any one animation. */
+html:not([data-case-study-linked])::view-transition-old(root) {
+  animation-duration: 160ms;
+  animation-timing-function: var(--ease-standard);
+}
+::view-transition-group(*) {
+  animation-duration: 320ms;
+  animation-delay: 100ms;
+  animation-timing-function: var(--ease-out-expressive);
+}
+html:not([data-case-study-linked])::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-delay: 360ms;
+  animation-timing-function: var(--ease-out-expressive);
+}
