@@ -297,5 +297,11 @@ html[data-case-study-linked]::view-transition-new(root) {
    whatever's happening around it. */
 ::view-transition-group(*) {
   animation-duration: 380ms;
-  animation-timing-function: var(--ease-out-expressive);
+  /* A dedicated curve, not --ease-out-expressive (used elsewhere for
+     quick physical hover "lift" feedback) — that one front-loads almost
+     all of its motion into the first third, then settles abruptly in the
+     last few percent, which read as a snap right as the photo reaches
+     its final size/position. This curve keeps decelerating smoothly all
+     the way to 100%, landing gently instead of stopping short. */
+  animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }

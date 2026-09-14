@@ -497,6 +497,43 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
           font-weight: var(--weight-regular);
           letter-spacing: var(--tracking-tighter);
           line-height: var(--leading-tight);
+          /* Rises into place from behind the hero image rather than just
+             appearing — .cse__intro's own bottom padding to the image
+             below is small (--space-3, 1rem), so a 48px starting offset
+             is enough to put the title's PRE-animation position past its
+             own box, under where the image begins. .cse__intro comes
+             before .cse__slides in the DOM with no z-index on either, so
+             normal paint order alone (later elements paint over earlier
+             ones) is what hides the overlapping portion behind the photo
+             — no stacking-context trick needed. Delayed rather than
+             immediate so it doesn't compete with the hero image's own
+             view-transition morph (see global.css's own
+             ::view-transition-group(*) — 380ms) settling first; animation
+             (not transition) since there's no JS state driving this, just
+             a one-shot entrance on mount. */
+          animation: cse-title-rise var(--duration-slow) var(--ease-out-expressive) both;
+          animation-delay: 450ms;
+        }
+        @keyframes cse-title-rise {
+          from {
+            opacity: 0;
+            transform: translateY(48px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        /* Reduced motion gets the honest fallback: title present
+           immediately, no rise, no wait — --duration-slow already
+           collapses to 0ms under reduced motion (tokens.css), but
+           animation-delay isn't a duration token, so it needs its own
+           override or a reduced-motion visitor would still sit through
+           the full 450ms delay before the (now instant) animation "plays". */
+        @media (prefers-reduced-motion: reduce) {
+          .cse__title {
+            animation-delay: 0ms;
+          }
         }
         /* No viewport-height floor and no per-step background — that floor
            only ever existed to guarantee the old sidebar's sticky-release
