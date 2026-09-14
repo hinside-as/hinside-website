@@ -9,21 +9,26 @@ type TrackEntry =
   | { kind: "text"; key: string; text: string }
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
-// How far (in px) every image is allowed to drift inside its own frame —
-// see .pppc-image's own width-only oversize below (220%/-60%). NOT free to
-// keep pushing up, despite width-only oversizing being safe from the
-// both-axes bug an earlier version had (see .pppc-image's own comment): it
-// has its OWN ceiling. Oversizing width changes the img box's own aspect
-// ratio away from the frame's 3:4 — push it far enough (past source
-// photo's aspect ÷ frame's aspect, 16:9 ÷ 3:4 ≈ 2.37, i.e. 237%) and the
-// box becomes proportionally WIDER than the source photo itself, which
-// flips which axis object-fit: cover treats as the tight one. Once width
-// is the tight axis, cover crops the photo's TOP/BOTTOM to compensate —
-// the exact "why is this cropped vertically again" bug, just from pushing
-// this value instead of oversizing height. 220% (safely under 237%, with
-// margin for a hero photo that isn't pixel-exactly 16:9) is the practical
-// ceiling for how generous this can get while every project's hero photo
-// stays around the documented 2560x1440 — see docs/case-study-assets.md.
+// The max distance (in px) any card's image is allowed to drift from
+// center — each card reaches exactly this, in either direction, right as
+// its own edge crosses the viewport's edge (see apply()'s own per-card
+// rate calculation), and exactly 0 when the card is centered. See
+// .pppc-image's own width-only oversize below (220%/-60%) for the OTHER
+// constraint on this number — it's NOT free to keep pushing up, despite
+// width-only oversizing being safe from the both-axes bug an earlier
+// version had (see .pppc-image's own comment): it has its OWN ceiling.
+// Oversizing width changes the img box's own aspect ratio away from the
+// frame's 3:4 — push it far enough (past source photo's aspect ÷ frame's
+// aspect, 16:9 ÷ 3:4 ≈ 2.37, i.e. 237%) and the box becomes proportionally
+// WIDER than the source photo itself, which flips which axis object-fit:
+// cover treats as the tight one. Once width is the tight axis, cover crops
+// the photo's TOP/BOTTOM to compensate — the exact "why is this cropped
+// vertically again" bug, just from pushing this value instead of
+// oversizing height. 220% (safely under 237%, with margin for a hero
+// photo that isn't pixel-exactly 16:9) is the practical ceiling for how
+// generous the oversize — and so this range — can get while every
+// project's hero photo stays around the documented 2560x1440 — see
+// docs/case-study-assets.md.
 const PARALLAX_RANGE_PX = 140;
 
 
@@ -34,10 +39,12 @@ const PARALLAX_RANGE_PX = 140;
  * the next section once the track runs out — no drag, no momentum, no
  * hijacked wheel/touch events. This is still 100% native scrolling; the only
  * thing JS does is read the real scroll position every frame and mirror it
- * into a horizontal transform (and, from that same position, a small
- * per-image parallax offset — see below). Every card shares this one
- * transform, so they all move at the same pixels-per-second by construction;
- * nothing here gives any individual card its own speed.
+ * into a horizontal transform (and, from each card's own live on-screen
+ * position, a small per-card parallax offset — see apply()'s own comment).
+ * Every card shares this one track transform, so they all move at the same
+ * pixels-per-second by construction; nothing here gives any individual
+ * card its own speed through the viewport, even though each one's own
+ * parallax *value* differs by where it currently sits on screen.
  */
 export default function PinnedPortfolioCarousel({
   items,
@@ -79,6 +86,7 @@ export default function PinnedPortfolioCarousel({
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let maxTranslate = 0;
+    let cardEls: HTMLElement[] = [];
 
     // 1px of vertical scroll == 1px of horizontal track movement, and the
     // section's own height is sized to exactly match that (one viewport for
@@ -110,6 +118,12 @@ export default function PinnedPortfolioCarousel({
 
       maxTranslate = Math.max(0, track.scrollWidth - sticky.clientWidth);
       section.style.height = `${sticky.clientHeight + maxTranslate}px`;
+
+      // Cached here rather than re-queried every scroll frame — the set of
+      // cards never changes at runtime (items is fixed per page load), so
+      // this only needs to happen on mount and on resize, same as
+      // everything else measure() already handles.
+      cardEls = Array.from(track.querySelectorAll<HTMLElement>(".pppc-card"));
     };
 
     const apply = () => {
@@ -127,36 +141,38 @@ export default function PinnedPortfolioCarousel({
       const clamped = Math.min(Math.max(raw, 0), maxTranslate);
       track.style.transform = `translate3d(${-clamped}px, 0, 0)`;
 
-      // Parallax: one shared value, the same for every image at every
-      // instant, not a per-card calculation — two earlier versions tied it
-      // to each card's own distance from the sticky viewport's center
-      // (first the card's own width, then the viewport's), and both still
-      // made a card's drift depend on *where it currently sat on screen*.
-      // That meant different cards visible at once were at different points
-      // in their own individual curve — one barely moving, another mid-
-      // swing — which reads as inconsistent rates even though each one's
-      // own math was internally consistent. What was actually wanted is
-      // simpler: every photo sits on one shared depth plane behind the
-      // cards' frames, so the *same* offset applies to all of them
-      // regardless of position, the way a background layer in any
-      // multi-plane parallax scrolls independently of the foreground
-      // elements passing in front of it rather than reacting to each one.
-      //
-      // A repeating wave (tried next) was still wrong in a different way:
-      // it reset/reversed every couple thousand pixels of scroll, so the
-      // same conceptual point in the shared background swung back and
-      // forth locally instead of drifting in one direction across the
-      // *entire* carousel. A single linear ramp from -PARALLAX_RANGE_PX at
-      // the very start of the pin to +PARALLAX_RANGE_PX at the very end —
-      // driven by clamped/maxTranslate, the same 0..1 progress already
-      // used for everything else here — has no reversal and no easing,
-      // just one continuous sweep for the whole scroll journey. Setting it
-      // once here on .pppc-track lets ordinary CSS custom-property
-      // inheritance carry it down to every .pppc-image at once instead of
-      // writing it to each one individually.
-      const progress = maxTranslate > 0 ? clamped / maxTranslate : 0;
-      const parallaxOffset = (progress * 2 - 1) * PARALLAX_RANGE_PX;
-      track.style.setProperty("--pppc-parallax", `${parallaxOffset.toFixed(1)}px`);
+      // Parallax: a per-card value — each card's image should read as
+      // centered exactly when that card itself is centered in the
+      // viewport, which a single shared value (an earlier version's
+      // approach) can only ever be true for at most one card at a time.
+      // What makes this still read as one consistent effect rather than
+      // each card doing its own independent thing is the RATE, not the
+      // value: every card moves through the viewport at the exact same
+      // pixels-per-scroll (the whole track is one rigid transform — see
+      // above), and this offset is a strictly linear function of a card's
+      // own live distance from viewport-center, so its own rate of change
+      // is identical to every other card's at every instant, even though
+      // the resulting values differ by position (a card near either edge
+      // sits near ±PARALLAX_RANGE_PX, one centered sits at 0). `halfSpan`
+      // is solved so that distance, not a fixed range, so a card hits
+      // exactly ±PARALLAX_RANGE_PX right as its own leading/trailing edge
+      // crosses the viewport's edge — the offset is actively changing for
+      // the entire time a card is visible at all, not just somewhere in
+      // the middle of its pass.
+      const viewportRect = sticky.getBoundingClientRect();
+      const viewportCenter = viewportRect.left + viewportRect.width / 2;
+      const cardWidth = cardEls[0]?.getBoundingClientRect().width ?? 0;
+      const halfSpan = viewportRect.width / 2 + cardWidth / 2;
+      const rate = halfSpan > 0 ? PARALLAX_RANGE_PX / halfSpan : 0;
+      cardEls.forEach((card) => {
+        const cardRect = card.getBoundingClientRect();
+        const cardCenter = cardRect.left + cardRect.width / 2;
+        const offset = Math.max(
+          -PARALLAX_RANGE_PX,
+          Math.min(PARALLAX_RANGE_PX, (cardCenter - viewportCenter) * rate),
+        );
+        card.style.setProperty("--pppc-parallax", `${offset.toFixed(1)}px`);
+      });
     };
 
     let ticking = false;
