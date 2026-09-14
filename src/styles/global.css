@@ -267,41 +267,24 @@ html[data-case-study-linked]::view-transition-new(root) {
    instant swap the same way every other timed transition on the site does. */
 
 /* Homepage <-> case-study (the shared hero-image morph, via matching
-   view-transition-name — see src/lib/viewTransitions.ts). Two earlier
-   attempts at custom timing here (a 600ms version, then a staggered
-   360ms-image/240ms-root version with everything starting at once) both
-   introduced visible flicker instead of fixing anything — running root
-   and the named image's own morph in the SAME window meant the real
-   destination content (including its own static copy of this exact
-   photo, already sitting in its final position) could become visible
-   while the animated snapshot was still sliding toward that same spot, a
-   brief double-image flash at the handoff.
-   This version sequences the three phases instead of overlapping them,
-   via animation-delay (the browser's own default view-transition
-   animations already carry animation-fill-mode: both, so an element
-   correctly holds its "from" state for the length of its own delay
-   rather than flashing its un-animated state — these rules only ever set
-   the longhand duration/delay/easing, never the fill-mode, so that
-   default keeps applying): the page being LEFT clears first (root-old,
-   no delay) with nothing else competing for attention; the hero image
-   then has the stage almost entirely to itself to do its own scale/move;
-   only once it's essentially arrived does the REST of the destination
-   page (root-new — headings, layout, everything except the hero photo
-   itself) fade in around it. Each individual phase still stays inside
-   the ~300-400ms window real View Transitions guidance recommends
-   (longer reads as sluggish) — it's the total sequence that runs longer,
-   not any one animation. */
-html:not([data-case-study-linked])::view-transition-old(root) {
-  animation-duration: 160ms;
-  animation-timing-function: var(--ease-standard);
-}
-::view-transition-group(*) {
-  animation-duration: 320ms;
-  animation-delay: 100ms;
-  animation-timing-function: var(--ease-out-expressive);
-}
-html:not([data-case-study-linked])::view-transition-new(root) {
-  animation-duration: 200ms;
-  animation-delay: 360ms;
-  animation-timing-function: var(--ease-out-expressive);
-}
+   view-transition-name — see src/lib/viewTransitions.ts) deliberately has
+   NO custom timing here. Three separate attempts at overriding it (a
+   600ms uniform version; a staggered 360ms-image/240ms-root version with
+   everything starting at once; a sequenced version using animation-delay
+   to make root-old clear before root-new faded in) each introduced a
+   DIFFERENT visible bug instead of fixing anything — a double-image
+   flash at the handoff (root resolving before the named group's own
+   morph finished, letting the real destination content peek through
+   under the still-animating snapshot); then, from the delay-based
+   version, a flash of solid near-black — root-old had already finished
+   fading out and root-new's own delay hadn't elapsed yet, so for that
+   window NEITHER was opaque, and <html>'s own default (near-black on
+   this dark-themed site) painted through underneath both. None of these
+   were ever visually verified in this environment — three attempts, three
+   different bugs, is a pattern to stop pushing on blind rather than a
+   reason to try a fourth. The browser's own default timing is internally
+   consistent (old and new always sum to full coverage, nothing ever gaps
+   or races) and known-stable. If this gets revisited: keep root's old
+   and new on the SAME duration with NO delay on either (a plain
+   overlapping crossfade, never a gap), and don't let root fully resolve
+   before the named group's own — separately timed — morph finishes. */
