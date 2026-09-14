@@ -10,13 +10,13 @@ type TrackEntry =
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
 // How far (in px) every image is allowed to drift inside its own frame —
-// see .pppc-image's own width-only oversize below (250%/-75%, sized to
+// see .pppc-image's own width-only oversize below (320%/-110%, sized to
 // safely cover this). Free to be generous: oversizing *width* alone (not
 // height) never affects cover's own vertical scale, so there's no tradeoff
 // here between pan room and how much of the photo's height stays visible,
 // the way an earlier both-axes 160%/-30% version had (see .pppc-image's
 // own comment).
-const PARALLAX_RANGE_PX = 150;
+const PARALLAX_RANGE_PX = 250;
 
 
 /**
@@ -279,7 +279,7 @@ export default function PinnedPortfolioCarousel({
            are now exactly the same height by construction, not just
            usually the same height. */
         /* Oversized on WIDTH ONLY (not both axes, unlike an earlier 160%/
-           -30% version), and generously — 250%/-75% is sized to safely
+           -30% version), and generously — 320%/-110% is sized to safely
            cover PARALLAX_RANGE_PX's full pan even on the smallest card
            this ever renders at. object-fit: cover's own scale is set by
            whichever axis needs more zoom to fully cover the box, and for
@@ -298,9 +298,9 @@ export default function PinnedPortfolioCarousel({
            oversized. */
         .pppc-image {
           display: block;
-          width: 250%;
+          width: 320%;
           height: 100%;
-          margin-inline: -75%;
+          margin-inline: -110%;
           max-width: none;
           object-fit: cover;
           filter: grayscale(1) saturate(0.28);

@@ -16,6 +16,13 @@
     "no": "Tre mørke ølflasker fra Voss Fellesbryggeri med håndtegnede etiketter og fargede kapsler",
     "en": "Three dark glass Voss Fellesbryggeri beer bottles with hand-drawn labels and colored caps"
   },
+  "heroImage": {
+    "src": "projects/voss-fellesbryggeri/hero.png",
+    "alt": {
+      "no": "Tre mørke ølflasker fra Voss Fellesbryggeri på rekke, med håndtegnede etiketter i blått, rosa og oransje",
+      "en": "Three dark Voss Fellesbryggeri beer bottles in a row, with hand-drawn labels in blue, pink and orange"
+    }
+  },
   "sections": [
     {
       "id": "brief",
