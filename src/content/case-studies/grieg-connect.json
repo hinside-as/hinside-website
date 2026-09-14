@@ -16,10 +16,10 @@
     "en": "Screenshot of the Grieg Connect platform showing a vessel selected in the port overview"
   },
   "heroImage": {
-    "src": "projects/grieg-connect/hero.jpg",
+    "src": "projects/grieg-connect/hero.png",
     "alt": {
-      "no": "Isometrisk illustrasjon av et mannskapsmedlem i uniform om bord på et fartøy",
-      "en": "Isometric illustration of a uniformed crew member aboard a vessel"
+      "no": "Isometriske illustrasjoner av dataanalyse, skipscontainere og folk i maritim virksomhet: diagrammer, en havneoffiser, en anleggsarbeider og en analytiker med nettbrett",
+      "en": "Isometric illustrations of data analysis, shipping containers and people across maritime operations: charts, a harbor officer, a dock worker and an analyst with a tablet"
     }
   },
   "heroVideo": {
