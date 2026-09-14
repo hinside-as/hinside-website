@@ -20,11 +20,8 @@ type FormLabels = {
 type Props = {
   heroHeadlineStatic: string;
   heroHeadlineReveal: string;
-  identityHeading: string;
   workIntro: string;
   workOutro: string;
-  studioHeading: string;
-  studioParagraph: string;
   clientsHeading: string;
   clientsIntro: string;
   contactHeading: string;
@@ -45,11 +42,8 @@ type Props = {
 export default function HomeExperience({
   heroHeadlineStatic,
   heroHeadlineReveal,
-  identityHeading,
   workIntro,
   workOutro,
-  studioHeading,
-  studioParagraph,
   clientsHeading,
   clientsIntro,
   contactHeading,
@@ -83,18 +77,17 @@ export default function HomeExperience({
 
       {/* The studio storytelling section: white, directly after the
           typewriter hero's own animated quote — not after the ASCII/
-          identity break below, which sits after it instead now. */}
-      <section id="studio" className="hs__step hs__studio" data-nav-section="studio">
-        <div className="hs__content">
-          <h2>{studioHeading}</h2>
-          <p className="hs__studio-paragraph">{studioParagraph}</p>
-        </div>
-      </section>
+          identity break below, which sits after it instead now.
+          Deliberately empty for the moment — the real storytelling
+          content isn't written yet; this is the section itself, not a
+          placeholder heading standing in for it. Still a full hs__step
+          (min-height: 100svh via the shared rule) so it reads as its own
+          deliberate pause rather than a collapsed gap. */}
+      <section id="studio" className="hs__step hs__studio" data-nav-section="studio" />
 
+      {/* No heading here on purpose — the ASCII mark is the whole moment,
+          not illustrating a title next to it. */}
       <section className="hs__step hs__ascii" data-nav-section="work">
-        <div className="hs__content">
-          <h2>{identityHeading}</h2>
-        </div>
         <AsciiLogo />
       </section>
 
@@ -114,6 +107,42 @@ export default function HomeExperience({
 
       <section id="contact" className="hs__step hs__contact" data-nav-section="contact">
         <div className="hs__content hs__contact-grid">
+          {/* Was the site-wide Footer's own content (see BaseLayout's
+              hideFooter, now set for the homepage in index.astro) — moved
+              here instead of duplicated in both places. Same contact
+              details/socials, not localized (real-world facts, identical
+              in both languages), same reason Footer.astro never localized
+              them either. */}
+          <div className="hs__contact-info">
+            <div className="hs__contact-links">
+              <a href="mailto:hei@hinside.as">hei@hinside.as</a>
+              <a href="tel:+4746661240">+47 466 61 240</a>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Verkstedveien+13%2C+6517+Kristiansund+N"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Verkstedveien 13
+              </a>
+              <a href="https://virksomhet.brreg.no/nb/oppslag/enheter/937170602" target="_blank" rel="noopener noreferrer">
+                937 170 602 MVA
+              </a>
+            </div>
+            <div className="hs__contact-socials">
+              <a href="https://www.linkedin.com/company/hinside" target="_blank" rel="noopener noreferrer">
+                LinkedIn
+              </a>
+              <a href="https://www.instagram.com/hinsidedesign" target="_blank" rel="noopener noreferrer">
+                Instagram
+              </a>
+              <a href="https://www.tiktok.com/hinsidedesign" target="_blank" rel="noopener noreferrer">
+                TikTok
+              </a>
+              <a href="https://www.youtube.com/@hinsidedesign" target="_blank" rel="noopener noreferrer">
+                YouTube
+              </a>
+            </div>
+          </div>
           <div className="hs__contact-main">
             <h2>{contactHeading}</h2>
             <ContactForm labels={formLabels} />
@@ -179,18 +208,8 @@ export default function HomeExperience({
         }
         /* Column, not the base .hs__step row: heading above the mark. */
         .hs__ascii {
-          flex-direction: column;
-          gap: var(--space-6);
           background: var(--color-black);
           padding-inline: clamp(1rem, 3vw, var(--space-6));
-        }
-        /* .hs__content here holds nothing but the heading (no paragraph
-           below it to use the margin for) — without this, its own
-           margin-bottom: var(--space-4) (see the shared h2 rule) would
-           stack on top of .hs__ascii's own gap above, doubling the space
-           before the mark. */
-        .hs__ascii h2 {
-          margin-bottom: 0;
         }
         /* Light section (per the Figma spec) inside an otherwise-dark
            homepage — redefining --color-fg/-muted locally rather than a
@@ -273,18 +292,56 @@ export default function HomeExperience({
         .hs__testimonials {
           background: #141414;
         }
+        /* Light section, same as .hs__work/.hs__studio — the site-wide
+           Footer used to close the page after this section in the old
+           dark theme; now that its own contact/social links live inside
+           .hs__contact-info below instead, this needed the fuller set of
+           tokens .cse (the case-study template) overrides, not just
+           --color-fg/-muted like the simpler text-only light sections —
+           ContactForm itself reads --color-bg-raised/--color-border/
+           --color-border-strong for its inputs, so those need real light-
+           theme values here too or the form would still render with dark
+           inputs on a light page. */
         .hs__contact {
-          background: #1f1f1f;
+          background: var(--color-white);
+          --color-bg: var(--color-white);
+          --color-bg-raised: var(--color-grey-100);
+          --color-fg: var(--color-black);
+          --color-fg-muted: color-mix(in srgb, var(--color-black) 65%, transparent);
+          --color-border: var(--color-grey-300);
+          --color-border-strong: var(--color-grey-500);
+          color: var(--color-fg);
           min-height: 100svh;
           padding-block: var(--space-6);
         }
-        /* Only one child now (the form) — justify-content:flex-end is
-           what actually puts it on the right; .hs__contact-main's own
-           max-width keeps it from stretching to fill the row once it's
-           the row's only flex item. */
         .hs__contact-grid {
           display: flex;
-          justify-content: flex-end;
+          justify-content: space-between;
+          align-items: flex-start;
+          flex-wrap: wrap;
+          gap: var(--space-6);
+        }
+        .hs__contact-info {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-5);
+          font-size: var(--text-sm);
+        }
+        .hs__contact-links,
+        .hs__contact-socials {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-2);
+        }
+        .hs__contact-info a {
+          color: var(--color-fg);
+          text-decoration: none;
+          opacity: 0.7;
+          transition: opacity var(--duration-base) var(--ease-standard);
+        }
+        .hs__contact-info a:hover,
+        .hs__contact-info a:focus-visible {
+          opacity: 1;
         }
         .hs__contact-main {
           width: 100%;
