@@ -266,47 +266,18 @@ html[data-case-study-linked]::view-transition-new(root) {
    zeroes --duration-slow under reduced motion, which collapses this to an
    instant swap the same way every other timed transition on the site does. */
 
-/* The homepage portfolio card's shared-element morph into a case-study's
-   hero image (same view-transition-name on both — see
-   src/lib/viewTransitions.ts) otherwise runs on the browser's own default
-   view-transition timing, which is brisk (~250ms, no real easing curve) —
-   readable, but not a deliberate "this card is becoming that hero" glide.
-   360ms/240ms here — NOT --duration-slow (600ms) — is a deliberately
-   dedicated pair: real shared-element-transition implementations (Chrome's
-   own View Transitions guidance among them) stagger the image slightly
-   longer than the surrounding content, and explicitly warn that anything
-   much past ~300-400ms starts reading as sluggish rather than smooth —
-   the opposite of what a 600ms version of this same rule tried. Reusing
-   --duration-slow would tie this to a token meant for unrelated reveal/
-   hover animations elsewhere on the site; a dedicated value keeps this
-   free to be tuned on its own.
-   ::view-transition-group(*) is every named element's own size/position
-   interpolation (the actual morph); root itself never changes size or
-   position, so this is a no-op for root and only actually does anything
-   for the named cover-image group(s) — safe to set broadly with the
-   wildcard rather than needing a selector per project slug (which plain
-   CSS can't express anyway — view-transition pseudo-elements only match
-   an exact name or *). --ease-out-expressive (this project's one
-   "settling into place" curve, close to the cubic-bezier(0.2,0.8,0.2,1)
-   cited in that same guidance) reads as decelerating into its final
-   size/position rather than a mechanical linear resize. */
-::view-transition-group(*) {
-  animation-duration: 360ms;
-  animation-timing-function: var(--ease-out-expressive);
-}
-/* The REST of the page (root) resolves faster than the image (240ms, not
-   360ms) — the same staggered-duration principle: content settling a
-   beat before the hero image finishes its own glide reads as more
-   deliberate than everything arriving in lockstep. Deliberately excludes
-   [data-case-study-linked] (case-study <-> case-study): that already has
-   its own, differently-tuned root animation above, and re-declaring plain
-   crossfade timing here would just be dead weight overridden by the more
-   specific rule anyway. */
-html:not([data-case-study-linked])::view-transition-old(root) {
-  animation-duration: 240ms;
-  animation-timing-function: var(--ease-standard);
-}
-html:not([data-case-study-linked])::view-transition-new(root) {
-  animation-duration: 240ms;
-  animation-timing-function: var(--ease-out-expressive);
-}
+/* Homepage <-> case-study (the shared hero-image morph, via matching
+   view-transition-name — see src/lib/viewTransitions.ts) deliberately has
+   NO custom timing here — two separate attempts at overriding it (a
+   600ms version, then a staggered 360ms-image/240ms-root version) both
+   introduced visible flicker/jumpiness instead of fixing anything. The
+   staggered version's most likely problem: root resolving before the
+   named group's own morph finished let the *real* destination content
+   (including the destination page's own static copy of this same hero
+   photo, already sitting in its final position) become visible slightly
+   before the animated snapshot arrived there, reading as a brief double-
+   image flash right at the handoff. The browser's own default timing is
+   internally consistent (nothing resolves out of step with anything
+   else) and known-stable — safer than a third speculative override this
+   session can't actually see rendered. If this gets revisited, keep
+   root and the named group on the SAME duration, not staggered ones. */

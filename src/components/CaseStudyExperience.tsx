@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { navigate } from "astro:transitions/client";
 import { useActiveSection } from "../hooks/useActiveSection";
-import { TypewriterChars } from "./TypewriterText";
 import GalleryCarousel, { type GalleryCarouselItem } from "./carousel/GalleryCarousel";
 
 export type CaseStudySlideMedia =
@@ -271,49 +270,6 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
   const containerRef = useRef<HTMLDivElement>(null);
   const nextRef = useRef<HTMLAnchorElement>(null);
   const [nextProgress, setNextProgress] = useState(0);
-  const [titleRevealCount, setTitleRevealCount] = useState(0);
-
-  // Types the title in once the page has settled — after the hero image's
-  // own view-transition morph (or, arriving via the next-project link, the
-  // whole page's slide-and-fade — see global.css's [data-case-study-linked]
-  // rules) has finished, not while it's still animating in. There's no
-  // reliable cross-browser hook into the *browser's* view-transition
-  // finished promise from the page it lands on, so this is a duration-
-  // matched delay rather than a real completion signal — a deliberate
-  // approximation, not an oversight. It has to cover whichever entrance
-  // path is slower: arriving from another case study plays the 600ms
-  // root slide (--duration-slow); arriving from the homepage plays the
-  // shared hero-image morph instead, a dedicated (and considerably
-  // quicker) 360ms/240ms pair — see global.css's own comment on why that
-  // one is deliberately not --duration-slow. 650ms safely clears both,
-  // since this component can't know in advance which path was taken.
-  // Every mount re-runs this fresh (React islands aren't transition:
-  // persist'd, so Astro remounts this component on every case-study
-  // navigation), so it replays correctly regardless.
-  useEffect(() => {
-    const title = meta.title;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setTitleRevealCount(title.length);
-      return;
-    }
-    const MS_PER_CHARACTER = 65;
-    const SETTLE_DELAY_MS = 650;
-    let frame = 0;
-    let start = 0;
-    const tick = (now: number) => {
-      if (!start) start = now;
-      const count = Math.min(title.length, Math.floor((now - start) / MS_PER_CHARACTER));
-      setTitleRevealCount(count);
-      if (count < title.length) frame = requestAnimationFrame(tick);
-    };
-    const timer = window.setTimeout(() => {
-      frame = requestAnimationFrame(tick);
-    }, SETTLE_DELAY_MS);
-    return () => {
-      window.clearTimeout(timer);
-      cancelAnimationFrame(frame);
-    };
-  }, [meta.title]);
 
   // The only thing tracked here now is which video should autoplay — the
   // chapter TOC that used to be this observer's other consumer is gone
@@ -440,15 +396,7 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
           dedicated back-link or chapter TOC (the persistent header nav is
           the only way back now, a deliberate choice). */}
       <header className="cse__intro">
-        <h1 className="cse__title">
-          {/* The animated reveal is decorative — a screen reader gets the
-              complete, stable title from the visually-hidden span below
-              instead of narrating individual characters as they "type" in. */}
-          <span aria-hidden="true">
-            <TypewriterChars text={meta.title} revealCount={titleRevealCount} />
-          </span>
-          <span className="visually-hidden">{meta.title}</span>
-        </h1>
+        <h1 className="cse__title">{meta.title}</h1>
       </header>
 
       <div className="cse__slides" ref={containerRef}>
@@ -550,18 +498,6 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
           letter-spacing: var(--tracking-tighter);
           line-height: var(--leading-tight);
         }
-        /* Slower and easing-standard, not the shared .tw-letter default
-           (see global.css) — that 45ms/650ms-ease-out pace was tuned for
-           TypewriterHero's scroll-scrubbed reveal, where the actual rate is
-           the user's own scroll speed and "easing" only shapes each
-           letter's color sweep. Here the whole cadence is time-driven, so
-           it reads as the animation's actual pacing — ease-out alone felt
-           abrupt; --ease-standard (the site's one motion curve everywhere
-           else) plus a slightly slower per-letter interval reads calmer. */
-        .cse__title .tw-letter {
-          animation-timing-function: var(--ease-standard);
-        }
-
         /* No viewport-height floor and no per-step background — that floor
            only ever existed to guarantee the old sidebar's sticky-release
            point, and every step sharing one flat surface with the page
