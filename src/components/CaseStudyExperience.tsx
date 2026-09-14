@@ -275,16 +275,21 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
 
   // Types the title in once the page has settled — after the hero image's
   // own view-transition morph (or, arriving via the next-project link, the
-  // whole page's slide-and-fade — see global.css's [data-case-study] rules)
-  // has finished, not while it's still animating in. There's no reliable
-  // cross-browser hook into the *browser's* view-transition finished
-  // promise from the page it lands on, so this is a duration-matched delay
-  // (matching --duration-slow, the same token that transition runs on)
-  // rather than a real completion signal — a deliberate approximation, not
-  // an oversight. Every mount re-runs this fresh (React islands aren't
-  // transition:persist'd, so Astro remounts this component on every
-  // case-study navigation), so it replays correctly whether the page was
-  // just navigated to or freshly loaded.
+  // whole page's slide-and-fade — see global.css's [data-case-study-linked]
+  // rules) has finished, not while it's still animating in. There's no
+  // reliable cross-browser hook into the *browser's* view-transition
+  // finished promise from the page it lands on, so this is a duration-
+  // matched delay rather than a real completion signal — a deliberate
+  // approximation, not an oversight. It has to cover whichever entrance
+  // path is slower: arriving from another case study plays the 600ms
+  // root slide (--duration-slow); arriving from the homepage plays the
+  // shared hero-image morph instead, a dedicated (and considerably
+  // quicker) 360ms/240ms pair — see global.css's own comment on why that
+  // one is deliberately not --duration-slow. 650ms safely clears both,
+  // since this component can't know in advance which path was taken.
+  // Every mount re-runs this fresh (React islands aren't transition:
+  // persist'd, so Astro remounts this component on every case-study
+  // navigation), so it replays correctly regardless.
   useEffect(() => {
     const title = meta.title;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
