@@ -10,16 +10,12 @@ type TrackEntry =
   | { kind: "project"; key: string; item: PinnedPortfolioItem };
 
 // How far (in px) every image is allowed to drift inside its own frame —
-// see .pppc-image's 115%/-7.5% sizing below, which exists purely to give
-// this room without exposing the frame's edge. Deliberately a small
-// oversize (not the 160%/-30% an earlier version used): that gave far more
-// slack than this drift actually needs, and stacked on cover's own crop it
-// was zooming every photo in well beyond the frame's own 3:4 aspect —
-// noticeably cropping a wide hero shot down to a sliver of itself. 15px
-// stays safely inside the ~19px of slack the 115% oversize gives even at
-// the smallest card this ever renders at (the min(384px, 78vw) mobile
-// floor, ~250px on a narrow phone).
-const PARALLAX_RANGE_PX = 15;
+// see .pppc-image's own width-only oversize below. Safe to be generous
+// again: oversizing *width* alone (not height) never affects cover's own
+// vertical scale, so there's no tradeoff here between pan room and how
+// much of the photo's height stays visible, the way an earlier
+// both-axes 160%/-30% version had (see .pppc-image's own comment).
+const PARALLAX_RANGE_PX = 70;
 
 
 /**
@@ -281,19 +277,27 @@ export default function PinnedPortfolioCarousel({
            so with meta out of the height calculation entirely, all four
            are now exactly the same height by construction, not just
            usually the same height. */
-        /* A small 115%/-7.5% oversize — just enough slack for the parallax
-           pan (see PARALLAX_RANGE_PX's own comment) — not the 160%/-30% an
-           earlier version used, which gave far more slack than that drift
-           needs and, stacked on top of cover's own crop, was zooming every
-           photo in well beyond what the frame's 3:4 aspect alone demands
-           (most of a wide hero shot like Samspill's disappearing off the
-           sides). Cover alone already fills the frame top-to-bottom,
-           cropping the sides as needed — the correct, expected amount. */
+        /* Oversized on WIDTH ONLY (not both axes, unlike an earlier 160%/
+           -30% version) — object-fit: cover's own scale is set by
+           whichever axis needs more zoom to fully cover the box, and for
+           every project photo here (all meaningfully wider than the
+           frame's own 3:4 portrait shape) that's always height. Leaving
+           height at a plain 100% means that scale — and so how much of the
+           photo's actual top-to-bottom extent stays visible — is
+           completely unaffected by how much extra width room this gives
+           the parallax pan below: the full height always shows, cropping
+           only ever eats into the sides. Oversizing height too (the
+           earlier version's mistake) changes the box's own aspect ratio,
+           which changes cover's scale, which crops the top/bottom as well
+           — exactly the "why isn't this filling vertically" bug this
+           fixes. Margin only on the inline axis to recenter the extra
+           width; no vertical margin needed since height was never
+           oversized. */
         .pppc-image {
           display: block;
-          width: 115%;
-          height: 115%;
-          margin: -7.5%;
+          width: 160%;
+          height: 100%;
+          margin-inline: -30%;
           max-width: none;
           object-fit: cover;
           filter: grayscale(1) saturate(0.28);
