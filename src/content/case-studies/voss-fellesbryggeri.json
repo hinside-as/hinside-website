@@ -127,16 +127,16 @@
         "type": "gallery",
         "items": [
           {
-            "src": "projects/voss-fellesbryggeri/sections/handwriting.webp",
-            "alt": "A sketchbook with hand-lettered Voss Fellesbryggeri logos and product names like \"Slalom Porter\", \"Kvit øl\" and \"Traa\", with marker pens resting beside it"
-          },
-          {
             "src": "projects/voss-fellesbryggeri/sections/t-shirt.webp",
             "alt": "Black t-shirts printed with the same hand-lettered typography — \"Kvit øl i Myrkdalen\" and \"Traa\" — extending the handwriting system onto merchandise"
           },
           {
             "src": "projects/voss-fellesbryggeri/sections/applications.webp",
             "alt": "Stationery flatlay with Voss Fellesbryggeri letterhead, envelopes and hand-lettered coasters printed with product names, alongside pencils and bottle caps"
+          },
+          {
+            "src": "projects/voss-fellesbryggeri/sections/handwriting.webp",
+            "alt": "A sketchbook with hand-lettered Voss Fellesbryggeri logos and product names like \"Slalom Porter\", \"Kvit øl\" and \"Traa\", with marker pens resting beside it"
           }
         ]
       }

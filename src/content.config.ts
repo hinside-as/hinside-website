@@ -80,6 +80,19 @@ const sectionMedia = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("video"),
     src: z.string(),
+    // Still frame shown until the video plays, and — when set — what the
+    // page uses to reserve the video's aspect ratio before it loads (same
+    // path convention as "image" — under src/assets/media).
+    poster: z.string().optional(),
+    // The video file's own pixel size — unlike "image", a video's src isn't
+    // run through astro:assets, so there's nothing to read intrinsic
+    // dimensions from automatically the way getImage() does for a poster or
+    // a plain image. Needed for aspect-ratio reservation on a video with no
+    // poster (a deliberate choice — not every autoplaying background clip
+    // should show a static frame first); when a poster IS set, its own
+    // resolved size is used instead and this is redundant.
+    width: z.number().optional(),
+    height: z.number().optional(),
     // Same art-directed-crop idea as "image"'s mobileSrc, and for the same
     // reason a wide desktop composition can fail completely reframed tall
     // — a distinct file, not a resized variant of the same one. Public/
@@ -91,6 +104,14 @@ const sectionMedia = z.discriminatedUnion("type", [
     // surfacing controls for, so this defaults off rather than adding a
     // button to every video regardless of whether it has anything to say.
     allowUnmute: z.boolean().optional(),
+    // A video that's genuinely taller than wide (e.g. a phone-shot clip
+    // with no separate landscape "desktop" cut) — the default
+    // width:100%/height:auto treatment stretches it to the full content
+    // column width, which for a 9:16 clip makes the slide absurdly tall on
+    // desktop. This caps it by height instead of width there (see
+    // CaseStudyExperience's own .cse__media--portrait); mobile is left
+    // alone since a portrait clip already suits a portrait screen.
+    portrait: z.boolean().optional(),
   }),
   // Same idea as "gallery" (images), but for a small set of video clips
   // that all belong to one chapter — the flattening in [slug].astro turns

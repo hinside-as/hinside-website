@@ -70,7 +70,9 @@
       "media": {
         "type": "video",
         "src": "/media/projects/samspill/video/result.mp4",
-        "allowUnmute": true
+        "width": 1080,
+        "height": 1920,
+        "portrait": true
       }
     },
     {

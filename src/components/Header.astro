@@ -9,21 +9,33 @@ type Props = {
   menuLabel: string;
   closeLabel: string;
   otherLocaleLabel: string;
-  /** False on slide-based pages (the homepage), which drive the header's
-   * visibility themselves rather than this component's own scroll-
-   * direction-based show/hide. */
-  scrollControlsVisibility?: boolean;
+  /** Static override for --header-fg (see this component's own <style>),
+   * for a page whose content is uniformly one color throughout — e.g. the
+   * case-study template, entirely --color-soft-cream/-black — where the
+   * homepage's own per-section IntersectionObserver switch would have
+   * nothing to observe (no [data-header-theme] sections exist there) and
+   * would otherwise leave --header-fg at its dark-default white, wrong
+   * against a light page. Server-rendered directly rather than set via
+   * script, so it's correct from first paint with no flash; the homepage
+   * never passes this, leaving the dynamic per-section behavior intact. */
+  theme?: "light";
 };
 
-const { locale, links, menuLabel, closeLabel, otherLocaleLabel, scrollControlsVisibility = true } = Astro.props;
+const {
+  locale,
+  links,
+  menuLabel,
+  closeLabel,
+  otherLocaleLabel,
+  theme,
+} = Astro.props;
 const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
 ---
 
 <header
   class="site-header"
   data-site-header
-  data-hidden="false"
-  data-scroll-controls-visibility={String(scrollControlsVisibility)}
+  data-header-theme={theme}
 >
   <div class="site-header__row">
     <div class="site-header__brand">
@@ -38,63 +50,37 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
       client:load
     />
   </div>
-  {/* SiteNav portals its expanded mobile-menu content in here (see its own
-     comment) — position: relative makes this the positioning context for
-     that panel's own position: absolute, so it overlays whatever's below
-     the header instead of pushing it down the page. Not document.body:
-     staying inside .site-header keeps the panel visually anchored to (and
-     the same width as) the header pill, matching the Figma spec's compact
-     dropdown rather than a full-screen takeover. */}
-  <div id="mobile-nav-panel-target"></div>
 </header>
 
 <style>
-  /* Detached floating pill, used on every page: inset from the viewport
-     on all sides rather than flush, so it reads as its own surface
-     floating above the page instead of a bar spanning it edge to edge.
-     A translucent blurred
-     black, not the flat solid color an earlier pass switched to — that
-     switch was specifically to avoid backdrop-filter sampling different
-     content behind it (a light section vs. one of the portfolio carousel's
-     own images) and reading as two mismatched rectangles; reintroduced
-     here deliberately, with that same variance now an accepted trade-off
-     rather than an oversight. No box-shadow — the blur itself is what
-     separates the pill from the page now, a drop shadow on top of that
-     read as redundant. */
+  /* No pill/background anymore — the header is a transparent overlay strip
+     sitting flush at the very top of the viewport, on every page. Its
+     content (logo + nav — see BrandMark.astro and SiteNav.tsx, both of
+     which read --header-fg instead of a hardcoded color) switches between
+     black and white depending on what's currently behind it.
+     mix-blend-mode: difference (the same technique EyeCursorItem uses for
+     the carousel's custom cursor) was the first approach tried here, but
+     confirmed via isolated testing NOT to work: mix-blend-mode does not
+     blend against scrolled page content when the blending element is a
+     descendant of a position: sticky/fixed ancestor (a real browser
+     compositing limitation — sticky/fixed elements get their own
+     compositor layer, and blend-mode can't reach across that boundary).
+     EyeCursorItem's cursor only works because it's a plain, non-fixed
+     absolutely-positioned element within a normal local stacking context.
+     --header-fg defaults to white (the site's own dark-by-default base);
+     the script below watches [data-header-theme] section markers (see
+     HomeExperience.tsx) via IntersectionObserver and flips it to black
+     while a light section sits under the header. */
   .site-header {
+    --header-fg: var(--color-white);
     position: sticky;
-    top: 24px;
+    top: 0;
     z-index: 50;
     display: flex;
     flex-direction: column;
-    /* 24px from the viewport edge on every side — left, right, and top
-       (the sticky offset above) all the same flat value, capped by
-       --content-max-width once the viewport gets wide enough that a plain
-       24px inset would otherwise keep growing past it. --space-4 is that
-       same 24px, already used for the *inner* logo-to-pill-edge gap below
-       — reused here for the *outer* pill-to-viewport gap, a different
-       role, same value. */
-    width: calc(100% - var(--space-4) * 2);
-    max-width: calc(var(--content-max-width) - var(--space-4) * 2);
-    margin-inline: auto;
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--color-black) 85%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition:
-      transform var(--duration-base) var(--ease-standard),
-      border-radius var(--duration-fast) var(--ease-standard);
   }
-  /* Squares off the row's own bottom corners while the mobile menu panel
-     is open beneath it (see SiteNav.tsx's own effect, which is what sets
-     this — the header itself has no way to know that component's isOpen
-     state on its own) — otherwise the row's rounded bottom corner and the
-     panel's square top corner (only ITS bottom is rounded, in
-     SiteNav.tsx, to read as one shape with the row above it) don't align,
-     leaving a small notch of the page's own background cut into what
-     should be one continuous blurred surface. */
-  .site-header[data-menu-open="true"] {
-    border-radius: 8px 8px 0 0;
+  .site-header[data-header-theme="light"] {
+    --header-fg: var(--color-black);
   }
   .site-header__row {
     flex: 0 0 auto;
@@ -102,24 +88,14 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
     align-items: center;
     justify-content: space-between;
     height: var(--header-height);
-    /* --space-4 is exactly 24px — the same on both sides, at every
-       viewport width, on every page. */
-    padding-inline: var(--space-4);
-  }
-  /* Positioning context for the mobile panel's own position: absolute
-     (see #mobile-nav-panel in SiteNav.tsx) — deliberately the *target*
-     div, not .site-header itself, so the panel anchors to exactly where
-     it used to sit in normal flow (flush under the row) without needing
-     to account for .site-header's own padding/border-radius. .site-header
-     no longer clips overflow (see its own rule above) specifically so this
-     panel can extend below the row's fixed height without being cut off —
-     it carries its own background/radius/shadow now instead of relying on
-     the header's shared box for that. */
-  #mobile-nav-panel-target {
-    position: relative;
-  }
-  .site-header[data-hidden="true"] {
-    transform: translateY(-100%);
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+    /* Same column every other section on the site uses (see
+       HomeExperience.tsx's .hs__content) — the logo lands flush with the
+       left edge of the page's main content and the nav flush with the
+       right, rather than the old pill's own smaller viewport inset. */
+    padding-inline: var(--space-5);
   }
   .site-header__brand {
     width: var(--brand-mark-width);
@@ -129,38 +105,86 @@ const otherHref = localizedPath(otherLocale(locale), Astro.url.pathname);
 </style>
 
 <script>
-  const header = document.querySelector<HTMLElement>("[data-site-header]");
-  if (header) {
-    let lastScrollY = window.scrollY;
-    const scrollControlsVisibility = header.dataset.scrollControlsVisibility !== "false";
+  // Everything here runs per *page*, not once per full load: with
+  // ClientRouter a navigation swaps in a brand-new <header>, so anything
+  // bound to the header found at first load silently stops applying to it
+  // (which is why the header used to behave differently depending on which
+  // page you happened to arrive on first). astro:page-load fires on the
+  // initial load and after every navigation.
+  const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const onScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (scrollControlsVisibility) {
-        const isScrollingDown = currentScrollY > lastScrollY;
-        header.dataset.hidden = String(isScrollingDown && currentScrollY > 160);
-      }
-      lastScrollY = currentScrollY;
+  // Same-page nav links: native scrollIntoView, not a hand-rolled rAF
+  // easing loop — no need to hand-roll scroll physics the browser already
+  // provides. Target elements get their header clearance from
+  // scroll-margin-top (see HomeExperience's #work/#studio/#contact).
+  // Delegated on document, once, so it covers whichever header is current.
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+    const link = event.target.closest<HTMLAnchorElement>("[data-site-header] a[data-nav-hash]");
+    if (!link) return;
+    const hash = link.dataset.navHash;
+    const target = hash ? document.getElementById(hash) : null;
+    if (!target) return;
+    event.preventDefault();
+    target.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+  });
+
+  // Switches --header-fg (see this component's own <style>) between black
+  // and white based on which [data-header-theme] section (see
+  // HomeExperience.tsx) currently sits under the header's own strip — only
+  // present on pages that actually mark sections up (currently just the
+  // homepage); resolves to nothing everywhere else, leaving the header's
+  // own server-rendered theme (or the CSS default) in place.
+  let themeObserver: IntersectionObserver | null = null;
+  let onThemeResize: (() => void) | null = null;
+
+  const setupHeaderTheme = () => {
+    themeObserver?.disconnect();
+    if (onThemeResize) window.removeEventListener("resize", onThemeResize);
+    themeObserver = null;
+    onThemeResize = null;
+
+    const header = document.querySelector<HTMLElement>("[data-site-header]");
+    const themedSections = Array.from(document.querySelectorAll<HTMLElement>("[data-header-theme]"));
+    if (!header || themedSections.length === 0) return;
+
+    // Seeds the correct value synchronously, before the observer's own
+    // (near-instant, but async) first callback — avoids a flash of the
+    // wrong color on a normal top-of-page load. A deep link landing
+    // further down the page briefly seeds the wrong value until the
+    // observer corrects it on its first callback, same tradeoff every
+    // IntersectionObserver-based indicator on this site already accepts
+    // (see useActiveNavSection).
+    const firstTheme = themedSections[0].getAttribute("data-header-theme");
+    if (firstTheme) header.dataset.headerTheme = firstTheme;
+
+    const observe = () => {
+      themeObserver?.disconnect();
+      // rootMargin shrinks the observed root down to a 1px line through the
+      // header's vertical middle — the section crossing that line is
+      // whatever's actually behind the header's text right now, so the
+      // colour flips exactly as a section boundary passes the middle of
+      // the header (a band the full height of the header flipped it up to
+      // half a header-height too early, briefly leaving e.g. white text on
+      // the still-white section).
+      // Recomputed on resize since it bakes in window.innerHeight.
+      const headerHeight = header.getBoundingClientRect().height;
+      themeObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const theme = entry.target.getAttribute("data-header-theme");
+            if (theme) header.dataset.headerTheme = theme;
+          }
+        },
+        { rootMargin: `-${headerHeight / 2}px 0px -${window.innerHeight - headerHeight / 2 - 1}px 0px`, threshold: 0 },
+      );
+      themedSections.forEach((section) => themeObserver?.observe(section));
     };
+    observe();
+    onThemeResize = observe;
+    window.addEventListener("resize", onThemeResize);
+  };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    // Native scrollIntoView, not a hand-rolled rAF easing loop — no need to
-    // hand-roll scroll physics the browser already provides. Target
-    // elements get their header clearance from scroll-margin-top (see
-    // HomeExperience's #work/#studio/#contact) rather than a manual offset
-    // calculated here.
-    const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const navLinks = header.querySelectorAll<HTMLAnchorElement>("a[data-nav-hash]");
-    navLinks.forEach((link) => {
-      link.addEventListener("click", (event) => {
-        const hash = link.dataset.navHash;
-        const target = hash ? document.getElementById(hash) : null;
-        if (!target) return;
-        event.preventDefault();
-        target.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
-      });
-    });
-  }
+  document.addEventListener("astro:page-load", setupHeaderTheme);
 </script>

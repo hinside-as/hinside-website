@@ -46,57 +46,52 @@ export default function GalleryCarousel({
       onClickCapture={onClickCapture}
     >
       <div ref={trackRef} className="gallery-carousel__track">
-        {loopItems.map((item, index) =>
-          colorful ? (
-            // No hover, no slowdown, no lightbox, no eye cursor — this
-            // variant is a set of product renders meant to just sit there
-            // and be dragged, not individually interactive tiles. Plain
-            // img in a plain div, none of the button/EyeCursorItem/hover-
-            // handler machinery the interactive shapes need.
-            <div className="gallery-carousel__item" key={`${item.src}-${index}`} aria-hidden={index >= items.length}>
-              <img className="gallery-carousel__image" src={item.src} alt={item.alt} draggable={false} />
-            </div>
-          ) : (
-            <div
-              className="gallery-carousel__item"
-              key={`${item.src}-${index}`}
-              aria-hidden={index >= items.length}
-              // Per-item, not on the padded outer track (see
-              // useDragCarousel's own hoverCountRef comment) — the track's
-              // cursor-headroom padding otherwise counted as "hovering the
-              // carousel" before the pointer reached an actual tile.
-              onMouseEnter={onMouseEnter}
-              onMouseLeave={onMouseLeave}
+        {loopItems.map((item, index) => (
+          <div
+            className="gallery-carousel__item"
+            key={`${item.src}-${index}`}
+            aria-hidden={index >= items.length}
+            // Per-item, not on the padded outer track (see
+            // useDragCarousel's own hoverCountRef comment) — the track's
+            // cursor-headroom padding otherwise counted as "hovering the
+            // carousel" before the pointer reached an actual tile.
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+          >
+            <button
+              type="button"
+              className="gallery-carousel__button"
+              aria-label={`View ${item.alt}`}
+              tabIndex={index >= items.length ? -1 : 0}
+              onClick={() => {
+                if (!isDraggingRef.current) setLightboxIndex(index % items.length);
+              }}
             >
-              <button
-                type="button"
-                className="gallery-carousel__button"
-                aria-label={`View ${item.alt}`}
-                tabIndex={index >= items.length ? -1 : 0}
-                onClick={() => {
-                  if (!isDraggingRef.current) setLightboxIndex(index % items.length);
-                }}
-              >
+              {/* colorful items skip the eye cursor — it's built for the
+                  square/circle/icon shell sizes, not colorful's own
+                  auto-width/fixed-height product renders — but they still
+                  click through to the lightbox like every other shape. */}
+              {colorful ? (
+                <img className="gallery-carousel__image" src={item.src} alt={item.alt} draggable={false} />
+              ) : (
                 <EyeCursorItem isCarouselDragging={() => isDraggingRef.current} bare radius={SHELL_RADIUS[shape]}>
                   <img className="gallery-carousel__image" src={item.src} alt={item.alt} draggable={false} />
                   {shape === "icon" && <span className="gallery-carousel__pixel-grid" aria-hidden="true" />}
                 </EyeCursorItem>
-              </button>
-            </div>
-          ),
-        )}
+              )}
+            </button>
+          </div>
+        ))}
       </div>
 
-      {!colorful && (
-        <Lightbox
-          items={items}
-          currentIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-          onNavigate={setLightboxIndex}
-          pixelGrid={shape === "icon"}
-          shape={shape}
-        />
-      )}
+      <Lightbox
+        items={items}
+        currentIndex={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onNavigate={setLightboxIndex}
+        pixelGrid={shape === "icon"}
+        shape={shape}
+      />
 
       <style>{`
         .gallery-carousel {

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   EYE_CURSOR_FRAMES,
   BLINK_SEQUENCE_SINGLE,
@@ -8,6 +8,63 @@ import {
   BLINK_NEXT_DELAY_MIN_MS,
   BLINK_NEXT_DELAY_RANGE_MS,
 } from "./cursor-frames";
+
+// Last known mouse position and ONE shared scroll/pointer listener for
+// every item. Scrolling can carry an item under (or out from under) a
+// stationary mouse without the browser reporting any pointer event, so the
+// shared listener hit-tests the pointer position once per frame (a single
+// elementFromPoint, however many items there are) and tells the matching
+// item to show its eye — and every other one to hide it.
+const lastPointer = { x: 0, y: 0, mouse: false };
+type ItemHandlers = {
+  enter: (x: number, y: number) => void;
+  leave: () => void;
+  isActive: () => boolean;
+  canRun: () => boolean;
+};
+const registry = new Map<Element, ItemHandlers>();
+let listening = false;
+let checkQueued = false;
+
+const runCheck = () => {
+  checkQueued = false;
+  if (!lastPointer.mouse) return;
+  const hit = document.elementFromPoint(lastPointer.x, lastPointer.y);
+  const shell = hit?.closest(".eye-cursor-item__shell") ?? null;
+  registry.forEach((handlers, element) => {
+    if (element === shell) {
+      if (!handlers.isActive() && handlers.canRun()) handlers.enter(lastPointer.x, lastPointer.y);
+    } else if (handlers.isActive()) {
+      handlers.leave();
+    }
+  });
+};
+const queueCheck = () => {
+  if (checkQueued) return;
+  checkQueued = true;
+  window.requestAnimationFrame(runCheck);
+};
+const onSharedPointerMove = (event: PointerEvent) => {
+  lastPointer.x = event.clientX;
+  lastPointer.y = event.clientY;
+  lastPointer.mouse = event.pointerType === "mouse";
+};
+const subscribe = (element: Element, handlers: ItemHandlers) => {
+  registry.set(element, handlers);
+  if (!listening) {
+    window.addEventListener("pointermove", onSharedPointerMove, { passive: true });
+    window.addEventListener("scroll", queueCheck, { passive: true });
+    listening = true;
+  }
+  return () => {
+    registry.delete(element);
+    if (registry.size === 0) {
+      window.removeEventListener("pointermove", onSharedPointerMove);
+      window.removeEventListener("scroll", queueCheck);
+      listening = false;
+    }
+  };
+};
 
 /**
  * Wraps an image with the hinside "eye" cursor: a small sprite that tracks
@@ -33,6 +90,7 @@ export default function EyeCursorItem({
   /** Corner rounding of the shell itself, e.g. "50%" for portraits. */
   radius?: string;
 }) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
   const cursorRef = useRef<HTMLSpanElement | null>(null);
   const blinkTimerRef = useRef<number | null>(null);
@@ -48,7 +106,11 @@ export default function EyeCursorItem({
     return !window.matchMedia("(max-width: 720px), (hover: none), (pointer: coarse)").matches;
   };
 
-  const syncCursorPositionFromPointer = () => {
+  // updateGlint is only true on real pointer events: writing the glint's
+  // custom properties forces a style recalc + repaint of a large gradient
+  // layer, far too costly to do every frame while a card is just being
+  // carried past a stationary pointer.
+  const syncCursorPositionFromPointer = (updateGlint = false) => {
     const cursor = cursorRef.current;
     const shell = shellRef.current;
     if (!cursor || !shell) return;
@@ -65,8 +127,10 @@ export default function EyeCursorItem({
     // filtered backdrop in sync with a reflowing element. translate3d is
     // compositor-only, so the same tracking never touches layout.
     cursor.style.transform = `translate3d(${relativeX - frame.hotX}px, ${relativeY - frame.hotY}px, 0)`;
-    shell.style.setProperty("--glint-x", `${relativeX}px`);
-    shell.style.setProperty("--glint-y", `${relativeY}px`);
+    if (updateGlint) {
+      shell.style.setProperty("--glint-x", `${relativeX}px`);
+      shell.style.setProperty("--glint-y", `${relativeY}px`);
+    }
   };
 
   const applyCursorFrame = (frameIndex: number) => {
@@ -139,17 +203,50 @@ export default function EyeCursorItem({
     positionRafRef.current = window.requestAnimationFrame(tick);
   };
 
+  const enterImage = (x: number, y: number) => {
+    isHoveringRef.current = true;
+    isImageHoveringRef.current = true;
+    pointerXRef.current = x;
+    pointerYRef.current = y;
+    rootRef.current?.setAttribute("data-eye-active", "true");
+    applyCursorFrame(0);
+    syncCursorPositionFromPointer(true);
+    startBlink();
+    startCursorTracking();
+  };
+
+  const leaveImage = () => {
+    isImageHoveringRef.current = false;
+    rootRef.current?.removeAttribute("data-eye-active");
+    stopBlink();
+    stopCursorTracking();
+  };
+
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) return;
+    return subscribe(shell, {
+      enter: enterImage,
+      leave: () => {
+        isHoveringRef.current = false;
+        leaveImage();
+      },
+      isActive: () => isImageHoveringRef.current,
+      canRun: () => isEyeCursorEnabled() && !isCarouselDragging(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div
+      ref={rootRef}
       className="eye-cursor-item"
       onPointerEnter={() => {
         isHoveringRef.current = true;
       }}
       onPointerLeave={() => {
         isHoveringRef.current = false;
-        stopBlink();
-        stopCursorTracking();
-        isImageHoveringRef.current = false;
+        leaveImage();
       }}
     >
       <div
@@ -158,25 +255,15 @@ export default function EyeCursorItem({
         style={{ borderRadius: radius }}
         onPointerEnter={(event) => {
           if (!isEyeCursorEnabled() || isCarouselDragging() || event.pointerType !== "mouse") return;
-          isImageHoveringRef.current = true;
-          pointerXRef.current = event.clientX;
-          pointerYRef.current = event.clientY;
-          applyCursorFrame(0);
-          syncCursorPositionFromPointer();
-          startBlink();
-          startCursorTracking();
+          enterImage(event.clientX, event.clientY);
         }}
         onPointerMove={(event) => {
           if (!isEyeCursorEnabled() || isCarouselDragging() || event.pointerType !== "mouse") return;
           pointerXRef.current = event.clientX;
           pointerYRef.current = event.clientY;
-          syncCursorPositionFromPointer();
+          syncCursorPositionFromPointer(true);
         }}
-        onPointerLeave={() => {
-          isImageHoveringRef.current = false;
-          stopBlink();
-          stopCursorTracking();
-        }}
+        onPointerLeave={leaveImage}
       >
         {children}
       </div>
@@ -187,6 +274,13 @@ export default function EyeCursorItem({
           position: relative;
           width: 100%;
           height: 100%;
+          /* The cursor's mix-blend-mode/backdrop-filter only ever needs the
+             image inside this same item. Without isolation the blend group
+             is the whole surrounding stacking context (the entire moving
+             carousel track), which the GPU has to re-composite through an
+             offscreen surface every frame while the eye is showing — this
+             confines it to just this item's own box. */
+          isolation: isolate;
         }
         .eye-cursor-item__shell {
           position: relative;
@@ -196,8 +290,10 @@ export default function EyeCursorItem({
           --glint-x: 50%;
           --glint-y: 30%;
           background: var(--color-bg-raised);
+          /* Static: an animated box-shadow blur repaints every frame, and
+             cards sweep under the pointer constantly while the carousel
+             scrolls. */
           box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
-          transition: box-shadow var(--duration-slow) var(--ease-standard);
           cursor: none;
         }
         .eye-cursor-item__shell::after {
@@ -213,10 +309,6 @@ export default function EyeCursorItem({
               rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 34%, rgba(255, 255, 255, 0) 72%);
           opacity: 0;
           transition: opacity var(--duration-slow) var(--ease-standard);
-        }
-        .eye-cursor-item__shell:hover,
-        .eye-cursor-item__shell:focus-visible {
-          box-shadow: 0 22px 40px rgba(0, 0, 0, 0.38);
         }
         .eye-cursor-item__shell--bare,
         .eye-cursor-item__shell--bare:hover,
@@ -280,7 +372,10 @@ export default function EyeCursorItem({
           mix-blend-mode: difference;
           transition: opacity 120ms var(--ease-standard);
         }
-        .eye-cursor-item__shell:hover ~ .eye-cursor-item__cursor {
+        /* Driven by the JS above (data-eye-active), not :hover — after a
+           scroll moves a card under a stationary mouse the browser hasn't
+           re-applied :hover yet, but the eye should already be there. */
+        .eye-cursor-item[data-eye-active="true"] .eye-cursor-item__cursor {
           opacity: 1;
         }
 

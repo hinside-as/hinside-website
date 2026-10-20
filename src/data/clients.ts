@@ -19,4 +19,8 @@ export const clients: Client[] = [
   { name: "DOGA", tagline: "Design", href: "https://www.doga.no/", logo: "/media/shared/client-logos/doga.svg", height: 4 },
   { name: "Ungdata", tagline: "Research", href: "https://www.ungdata.no/", logo: "/media/shared/client-logos/ungdata.svg", height: 2 },
   { name: "Eir", tagline: "Healthcare", href: "https://www.eir.no/", logo: "/media/shared/client-logos/eir.svg", height: 3 },
+  { name: "Convention", tagline: "Events", href: "https://www.convention.no/", logo: "/media/shared/client-logos/convention.svg", height: 2.5 },
+  { name: "Voss Fellesbryggeri", tagline: "Brewery", href: "https://fellesbryggeri.squarespace.com/", logo: "/media/shared/client-logos/voss-fellesbryggeri.svg", height: 4 },
+  { name: "Møller Bil", tagline: "Automotive", href: "https://www.mollerbil.no/", logo: "/media/shared/client-logos/moller-bil.svg", height: 2 },
+  { name: "Bama", tagline: "Fruit & Berries", href: "https://www.bama.no/", logo: "/media/shared/client-logos/bama.svg", height: 3 },
 ];

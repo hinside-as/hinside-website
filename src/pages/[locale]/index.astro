@@ -59,10 +59,9 @@ const testimonials = (await getCollection("testimonials")).map((testimonial) => 
 }));
 
 const formLabels = {
+  name: t("form.name"),
   email: t("form.email"),
-  emailPlaceholder: t("form.emailPlaceholder"),
   message: t("form.message"),
-  messagePlaceholder: t("form.messagePlaceholder"),
   submit: t("form.submit"),
   note: t("form.note"),
   success: t("form.success"),
@@ -78,10 +77,6 @@ const heroHeadlineStatic =
   locale === "no" ? "Design er problemløsning, ikke dekor" : "Design is solving problems, not decoration";
 const heroHeadlineReveal =
   locale === "no" ? " — med mindre dekor løser problemer" : " — unless decoration solves a problem.";
-const studioParagraph =
-  locale === "no"
-    ? "Hinsides tilnærming ble formet lenge før den fikk et navn — det startet bak disken i en skiltbutikk, med å skjære logoer og bokstaver for hånd, og ble skjerpet gjennom et av Norges mest selektive kreative studieprogrammer og et legendarisk studentdrevet studio bygget på ambisjon fremfor fakturering. Derfra: helhetlig merkevarebygging for noen av Norges sterkeste navn, mindre studioer, frilansarbeid, og ledelse av design i et voksende teknologiselskap. Ulike rom, ulike innsatser, samme instinkt — å behandle design som et verktøy for å løse noe reelt."
-    : "Hinside's approach was shaped long before it had a name — starting behind the counter of a sign shop, cutting logos and lettering by hand, then sharpening through one of Norway's most selective creative programs and a legendary student-run studio built on ambition over invoicing. From there: full-service branding for some of Norway's strongest names, smaller studios, freelance work, and leading design inside a growing tech company. Different rooms, different stakes, same instinct — treat design as a tool for solving something real.";
 ---
 
 <BaseLayout
@@ -89,18 +84,19 @@ const studioParagraph =
   title="Hinside — design & development studio"
   description={t("home.hero.eyebrow")}
   bodyBackground="var(--color-white)"
-  headerScrollControlsVisibility={false}
   hideFooter
 >
   <HomeExperience
     client:load
     heroHeadlineStatic={heroHeadlineStatic}
     heroHeadlineReveal={heroHeadlineReveal}
+    studioParagraphs={[t("home.studio.p1"), t("home.studio.p2"), t("home.studio.p3"), t("home.studio.p4")]}
     workIntro={t("home.work.intro")}
     workOutro={t("home.work.outro")}
     clientsHeading={t("home.clients.heading")}
     clientsIntro={t("home.clients.intro")}
     contactHeading={t("nav.contact")}
+    contactIntro={t("contact.intro")}
     portfolioItems={portfolioItems}
     clientItems={clientItems}
     testimonials={testimonials}

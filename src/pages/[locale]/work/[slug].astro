@@ -1,4 +1,5 @@
 ---
+import { readFile } from "node:fs/promises";
 import { getCollection } from "astro:content";
 import { getImage } from "astro:assets";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
@@ -37,6 +38,31 @@ async function resolveImageSrc(src: string, width = 1920): Promise<string> {
   return optimized.src;
 }
 
+// Same, plus the optimized file's real pixel size — passed through as
+// width/height attributes so the browser reserves each image's exact
+// aspect ratio before it has loaded (without them the page reflows as
+// every image arrives, which reads as content jumping around).
+type ResolvedImage = { src: string; width?: number; height?: number };
+async function resolveImage(src: string, width = 1920): Promise<ResolvedImage> {
+  if (src.startsWith("/")) {
+    // Static /public SVGs skip astro:assets, so read their intrinsic size
+    // straight from the file instead.
+    if (src.endsWith(".svg")) {
+      try {
+        const head = (await readFile(new URL(`../../../../public${src}`, import.meta.url), "utf8")).slice(0, 400);
+        const w = head.match(/<svg[^>]*\swidth="([\d.]+)"/);
+        const h = head.match(/<svg[^>]*\sheight="([\d.]+)"/);
+        if (w && h) return { src, width: Math.round(Number(w[1])), height: Math.round(Number(h[1])) };
+      } catch {
+        // No size — the image just reserves nothing until it loads.
+      }
+    }
+    return { src };
+  }
+  const optimized = await getImage({ src: getMediaImage(src), width });
+  return { src: optimized.src, width: optimized.attributes.width, height: optimized.attributes.height };
+}
+
 const slides: CaseStudySlide[] = [];
 for (const section of entry.data.sections) {
   const heading = section.heading[locale];
@@ -49,18 +75,28 @@ for (const section of entry.data.sections) {
   }
 
   if (media.type === "image") {
-    const src = await resolveImageSrc(media.src);
+    const image = await resolveImage(media.src);
     // 1080, not 1920 — matches the mobile export guidance (390px CSS width
     // × up to ~3x device pixel ratio), so a mobile crop isn't shipping
     // desktop-sized bytes to a phone.
-    const mobileSrc = media.mobileSrc ? await resolveImageSrc(media.mobileSrc, 1080) : undefined;
+    const mobileImage = media.mobileSrc ? await resolveImage(media.mobileSrc, 1080) : undefined;
     slides.push({
       chapterId: section.id,
       heading,
       body,
-      media: { type: "image", src, alt: media.alt[locale], mobileSrc },
+      media: {
+        type: "image",
+        src: image.src,
+        width: image.width,
+        height: image.height,
+        alt: media.alt[locale],
+        mobileSrc: mobileImage?.src,
+        mobileWidth: mobileImage?.width,
+        mobileHeight: mobileImage?.height,
+      },
     });
   } else if (media.type === "video") {
+    const sectionPoster = media.poster ? await resolveImage(media.poster) : undefined;
     slides.push({
       chapterId: section.id,
       heading,
@@ -69,7 +105,11 @@ for (const section of entry.data.sections) {
         type: "video",
         src: media.src,
         mobileSrc: media.mobileSrc,
+        poster: sectionPoster?.src,
+        width: media.width ?? sectionPoster?.width,
+        height: media.height ?? sectionPoster?.height,
         allowUnmute: media.allowUnmute,
+        portrait: media.portrait,
       },
     });
   } else if (media.type === "videoGallery") {
@@ -83,39 +123,51 @@ for (const section of entry.data.sections) {
           src: item.src,
           mobileSrc: item.mobileSrc,
           poster: poster?.src,
+          width: poster?.attributes.width,
+          height: poster?.attributes.height,
           mobilePoster: mobilePoster?.src,
+          mobileWidth: mobilePoster?.attributes.width,
+          mobileHeight: mobilePoster?.attributes.height,
           allowUnmute: item.allowUnmute,
         };
       }),
     );
+    // A section's media stays together and its text follows the whole
+    // group, rather than the text being wedged between the images.
     items.forEach((item, i) => {
+      const last = i === items.length - 1;
       slides.push({
         chapterId: section.id,
-        heading: i === 0 ? heading : undefined,
-        body: i === 0 ? body : undefined,
+        heading: last ? heading : undefined,
+        body: last ? body : undefined,
         media: { type: "video", ...item },
       });
     });
   } else if (media.type === "gallery") {
     const items = await Promise.all(
       media.items.map(async (item) => ({
-        src: await resolveImageSrc(item.src),
+        image: await resolveImage(item.src),
         alt: item.alt,
-        mobileSrc: item.mobileSrc ? await resolveImageSrc(item.mobileSrc, 1080) : undefined,
+        mobileImage: item.mobileSrc ? await resolveImage(item.mobileSrc, 1080) : undefined,
         padded: item.padded,
         background: item.background,
       })),
     );
     items.forEach((item, i) => {
+      const last = i === items.length - 1;
       slides.push({
         chapterId: section.id,
-        heading: i === 0 ? heading : undefined,
-        body: i === 0 ? body : undefined,
+        heading: last ? heading : undefined,
+        body: last ? body : undefined,
         media: {
           type: "image",
-          src: item.src,
+          src: item.image.src,
+          width: item.image.width,
+          height: item.image.height,
           alt: item.alt,
-          mobileSrc: item.mobileSrc,
+          mobileSrc: item.mobileImage?.src,
+          mobileWidth: item.mobileImage?.width,
+          mobileHeight: item.mobileImage?.height,
           padded: item.padded,
           background: item.background,
         },
@@ -129,24 +181,32 @@ for (const section of entry.data.sections) {
     const items = await Promise.all(
       media.items.map(async (item) => ({ src: await resolveImageSrc(item.src), alt: item.alt })),
     );
+    // With a trailing image, the carousel and the image stay together and
+    // the section's text follows the pair (on the trailing image's slide).
     slides.push({
       chapterId: section.id,
-      heading,
-      body,
+      heading: media.trailingImage ? undefined : heading,
+      body: media.trailingImage ? undefined : body,
       media: { type: "carousel", items, shape: media.shape, colorful: media.colorful },
     });
     if (media.trailingImage) {
-      const src = await resolveImageSrc(media.trailingImage.src);
-      const mobileSrc = media.trailingImage.mobileSrc
-        ? await resolveImageSrc(media.trailingImage.mobileSrc, 1080)
+      const image = await resolveImage(media.trailingImage.src);
+      const mobileImage = media.trailingImage.mobileSrc
+        ? await resolveImage(media.trailingImage.mobileSrc, 1080)
         : undefined;
       slides.push({
         chapterId: section.id,
+        heading,
+        body,
         media: {
           type: "image",
-          src,
+          src: image.src,
+          width: image.width,
+          height: image.height,
           alt: media.trailingImage.alt,
-          mobileSrc,
+          mobileSrc: mobileImage?.src,
+          mobileWidth: mobileImage?.width,
+          mobileHeight: mobileImage?.height,
           padded: media.trailingImage.padded,
           background: media.trailingImage.background,
         },
@@ -160,24 +220,39 @@ for (const section of entry.data.sections) {
 // this is the exact same photo the homepage's portfolio card uses (see
 // resolveCaseStudyHeroImage), so the shared-element view-transition morph
 // on arrival lands <img> onto <img>. A heroVideo, if the project also has
-// one, is pushed to its own slide right after, using this same photo as
-// its poster — the hero is always a static image, never the video itself
-// (see content.config.ts's own comment on heroImage/heroVideo). Morphing
-// straight onto a <video> element read as jumpy/glitchy in practice (a
-// poster-frame flash, then autoplay kicking in a beat later, sometimes
-// mid-transition), where two plain images morph cleanly.
+// one, is pushed to its own slide right after — the hero is always a
+// static image, never the video itself (see content.config.ts's own
+// comment on heroImage/heroVideo). Morphing straight onto a <video>
+// element read as jumpy/glitchy in practice (a poster-frame flash, then
+// autoplay kicking in a beat later, sometimes mid-transition), where two
+// plain images morph cleanly — that's why slide 0 stays a photo and the
+// video is pushed to its own slide right after, not a reason for that
+// video slide to reuse the hero photo as its own poster: the visitor
+// already just saw that exact photo as slide 0 a moment earlier, so a
+// second static showing of it directly below reads as the same image
+// repeating rather than a genuinely new slide — an autoplaying video
+// with no poster (see the Grieg Connect "animation" section's own media
+// for the same choice) reaches real motion just as fast either way, since
+// this slide is never the view-transition target (only firstMediaIndex
+// gets coverTransitionName, and that's always slide 0's photo).
 if (entry.data.heroImage && slides.length > 0) {
-  const heroSrc = await resolveImageSrc(entry.data.heroImage.src);
-  const heroMobileSrc = entry.data.heroImage.mobileSrc
-    ? await resolveImageSrc(entry.data.heroImage.mobileSrc, 1080)
+  const heroImage = await resolveImage(entry.data.heroImage.src);
+  const heroMobileImage = entry.data.heroImage.mobileSrc
+    ? await resolveImage(entry.data.heroImage.mobileSrc, 1080)
     : undefined;
+  const heroSrc = heroImage.src;
+  const heroMobileSrc = heroMobileImage?.src;
   slides[0] = {
     ...slides[0],
     media: {
       type: "image",
       src: heroSrc,
+      width: heroImage.width,
+      height: heroImage.height,
       alt: entry.data.heroImage.alt[locale],
       mobileSrc: heroMobileSrc,
+      mobileWidth: heroMobileImage?.width,
+      mobileHeight: heroMobileImage?.height,
     },
   };
   if (entry.data.heroVideo) {
@@ -187,8 +262,10 @@ if (entry.data.heroImage && slides.length > 0) {
         type: "video",
         src: entry.data.heroVideo.src,
         mobileSrc: entry.data.heroVideo.mobileSrc,
-        poster: heroSrc,
-        mobilePoster: heroMobileSrc,
+        width: heroImage.width,
+        height: heroImage.height,
+        mobileWidth: heroMobileImage?.width,
+        mobileHeight: heroMobileImage?.height,
       },
     });
   }
@@ -231,13 +308,10 @@ if (credits.length) {
 const allCaseStudies = await getCollection("case-studies");
 const currentIndex = allCaseStudies.findIndex((other) => other.id === entry.id);
 const nextEntry = allCaseStudies[(currentIndex + 1) % allCaseStudies.length];
-const nextImage = await getImage({ src: getMediaImage(nextEntry.data.cover), width: 1600 });
 const nextProject = {
   href: localizedPath(locale, `/work/${nextEntry.id}`),
   title: nextEntry.data.title[locale],
   subtitle: nextEntry.data.description[locale],
-  image: nextImage.src,
-  imageAlt: nextEntry.data.coverAlt[locale],
   accent: nextEntry.data.accent,
 };
 ---
@@ -248,6 +322,7 @@ const nextProject = {
   description={entry.data.description[locale]}
   accent={entry.data.accent}
   bodyBackground="var(--color-soft-cream)"
+  headerTheme="light"
   footerTheme="light"
   hideFooter
   caseStudyTransition
@@ -258,6 +333,9 @@ const nextProject = {
       title: entry.data.title[locale],
       client: entry.data.client,
       clientLabel: t("case.client"),
+      nextLabel: t("case.next"),
+      muteLabel: t("case.mute"),
+      unmuteLabel: t("case.unmute"),
     }}
     slides={slides}
     nextProject={nextProject}

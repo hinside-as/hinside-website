@@ -247,20 +247,39 @@ h3 {
 @keyframes cse-exit {
   to {
     opacity: 0;
-    transform: translateY(-4vh);
+    transform: translateY(-8vh);
   }
 }
 @keyframes cse-enter {
   from {
     opacity: 0;
-    transform: translateY(4vh);
+    transform: translateY(8vh);
   }
 }
+/* The old page eases out (slow-in, slow-out) drifting up while the new one
+   rises into place a little longer behind it, decelerating to rest. The
+   incoming page is opaque well before the outgoing one is gone, so the two
+   always overlap — no gap that would show the dark <html> behind them. */
 html[data-case-study-linked]::view-transition-old(root) {
-  animation: var(--duration-slow) var(--ease-standard) both cse-exit;
+  animation: calc(var(--duration-slow) * 1.2) cubic-bezier(0.65, 0, 0.35, 1) both cse-exit;
 }
 html[data-case-study-linked]::view-transition-new(root) {
-  animation: var(--duration-slow) var(--ease-out-expressive) both cse-enter;
+  animation: calc(var(--duration-slow) * 1.6) var(--ease-out-expressive) both cse-enter;
+}
+/* Sliding either snapshot vertically exposes whatever's behind them at the
+   edge it left — the dark <html> background, which showed as a dark,
+   fading strip along the top. Case studies are entirely the cream page
+   colour, so the backdrop the two snapshots slide over is cream too. */
+html[data-case-study-linked] {
+  background: var(--color-soft-cream);
+}
+html[data-case-study-linked]::view-transition-group(root) {
+  background: var(--color-soft-cream);
+}
+/* The header keeps to its own transition group so it stays put (a plain
+   crossfade with itself) instead of drifting up with the page. */
+html[data-case-study-linked] .site-header {
+  view-transition-name: site-header;
 }
 /* No separate prefers-reduced-motion override needed — tokens.css already
    zeroes --duration-slow under reduced motion, which collapses this to an

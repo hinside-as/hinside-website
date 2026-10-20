@@ -8,7 +8,11 @@
     "en": "A scalable design system for maritime software"
   },
   "client": "Grieg Connect",
-  "categories": ["Visual identity", "Digital", "Illustration"],
+  "categories": [
+    "Visual identity",
+    "Digital",
+    "Illustration"
+  ],
   "accent": "#126CB2",
   "cover": "projects/grieg-connect/cover.png",
   "coverAlt": {
@@ -21,9 +25,6 @@
       "no": "Isometriske illustrasjoner av dataanalyse, skipscontainere og folk i maritim virksomhet: diagrammer, en havneoffiser, en anleggsarbeider og en analytiker med nettbrett",
       "en": "Isometric illustrations of data analysis, shipping containers and people across maritime operations: charts, a harbor officer, a dock worker and an analyst with a tablet"
     }
-  },
-  "heroVideo": {
-    "src": "/media/projects/grieg-connect/video/hero-loop.mp4"
   },
   "sections": [
     {
@@ -67,15 +68,13 @@
         "type": "gallery",
         "items": [
           {
-            "src": "/media/projects/grieg-connect/sections/brand-hierarchy-2-desktop.svg",
+            "src": "projects/grieg-connect/sections/hierarchy.png",
             "mobileSrc": "/media/projects/grieg-connect/sections/brand-hierarchy-2-mobile.svg",
             "alt": "Grieg Connect brand hierarchy diagram on a dark background, showing the master brand connected to six sub-products: Plan, Port, Predict, Security, Terminal and Traffic"
           },
           {
-            "src": "projects/grieg-connect/sections/splash-2.png",
-            "alt": "Terminal product splash screen on a dark background, showing the Terminal icon and wordmark, a loading indicator, version and copyright text, and the Grieg Connect logo",
-            "padded": true,
-            "background": "#141414"
+            "src": "projects/grieg-connect/sections/splash.png",
+            "alt": "Terminal product splash screen in dark and light versions, showing the Terminal icon and wordmark, a loading indicator, version and copyright text, and the Grieg Connect logo"
           }
         ]
       }
@@ -101,7 +100,13 @@
             "src": "/media/projects/grieg-connect/sections/port-1.svg",
             "alt": "Screenshot of the Port product showing a mooring plan editor with an interactive map, mooring device markers, and a details panel",
             "padded": true,
-            "background": "#141414"
+            "background": "#EBEBEB"
+          },
+          {
+            "src": "/media/projects/grieg-connect/sections/port-call.svg",
+            "alt": "Screenshot of the Port product's port call detail page, showing a vessel's details, quays and orders, a live map and a summary",
+            "padded": true,
+            "background": "#EBEBEB"
           }
         ]
       }
@@ -268,6 +273,27 @@
       }
     },
     {
+      "id": "animation",
+      "heading": {
+        "no": "Et visuelt språk som kunne bevege seg",
+        "en": "A visual language that could move"
+      },
+      "body": {
+        "no": [
+          "Illustrasjonssystemet ble utviklet for å fungere på tvers av produkter, flater og formater. I bevegelse fikk det enda en funksjon: å gjøre komplekse sammenhenger lettere å følge, samtidig som uttrykket holdt porteføljen visuelt samlet."
+        ],
+        "en": [
+          "The illustration system was developed to work across products, surfaces and formats. In motion it gained one more function: making complex relationships easier to follow, while the expression kept the portfolio visually unified."
+        ]
+      },
+      "media": {
+        "type": "video",
+        "src": "/media/projects/grieg-connect/video/hero-loop.mp4",
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
       "id": "a-human-face-for-the-brand",
       "heading": {
         "no": "Et menneskelig ansikt for merkevaren",
@@ -383,9 +409,10 @@
         ],
         "shape": "circle",
         "trailingImage": {
-          "src": "projects/grieg-connect/sections/email-signature.png",
-          "alt": "An email signature featuring a Grieg Connect portrait illustration, the Grieg Connect logo, name, title and contact details",
-          "padded": true
+          "src": "/media/projects/grieg-connect/sections/email-signature.svg",
+          "alt": "An email client showing an email signature with a Grieg Connect portrait illustration, the Grieg Connect logo, name, title and contact details",
+          "padded": true,
+          "background": "#EBEBEB"
         }
       }
     },

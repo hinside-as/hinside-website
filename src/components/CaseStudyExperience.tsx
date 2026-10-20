@@ -1,12 +1,18 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { navigate } from "astro:transitions/client";
-import { useActiveSection } from "../hooks/useActiveSection";
 import GalleryCarousel, { type GalleryCarouselItem } from "./carousel/GalleryCarousel";
 
 export type CaseStudySlideMedia =
   | {
       type: "image";
       src: string;
+      // Real pixel size of src / mobileSrc (see [slug].astro's
+      // resolveImage) — reserves the image's aspect ratio before it loads
+      // so nothing below it jumps as it arrives.
+      width?: number;
+      height?: number;
+      mobileWidth?: number;
+      mobileHeight?: number;
       alt: string;
       // Optional art-directed crop for narrow viewports — a single image
       // stretched full-bleed across both a wide desktop slide and a tall
@@ -27,10 +33,25 @@ export type CaseStudySlideMedia =
   | {
       type: "video";
       src: string;
+      // Size of poster / mobilePoster, for the same reason as the image
+      // fields above — a <video> with no size of its own is 300x150 until
+      // its metadata arrives.
+      width?: number;
+      height?: number;
+      mobileWidth?: number;
+      mobileHeight?: number;
       poster?: string;
       mobileSrc?: string;
       mobilePoster?: string;
       allowUnmute?: boolean;
+      // A clip genuinely taller than wide (no landscape "desktop" cut) —
+      // see content.config.ts's own comment. Rendered inside a fixed
+      // 2560×1440 black stage on desktop instead of stretching to the full
+      // content column width at native aspect ratio: the clip sits
+      // contained (letterboxed) at its own aspect within that stage, like
+      // a phone screen recording centered on a black background, rather
+      // than a giant edge-to-edge portrait slab.
+      portrait?: boolean;
     }
   | { type: "carousel"; items: GalleryCarouselItem[]; shape: "square" | "circle" | "icon"; colorful?: boolean };
 
@@ -60,14 +81,15 @@ export type CaseStudyMeta = {
   // credit line), see docs/case-study-assets.md.
   client: string;
   clientLabel: string;
+  nextLabel: string;
+  muteLabel: string;
+  unmuteLabel: string;
 };
 
 export type CaseStudyNextProject = {
   href: string;
   title: string;
   subtitle?: string;
-  image: string;
-  imageAlt: string;
   accent?: string;
 };
 
@@ -164,6 +186,8 @@ function VideoMedia({
             className="cse__media cse__media--desktop"
             src={media.src}
             poster={media.poster}
+            width={media.width}
+            height={media.height}
           />
           <video
             ref={registerRef}
@@ -171,10 +195,20 @@ function VideoMedia({
             className="cse__media cse__media--mobile"
             src={media.mobileSrc}
             poster={media.mobilePoster ?? media.poster}
+            width={media.mobileWidth ?? media.width}
+            height={media.mobileHeight ?? media.height}
           />
         </>
       ) : (
-        <video ref={registerRef} {...baseProps} className="cse__media" src={media.src} poster={media.poster} />
+        <video
+          ref={registerRef}
+          {...baseProps}
+          className={media.portrait ? "cse__media--portrait-video" : "cse__media"}
+          src={media.src}
+          poster={media.poster}
+          width={media.width}
+          height={media.height}
+        />
       )}
     </>
   );
@@ -184,13 +218,23 @@ function Media({
   media,
   isMuted,
   transitionName,
+  eager = false,
 }: {
   media?: CaseStudySlideMedia;
   isMuted: boolean;
   transitionName?: string;
+  /** The first media on the page: loaded straight away, not lazily. */
+  eager?: boolean;
 }) {
   if (!media) return null;
   if (media.type === "video") {
+    if (media.portrait) {
+      return (
+        <div className="cse__media cse__media--portrait-stage">
+          <VideoMedia media={media} isMuted={isMuted} transitionName={transitionName} />
+        </div>
+      );
+    }
     return <VideoMedia media={media} isMuted={isMuted} transitionName={transitionName} />;
   }
   if (media.type === "carousel") {
@@ -205,12 +249,39 @@ function Media({
   if (media.mobileSrc) {
     return (
       <picture>
-        <source media="(max-width: 720px)" srcSet={media.mobileSrc} />
-        <img className={className} src={media.src} alt={media.alt} loading="lazy" style={style} />
+        <source
+          media="(max-width: 720px)"
+          srcSet={media.mobileSrc}
+          width={media.mobileWidth}
+          height={media.mobileHeight}
+        />
+        <img
+          className={className}
+          src={media.src}
+          width={media.width}
+          height={media.height}
+          alt={media.alt}
+          loading={eager ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : undefined}
+          decoding="async"
+          style={style}
+        />
       </picture>
     );
   }
-  return <img className={className} src={media.src} alt={media.alt} loading="lazy" style={style} />;
+  return (
+    <img
+      className={className}
+      src={media.src}
+      width={media.width}
+      height={media.height}
+      alt={media.alt}
+      loading={eager ? "eager" : "lazy"}
+      fetchPriority={eager ? "high" : undefined}
+      decoding="async"
+      style={style}
+    />
+  );
 }
 
 // Recognition and credits are the two slides that carry no image/video —
@@ -269,14 +340,6 @@ function CreditsSlide({
 export default function CaseStudyExperience({ meta, slides, nextProject, coverTransitionName }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nextRef = useRef<HTMLAnchorElement>(null);
-  const [nextProgress, setNextProgress] = useState(0);
-
-  // The only thing tracked here now is which video should autoplay — the
-  // chapter TOC that used to be this observer's other consumer is gone
-  // (see CaseStudyExperience's history: a sidebar with a chapter rail used
-  // to read activeIndex too). Purely observational, same as before: nothing
-  // here reads a wheel/touch/keyboard event or calls scrollTo/scrollIntoView.
-  const activeIndex = useActiveSection(containerRef, ".cse__step");
 
   // The homepage's own card picks whichever media this same slide happens
   // to render first (see src/lib/caseStudyHero.ts) — not always slide 0,
@@ -290,184 +353,201 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
   // there's nothing to keep separate.
   const [isMuted, setIsMuted] = useState(true);
 
-  // Autoplay the active slide's video only, pausing any others — a video
-  // scrolled out of view has no business consuming decode/playback
-  // resources. Driven by the same observed activeIndex as everything else;
-  // this reacts to scroll position, it doesn't create it.
+  // Autoplay a video only while it's substantially visible, pausing it
+  // otherwise — observed directly on each <video> rather than derived from
+  // a single "active slide" index. Case-study slides are plain flowing
+  // content now, each only as tall as its own content (no per-slide
+  // viewport-height floor), so a short section — the video's included —
+  // can cross the viewport within a single fast-scroll frame; a shared
+  // active-index computed from a collapsed 1px center line can skip a
+  // section that short entirely, silently leaving its video's poster
+  // showing (a static frame that happens to double as the same photo the
+  // homepage's portfolio carousel uses) even though the visitor scrolled
+  // right past it. Watching each video's own intersection ratio instead —
+  // a real threshold band, not a 1px line — means a fast scroll still
+  // reliably crosses it and triggers play/pause. This also folds in what
+  // used to be a separate resize listener: a mobileSrc pair's two <video>
+  // elements toggle display:none across the 720px breakpoint (see Media
+  // above), and IntersectionObserver already reports a display:none
+  // element as not intersecting, so the newly-revealed element gets its
+  // own play() call for free on resize, no extra wiring needed.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const syncVideoPlayback = () => {
-      container.querySelectorAll<HTMLVideoElement>("[data-cse-video]").forEach((video) => {
-        const step = video.closest<HTMLElement>(".cse__step");
-        const isActive = Number(step?.dataset.slideIndex) === activeIndex;
-        // A slide with a mobileSrc/mobilePoster pair renders two <video>
-        // elements (see Media above), only one of which is display:none'd by
-        // CSS at any given width — offsetParent is null for a display:none
-        // element, the cheapest way to check without duplicating the 720px
-        // breakpoint into a matchMedia call here too. Without this, both the
-        // visible and the off-breakpoint video would autoplay, decoding one
-        // nobody can see.
-        const isVisible = video.offsetParent !== null;
-        if (isActive && isVisible && !reducedMotion) {
-          video.play().catch(() => {
-            // Autoplay can be blocked (e.g. data-saver mode) — poster stays visible.
-          });
-        } else {
-          video.pause();
+    const videos = Array.from(container.querySelectorAll<HTMLVideoElement>("[data-cse-video]"));
+    if (videos.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const video = entry.target as HTMLVideoElement;
+          if (entry.isIntersecting) {
+            // Autoplay policies check the live `muted` DOM property, not
+            // just the `muted` JSX prop/attribute — React doesn't always
+            // get the property itself set before this effect's first
+            // play() call, and a video whose property lags the attribute
+            // gets its autoplay silently rejected. Setting it here
+            // immediately before play() is the reliable fix.
+            video.muted = true;
+            video.play().catch(() => {
+              // Autoplay can still be blocked (e.g. data-saver mode) — poster (if any) stays visible.
+            });
+          } else {
+            video.pause();
+          }
         }
-      });
-    };
+      },
+      { threshold: 0.5 },
+    );
+    videos.forEach((video) => observer.observe(video));
+    return () => observer.disconnect();
+  }, []);
 
-    syncVideoPlayback();
-    // Resizing across the 720px breakpoint swaps which of the two
-    // desktop/mobile elements CSS shows via display:none — that changes
-    // offsetParent (and so isVisible above) without touching activeIndex,
-    // so without also re-running this on resize, the newly-revealed
-    // element never gets its own .play() call and just sits there paused
-    // (this is exactly what "scale down to mobile and back, video stopped"
-    // was: resizing back to desktop reveals the desktop element, which was
-    // paused when it went offscreen the first time and nothing told it to
-    // resume).
-    window.addEventListener("resize", syncVideoPlayback);
-    return () => window.removeEventListener("resize", syncVideoPlayback);
-  }, [activeIndex]);
-
-  // Replaces the old cross-promo carousel as the page's ending: scrolling
-  // the "next project" teaser into view fills a bar across it, announcing
-  // the next case study before you reach it — reaching full triggers the
-  // actual navigation. Purely a read of scroll position via
-  // getBoundingClientRect (same technique as BaseLayout's own parallax
-  // effect), never a hijacked wheel/touch event; the anchor is a real link
-  // the whole time, so a click or keyboard Enter navigates immediately
-  // regardless of scroll progress.
+  // The page's ending: an announcement of the next case study, entered by
+  // pushing past the end of the page. Once the visitor is at the very
+  // bottom, further downward scroll input (wheel/trackpad, or a swipe up)
+  // charges a bar across the teaser; it drains again when the input stops,
+  // and reaching full navigates to the next project (the root slide+fade
+  // view transition takes it from there — see global.css's
+  // [data-case-study-linked] rules).
+  // This only ever *observes* the input: nothing here calls preventDefault,
+  // scrollTo or scrollIntoView, so native scrolling is untouched. The
+  // whole block stays a real <a>, so a click or Enter navigates
+  // immediately regardless of the bar.
   useEffect(() => {
     const link = nextRef.current;
     if (!link) return;
-    // Reduced motion gets the honest fallback: a plain, static link with no
-    // fill animation and no scroll-triggered auto-navigation — the user
-    // decides when to go, same as every other link on the site.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setNextProgress(1);
-      return;
-    }
+    // Reduced motion: a plain, static link — no charge, no auto-navigation.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+    // Scroll input (px of wheel delta / swipe distance) to fill the bar
+    // from empty — "scroll hard", not a casual nudge.
+    const CHARGE_PX = 700;
+    const IDLE_MS = 300; // input pause before the bar starts draining
+    const DRAIN_PER_SECOND = 0.55;
+
+    let charge = 0;
+    let momentum = 0;
+    let prevCharge = 0;
+    let lastInput = 0;
+    let lastFrame = 0;
+    let rafId = 0;
     let navigated = false;
-    let ticking = false;
+    let touchY = 0;
 
-    const apply = () => {
-      const rect = link.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      // 0 the moment the teaser's top edge appears at the bottom of the
-      // viewport, 1 a full viewport-height of scrolling later (its top
-      // edge has reached the top of the viewport) — viewport-relative, not
-      // tied to the teaser's own height, so it feels the same regardless
-      // of how tall the section renders at a given breakpoint.
-      const progress = Math.min(Math.max((viewportHeight - rect.top) / viewportHeight, 0), 1);
-      setNextProgress(progress);
-      if (progress >= 1 && !navigated) {
+    const atBottom = () =>
+      window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+
+    const paint = () => {
+      link.style.setProperty("--next-progress", charge.toFixed(4));
+      link.style.setProperty("--next-momentum", momentum.toFixed(4));
+    };
+
+    const frame = (now: number) => {
+      // rAF's timestamp can precede the performance.now() that armed
+      // lastFrame, so the very first dt can be slightly negative.
+      const dt = Math.min(Math.max((now - lastFrame) / 1000, 0), 0.05);
+      lastFrame = now;
+      if (now - lastInput > IDLE_MS) charge = Math.max(0, charge - DRAIN_PER_SECOND * dt);
+      // Momentum: how fast the bar is filling right now (0 = still or
+      // draining, 1 = a hard push). Snaps up quickly, eases off slowly, so
+      // the spectrum flares with each shove and settles when it stops.
+      const stepDt = Math.max(dt, 1 / 60);
+      const target = Math.min(Math.max((charge - prevCharge) / stepDt / 1.6, 0), 1);
+      prevCharge = charge;
+      momentum += (target - momentum) * Math.min(stepDt * (target > momentum ? 30 : 4), 1);
+      paint();
+      if (charge >= 1 && !navigated) {
         navigated = true;
-        navigate(nextProject.href);
+        // A beat on the full bar before leaving, so it registers.
+        window.setTimeout(() => {
+          // Tells the next page a hard push brought us here, so it can
+          // swallow that push's leftover trackpad momentum (see
+          // BaseLayout's astro:after-swap listener).
+          try {
+            sessionStorage.setItem("cse-pushed", String(Date.now()));
+          } catch {
+            // Storage unavailable — the momentum just isn't swallowed.
+          }
+          navigate(nextProject.href);
+        }, 140);
       }
-      ticking = false;
+      if (charge > 0 && !navigated) rafId = requestAnimationFrame(frame);
+      else {
+        rafId = 0;
+        momentum = 0;
+        paint();
+      }
     };
 
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(apply);
+    const push = (amount: number) => {
+      if (navigated) return;
+      // Pushing back up (or away from the bottom) drains it instead.
+      if (amount > 0 && !atBottom()) return;
+      charge = Math.min(Math.max(charge + amount / CHARGE_PX, 0), 1);
+      lastInput = performance.now();
+      if (!rafId) {
+        lastFrame = performance.now();
+        rafId = requestAnimationFrame(frame);
+      }
     };
 
-    apply();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    // Arrival at the bottom isn't a push. A fast scroll (or its trackpad
+    // momentum) that carries the page to the very end is still delivering
+    // wheel events on arrival — counting those would fill the bar without
+    // the visitor ever pushing past the end. So input only counts once
+    // it's a fresh gesture: the first wheel event at the bottom after a
+    // pause (judged by the events' own timestamps). Anything arriving
+    // while the page is still travelling, or in the wake of that travel,
+    // just keeps the "not yet" state.
+    const ARM_QUIET_MS = 200;
+    let armed = false;
+    let lastWheelStamp = 0;
+    const onWheel = (event: WheelEvent) => {
+      const gap = event.timeStamp - lastWheelStamp;
+      lastWheelStamp = event.timeStamp;
+      if (!atBottom()) {
+        armed = false;
+        return;
+      }
+      if (!armed) {
+        if (gap <= ARM_QUIET_MS) return;
+        armed = true;
+      }
+      push(event.deltaY);
+    };
+    // Same rule for touch: only a swipe that started while already at the
+    // bottom counts; momentum after a finger lifts sends no touch events.
+    let touchArmed = false;
+    const onTouchStart = (event: TouchEvent) => {
+      touchY = event.touches[0].clientY;
+      touchArmed = atBottom();
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      const y = event.touches[0].clientY;
+      if (touchArmed) push(touchY - y);
+      touchY = y;
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, [nextProject.href]);
 
   return (
     <div className="cse">
-      {/* Renders on every viewport width, unlike the old sidebar's title,
-          which only ever showed up at >=60rem — there is no longer a
-          dedicated back-link or chapter TOC (the persistent header nav is
-          the only way back now, a deliberate choice). */}
-      <header className="cse__intro">
-        <h1 className="cse__title">{meta.title}</h1>
-      </header>
-
-      <div className="cse__slides" ref={containerRef}>
-        {slides.map((slide, index) => (
-          <section
-            key={`${slide.chapterId}-${index}`}
-            className={`cse__step${slide.recognition ? " cse__recognition" : slide.credits ? " cse__credits" : ""}`}
-            data-slide-index={index}
-            style={
-              slide.media?.type === "image" && slide.media.padded && slide.media.background
-                ? { background: slide.media.background }
-                : undefined
-            }
-          >
-            {slide.recognition ? (
-              <RecognitionSlide heading={slide.heading} items={slide.recognition} />
-            ) : slide.credits ? (
-              <CreditsSlide
-                heading={slide.heading}
-                clientLabel={meta.clientLabel}
-                client={meta.client}
-                items={slide.credits}
-              />
-            ) : (
-              <>
-                <div className="cse__media-wrap">
-                  <Media
-                    media={slide.media}
-                    isMuted={isMuted}
-                    transitionName={index === firstMediaIndex ? coverTransitionName : undefined}
-                  />
-                  {slide.media?.type === "video" && slide.media.allowUnmute && (
-                    <button
-                      type="button"
-                      className="cse__media-mute"
-                      aria-label={isMuted ? "Unmute video" : "Mute video"}
-                      aria-pressed={!isMuted}
-                      onClick={() => setIsMuted((muted) => !muted)}
-                    >
-                      <MuteIcon muted={isMuted} />
-                    </button>
-                  )}
-                </div>
-                {(slide.heading || slide.body?.length) && (
-                  <div className="cse__text">
-                    {slide.heading && <h2>{slide.heading}</h2>}
-                    {slide.body?.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
-                  </div>
-                )}
-              </>
-            )}
-          </section>
-        ))}
-      </div>
-
-      <a
-        ref={nextRef}
-        href={nextProject.href}
-        className="cse__next"
-        style={{ "--next-progress": nextProgress } as CSSProperties}
-      >
-        <span className="cse__next-eyebrow">Next project</span>
-        <h2 className="cse__next-title">{nextProject.title}</h2>
-        <div className="cse__next-media">
-          <img src={nextProject.image} alt={nextProject.imageAlt} loading="lazy" />
-        </div>
-        <div className="cse__next-bar">
-          <div className="cse__next-bar-fill" />
-        </div>
-      </a>
-
+      {/* First in the markup on purpose: the browser draws content as soon as
+          it's parsed, so styles placed after it (as they used to be) let the
+          whole page render unstyled for a moment and then snap into layout —
+          the jumping on load. */}
       <style>{`
         /* A light theme, distinct from the site's dark-by-default root —
            redefined locally on .cse (not the global [data-theme="light"]
@@ -545,6 +625,30 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
           position: relative;
           padding-block: var(--space-8);
         }
+        /* Desktop: one fixed distance between one section and the next
+           (6rem, --space-7), not each section's own generous top/bottom
+           padding stacked together. */
+        /* Another slide of the same section as the previous one: pulled up from the full
+           section distance to the 2rem "belongs together" distance. */
+        .cse__step--continued {
+          margin-top: calc(2rem - var(--space-8));
+          padding-top: 0;
+        }
+        @media (min-width: 721px) {
+          .cse__step--continued {
+            margin-top: calc(2rem - var(--space-7));
+          }
+          .cse__slides {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-7);
+          }
+          .cse__step,
+          .cse__recognition,
+          .cse__credits {
+            padding-block: 0;
+          }
+        }
         /* Tighter than every other slide's own top padding — the hero
            should sit close under the title, not have the same generous gap
            used to separate later, unrelated slides from each other. */
@@ -553,6 +657,41 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
         }
         .cse__media-wrap {
           position: relative;
+        }
+        /* Vertical inset for the padded image inside its own backdrop
+           panel (the slide itself no longer carries padding). */
+        /* Padded images lift off their surface with a very faint, soft
+           shadow (desktop and mobile alike). On mobile the image is the
+           full width of the page column, and the shadow's own spread stays
+           inside the page's side padding, so nothing clips it. */
+        .cse__media--padded {
+          box-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.04),
+            0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+        /* A padded image sits in a box (the slide's own backdrop colour) on
+           desktop, centred at its own size; on mobile there's no box — the
+           image just fills the width like any other. */
+        @media (min-width: 721px) {
+          .cse__media-wrap--padded {
+            display: flex;
+            justify-content: center;
+            padding: var(--space-7) var(--space-6);
+          }
+          .cse__media-wrap--padded .cse__media--padded {
+            width: auto;
+            max-width: 100%;
+            margin-inline: 0;
+          }
+        }
+        @media (max-width: 720px) {
+          .cse__media-wrap--padded {
+            background: none !important;
+          }
+          .cse__media-wrap--padded .cse__media--padded {
+            width: 100%;
+            margin-inline: 0;
+          }
         }
         .cse__recognition,
         .cse__credits {
@@ -628,6 +767,34 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
           width: 100%;
           height: auto;
         }
+        /* See the video type's own "portrait" field (content.config.ts) —
+           a 9:16 clip with no separate landscape cut. On mobile it's left
+           alone (full width, native aspect — a portrait clip already suits
+           a portrait screen). On desktop it's contained inside a fixed
+           2560×1440 black stage instead of stretching to the full content
+           column width at native aspect ratio, which would make the slide
+           absurdly tall: the clip plays at the stage's full height,
+           centered, like a phone screen recording sitting on a black
+           background — a mobile-shaped player, not an edge-to-edge slab. */
+        .cse__media--portrait-video {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+        @media (min-width: 721px) {
+          .cse__media--portrait-stage {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 2560 / 1440;
+            background: #000;
+          }
+          .cse__media--portrait-video {
+            width: auto;
+            height: 100%;
+            max-width: 100%;
+          }
+        }
         /* galleryImage's "padded" field — the slide's own background
            (set inline via style={{background: media.background}} above)
            shows through as a margin around the media, for images that need
@@ -680,7 +847,15 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
           align-items: center;
           justify-content: center;
           padding-block: var(--space-6);
-          background: var(--color-bg-raised);
+          background: #0a1114;
+        }
+        /* Desktop: the carousel area is a fixed 2560 x 1400 frame, so every
+           carousel section is the same shape regardless of its items. */
+        @media (min-width: 721px) {
+          .cse__media--carousel {
+            aspect-ratio: 2560 / 1400;
+            padding-block: 0;
+          }
         }
         /* Same 720px breakpoint as everywhere else on the site — see the
            Media component's own comment for why a video with a distinct
@@ -696,25 +871,38 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
             display: none;
           }
         }
-        /* Square-shape items (the value-feature illustrations) render at
-           their own native 384px size — that's the illustrations' actual
-           intrinsic artwork size, not an arbitrary default, so scaling them
-           up to fill more of the slide would just blow up flat vector
-           linework past the size it was drawn at. Circle/icon items (real
-           photography/product screenshots) don't have that constraint and
-           still scale up to better fill the slide. */
+        /* One tile size for all three carousels (illustrations, portraits,
+           icons), so they share the same rhythm: the drag physics and
+           speed (px/s) were already identical, but different tile sizes
+           made the same px/s read as different speeds — big tiles glide,
+           small ones rush. Same size + same gap (see GalleryCarousel)
+           means the same number of tiles pass per second, too. */
+        .cse__media--carousel .gallery-carousel--square .gallery-carousel__item,
         .cse__media--carousel .gallery-carousel--circle .gallery-carousel__item,
         .cse__media--carousel .gallery-carousel--icon .gallery-carousel__item {
           width: min(34vh, 340px);
           height: min(34vh, 340px);
         }
+        @media (max-width: 720px) {
+          .cse__media--carousel .gallery-carousel--square .gallery-carousel__item,
+          .cse__media--carousel .gallery-carousel--circle .gallery-carousel__item,
+          .cse__media--carousel .gallery-carousel--icon .gallery-carousel__item {
+            width: min(21vh, 170px);
+            height: min(21vh, 170px);
+          }
+        }
+        /* Proximity hierarchy: a slide's text sits close under its own
+           media (2rem), a third of the gap between one section and the next
+           (6rem, --space-7, see .cse__slides), and the heading sits
+           tighter still to its own paragraph — so what belongs together
+           reads as one group and separate sections read as separate. */
         .cse__text {
-          padding-block: var(--space-6) 0;
+          padding-block: 2rem 0;
           max-width: 42rem;
         }
         .cse__text h2 {
           font-size: var(--text-xl);
-          margin-bottom: var(--space-3);
+          margin-bottom: var(--space-2);
         }
         .cse__text p {
           font-size: var(--text-base);
@@ -726,61 +914,174 @@ export default function CaseStudyExperience({ meta, slides, nextProject, coverTr
         }
 
         /* Closes the page in place of the site-wide footer — see
-           BaseLayout's hideFooter prop. --next-progress (0-1, set from JS as
-           this link scrolls into view) drives .cse__next-bar-fill's width;
-           reaching 1 triggers the actual navigation (see the component's own
-           effect for why this is a read of scroll position, not a hijack of
-           it) — but the whole block stays a real <a>, so clicking or
-           tabbing to it and pressing Enter navigates immediately regardless
-           of scroll progress. */
+           BaseLayout's hideFooter prop. --next-progress (0-1, written from
+           JS as the visitor pushes past the end of the page, and draining
+           back when they stop — see the component's own effect) drives how
+           much of the spectrum bar below is revealed; full navigates. */
+        /* A blank, full-height section of its own: the line sits at its
+           exact vertical centre (the rows either side share the leftover
+           height equally), with the caption hanging just below it. */
         .cse__next {
-          display: block;
-          width: 100%;
-          padding-block: var(--space-10) var(--space-8);
+          display: grid;
+          grid-template-rows: 1fr auto 1fr;
+          min-height: 100svh;
           text-decoration: none;
           color: inherit;
         }
-        .cse__next-eyebrow {
-          display: block;
-          font-size: var(--text-sm);
-          color: var(--color-fg-muted);
-          margin-bottom: var(--space-2);
-        }
-        .cse__next-title {
-          font-size: var(--text-3xl);
-          font-weight: var(--weight-regular);
-          letter-spacing: var(--tracking-tighter);
-          line-height: var(--leading-tight);
-          margin-bottom: var(--space-6);
-          transition: color var(--duration-base) var(--ease-standard);
-        }
-        .cse__next:hover .cse__next-title,
-        .cse__next:focus-visible .cse__next-title {
-          color: var(--accent, var(--color-fg));
-        }
-        .cse__next-media {
-          width: 100%;
-          aspect-ratio: 16 / 9;
-          overflow: hidden;
-          margin-bottom: var(--space-4);
-        }
-        .cse__next-media img {
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
+        /* Grey track; the filled part is black; the colour spectrum (the
+           typewriter reveal, the nav underline's trail) only trails the
+           very tip of the fill, so it reads as the line being drawn rather
+           than a rainbow bar. */
         .cse__next-bar {
+          position: relative;
+          overflow: hidden;
           width: 100%;
-          height: 2px;
+          height: 1px;
           background: var(--color-border);
         }
         .cse__next-bar-fill {
-          height: 100%;
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
           width: calc(var(--next-progress, 0) * 100%);
-          background: var(--accent, var(--color-fg));
+          background: var(--color-fg);
+        }
+        .cse__next-bar-tip {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          right: calc((1 - var(--next-progress, 0)) * 100%);
+          /* Length and intensity follow the momentum of the push
+             (--next-momentum, see the component's effect): a hard shove
+             throws the spectrum far back along the line, easing off pulls
+             it in and fades it, and when the bar is still it's gone —
+             just the black line. */
+          width: calc(1.5rem + var(--next-momentum, 0) * 60%);
+          /* Bright end at the tip, fading back through the hues behind it. */
+          background: linear-gradient(
+            to left,
+            hsl(50, 100%, 55%) 0%,
+            hsl(50, 100%, 55%) 16.66%,
+            hsl(30, 100%, 55%) 16.66%,
+            hsl(30, 100%, 55%) 33.33%,
+            hsl(350, 100%, 60%) 33.33%,
+            hsl(350, 100%, 60%) 50%,
+            hsl(120, 100%, 40%) 50%,
+            hsl(120, 100%, 40%) 66.66%,
+            hsl(195, 100%, 45%) 66.66%,
+            hsl(195, 100%, 45%) 83.33%,
+            hsl(270, 100%, 60%) 83.33%,
+            hsl(270, 100%, 60%) 100%
+          );
+          /* Vivid as soon as there's any real momentum; only the last
+             bit of easing-off fades it out. */
+          opacity: calc(clamp(0, calc(var(--next-progress, 0) * 12), 1) * clamp(0, calc(var(--next-momentum, 0) * 3), 1));
+        }
+        .cse__next-bar {
+          grid-row: 2;
+        }
+        .cse__next-caption {
+          grid-row: 3;
+          align-self: start;
+          margin-top: var(--space-3);
+          font-size: var(--text-xs);
+          color: var(--color-fg-muted);
+        }
+        .cse__next-caption-name {
+          color: var(--color-fg);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cse__next-bar {
+            display: none;
+          }
         }
       `}</style>
+
+      {/* Renders on every viewport width, unlike the old sidebar's title,
+          which only ever showed up at >=60rem — there is no longer a
+          dedicated back-link or chapter TOC (the persistent header nav is
+          the only way back now, a deliberate choice). */}
+      <header className="cse__intro">
+        <h1 className="cse__title">{meta.title}</h1>
+      </header>
+
+      <div className="cse__slides" ref={containerRef}>
+        {slides.map((slide, index) => (
+          <section
+            key={`${slide.chapterId}-${index}`}
+            className={`cse__step${slide.recognition ? " cse__recognition" : slide.credits ? " cse__credits" : ""}${
+              // A slide of the same section as the one before it (several
+              // images of one section) is grouped with it: the close "belongs
+              // together" distance instead of a new section's distance, with
+              // the section's text following the whole group.
+              index > 0 && slide.media && slides[index - 1].chapterId === slide.chapterId ? " cse__step--continued" : ""
+            }`}
+            data-slide-index={index}
+          >
+            {slide.recognition ? (
+              <RecognitionSlide heading={slide.heading} items={slide.recognition} />
+            ) : slide.credits ? (
+              <CreditsSlide
+                heading={slide.heading}
+                clientLabel={meta.clientLabel}
+                client={meta.client}
+                items={slide.credits}
+              />
+            ) : (
+              <>
+                {/* The padded image's own backdrop colour belongs to the
+                    media panel only — it used to be painted on the whole
+                    slide, so the heading/paragraph beneath it (dark text)
+                    ended up on that dark backdrop, overlapping the image's
+                    panel and unreadable. */}
+                <div
+                  className={`cse__media-wrap${slide.media?.type === "image" && slide.media.padded ? " cse__media-wrap--padded" : ""}`}
+                  style={
+                    slide.media?.type === "image" && slide.media.padded && slide.media.background
+                      ? { background: slide.media.background }
+                      : undefined
+                  }
+                >
+                  <Media
+                    media={slide.media}
+                    isMuted={isMuted}
+                    transitionName={index === firstMediaIndex ? coverTransitionName : undefined}
+                    eager={index === firstMediaIndex}
+                  />
+                  {slide.media?.type === "video" && slide.media.allowUnmute && (
+                    <button
+                      type="button"
+                      className="cse__media-mute"
+                      aria-label={isMuted ? meta.unmuteLabel : meta.muteLabel}
+                      aria-pressed={!isMuted}
+                      onClick={() => setIsMuted((muted) => !muted)}
+                    >
+                      <MuteIcon muted={isMuted} />
+                    </button>
+                  )}
+                </div>
+                {Boolean(slide.heading || slide.body?.length) && (
+                  <div className="cse__text">
+                    {slide.heading && <h2>{slide.heading}</h2>}
+                    {slide.body?.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        ))}
+      </div>
+
+      <a ref={nextRef} href={nextProject.href} className="cse__next">
+        <div className="cse__next-bar">
+          <div className="cse__next-bar-fill" />
+          <div className="cse__next-bar-tip" />
+        </div>
+        <p className="cse__next-caption">
+          {meta.nextLabel}: <span className="cse__next-caption-name">{nextProject.title}</span>
+        </p>
+      </a>
     </div>
   );
 }

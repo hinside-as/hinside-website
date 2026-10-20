@@ -33,15 +33,21 @@ const { href } = Astro.props;
     width: 100%;
     height: auto;
   }
+  /* --header-fg is set on .site-header (see Header.astro) and switches
+     black/white per section as the page scrolls — mix-blend-mode was the
+     first approach tried here but confirmed not to work across a
+     position: sticky boundary (see Header.astro's own comment). Falls
+     back to the ordinary --color-fg token when this mark is used outside
+     the header (Footer.astro), where no such switching applies. Dimmed
+     via the fill's own alpha (color-mix against transparent) rather than
+     the opacity property, purely to match the rest of the header's hover
+     treatment. */
   .brand-mark__svg rect {
-    fill: var(--color-fg);
+    fill: color-mix(in srgb, var(--header-fg, var(--color-fg)) 70%, transparent);
+    transition: fill var(--duration-base) var(--ease-standard);
   }
-  .brand-mark {
-    opacity: 0.7;
-    transition: opacity var(--duration-base) var(--ease-standard);
-  }
-  .brand-mark:hover,
-  .brand-mark:focus-visible {
-    opacity: 1;
+  .brand-mark:hover .brand-mark__svg rect,
+  .brand-mark:focus-visible .brand-mark__svg rect {
+    fill: var(--header-fg, var(--color-fg));
   }
 </style>

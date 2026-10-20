@@ -226,18 +226,18 @@ export default function LogoCarousel({ items }: { items: LogoCarouselItem[] }) {
           flex: 0 0 auto;
           display: flex;
           align-items: center;
-          opacity: 0.7;
+          opacity: var(--logo-rest-opacity, 0.7);
           transition: opacity var(--duration-base) var(--ease-standard);
         }
         .logo-carousel__item:hover,
         .logo-carousel__item:focus-visible {
-          opacity: 1;
+          opacity: var(--logo-rest-opacity, 1);
         }
         .logo-carousel__item img {
           width: auto;
           transform: scale(1);
           transform-origin: center;
-          filter: brightness(1) contrast(1);
+          filter: var(--logo-filter, none);
           transition:
             transform var(--duration-base) var(--ease-out-expressive),
             filter var(--duration-base) var(--ease-standard);
@@ -245,7 +245,7 @@ export default function LogoCarousel({ items }: { items: LogoCarouselItem[] }) {
         .logo-carousel__item:hover img,
         .logo-carousel__item:focus-visible img {
           transform: translateY(-1px) scale(1.04);
-          filter: brightness(1.12) contrast(1.08);
+          filter: var(--logo-filter, none);
         }
         .logo-carousel__cursor {
           position: absolute;

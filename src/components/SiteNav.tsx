@@ -50,31 +50,16 @@ export default function SiteNav({
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
-  // #mobile-nav-panel-target is an Astro-rendered element already in the
-  // server HTML (see Header.astro), not something this component creates —
-  // read it via a ref-callback / effect rather than calling
-  // document.getElementById directly during render, so this stays safe
-  // under SSR (no `document` at render time) and still catches it as soon
-  // as the client-side tree is up.
+  // The panel is now a full-viewport overlay (see its own comment below),
+  // unrelated to the header's own box — it portals straight to
+  // document.body rather than into a target inside .site-header (a
+  // fixed-position descendant only needs a stable containing block, which
+  // body always is; document isn't available at SSR render time, hence
+  // the effect rather than reading it during render).
   const [panelTarget, setPanelTarget] = useState<HTMLElement | null>(null);
   useEffect(() => {
-    setPanelTarget(document.getElementById("mobile-nav-panel-target"));
+    setPanelTarget(document.body);
   }, []);
-
-  // .site-header itself (Astro-rendered, [data-site-header] — see
-  // Header.astro) has no way to know this component's own isOpen state on
-  // its own, so it's reached directly here, the same way panelTarget above
-  // is. Needed so its own border-radius can square off its bottom corners
-  // while the panel is open (see Header.astro's own [data-menu-open]
-  // rule) — left rounded on all four corners regardless of open state,
-  // the header row's own curved bottom corner and the panel's square top
-  // corner (only its bottom is rounded, to read as one shape with the row
-  // above it) don't line up, showing as a small notch of the page's own
-  // background cut into what should be one continuous blurred surface.
-  useEffect(() => {
-    const header = document.querySelector<HTMLElement>("[data-site-header]");
-    header?.toggleAttribute("data-menu-open", isOpen);
-  }, [isOpen]);
 
   // Resizing past the desktop breakpoint (same 48rem the CSS below uses
   // to swap .site-nav__toggle for .site-nav__desktop-wrap) while the
@@ -93,6 +78,12 @@ export default function SiteNav({
     return () => query.removeEventListener("change", onChange);
   }, []);
 
+  // The panel now covers the full viewport while open (see its own
+  // comment below) and document.body.style.overflow already makes
+  // everything behind it unreachable, so there's no "outside" left to
+  // listen for a click on — a tap on the blurred backdrop itself closes
+  // it directly (see .mobile-nav-panel-surface's own onClick), and
+  // Escape/link-selection cover the rest.
   useEffect(() => {
     if (!isOpen) return;
 
@@ -102,47 +93,10 @@ export default function SiteNav({
     };
     window.addEventListener("keydown", onKeyDown);
 
-    // The panel is a position: absolute overlay now (see Header.astro/its
-    // own #mobile-nav-panel rule) rather than content that pushes the page
-    // down, so whatever's behind it — the homepage's own carousel included
-    // — is still reachable through any gap around the panel unless a tap
-    // there closes the menu first. toggleRef is excluded so this doesn't
-    // fight the toggle button's own onClick over the same tap.
-    const onPointerDown = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (panelRef.current?.contains(target)) return;
-      if (toggleRef.current?.contains(target)) return;
-      setIsOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("pointerdown", onPointerDown);
     };
-  }, [isOpen]);
-
-  // Measured height, not the grid-template-rows: 0fr -> 1fr trick this used
-  // before switching #mobile-nav-panel to position: absolute (see
-  // Header.astro's own comment on why it's absolute now) — a 1fr track only
-  // resolves against a *known* available height, and an absolutely
-  // positioned box with no explicit height/bottom doesn't reliably give it
-  // one, so the "expanded" state could collapse to nothing instead of
-  // opening. scrollHeight always reports the panel's true content height
-  // regardless of what height is currently applied to it (even 0, clipped
-  // by overflow: hidden), so animating a real measured pixel value sidesteps
-  // that ambiguity entirely.
-  const [panelHeight, setPanelHeight] = useState(0);
-  useLayoutEffect(() => {
-    if (!isOpen) return;
-    const panel = panelRef.current;
-    if (!panel) return;
-    const measure = () => setPanelHeight(panel.scrollHeight);
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
   }, [isOpen]);
 
   // Only ever finds sections on pages that actually mark them up (currently
@@ -333,67 +287,47 @@ export default function SiteNav({
 
       {panelTarget &&
         createPortal(
-          // Portalled into #mobile-nav-panel-target (an Astro-rendered
-          // sibling of .site-header__row, see Header.astro) — this panel is
-          // position: absolute there, overlaying whatever's below the
-          // header rather than pushing it down (see Header.astro's own
-          // comment on #mobile-nav-panel-target), so it needs to land
-          // inside that same positioning context, not escape to
-          // document.body.
+          // Portalled straight to document.body (see the panelTarget
+          // effect above) — a full-viewport fixed overlay, not content
+          // anchored to the header's own box.
           //
           // Always mounted (not isOpen && ...) rather than mounting only
           // while open: an element that unmounts immediately has nothing
           // to animate a close transition against. data-open + the
-          // height/opacity CSS below handle showing and hiding instead;
-          // tabIndex/aria-hidden keep the always-present links out of the
-          // tab order and off screen readers while closed.
-          <div
-            ref={panelRef}
-            id="mobile-nav-panel"
-            data-open={isOpen}
-            role="dialog"
-            aria-modal={isOpen}
-            aria-hidden={!isOpen}
-            style={{ height: isOpen ? `${panelHeight}px` : "0px" }}
-          >
-            {/* The blurred surface is a SEPARATE element from the one whose
-                height animates (#mobile-nav-panel, above) — see its own
-                comment for why: Safari has a documented bug where
-                backdrop-filter breaks on an element that's simultaneously
-                having its own height CSS-transitioned, and a first attempt
-                at working around that with will-change/translateZ(0) on the
-                SAME element introduced a worse, visible layer-corruption
-                bug (part of the panel rendering as if clipped to a stale,
-                mid-transition size). This surface's own height is always
-                just its natural content height — never animated, never
-                transformed — so it's never in the situation that triggers
-                either bug in the first place. #mobile-nav-panel's own
-                overflow: hidden + animated height still produces the
-                reveal effect from outside; this element just has to sit
-                still while that happens around it. */}
-            <div className="mobile-nav-panel-surface">
-              <ul>
-                {links.map((link, index) => (
-                  <li key={link.href} style={{ transitionDelay: isOpen ? `${index * 40}ms` : "0ms" }}>
-                    <a
-                      href={link.href}
-                      data-nav-hash={link.href.split("#")[1]}
-                      tabIndex={isOpen ? 0 : -1}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-                <li style={{ transitionDelay: isOpen ? `${links.length * 40}ms` : "0ms" }}>
-                  {/* data-astro-reload — see the desktop locale link's own
-                      comment above. */}
-                  <a href={otherLocaleHref} tabIndex={isOpen ? 0 : -1} data-astro-reload>
-                    {otherLocaleLabel}
+          // opacity/visibility CSS below handle showing and hiding
+          // instead; tabIndex/aria-hidden keep the always-present links
+          // out of the tab order and off screen readers while closed.
+          <div ref={panelRef} id="mobile-nav-panel" data-open={isOpen} role="dialog" aria-modal={isOpen} aria-hidden={!isOpen}>
+            {/* Covers the full viewport and sits BELOW the header in
+                z-index (see the CSS below) — the header (logo + toggle)
+                stays visibly pinned on top of the blur rather than being
+                blurred itself, so it's still legible and the toggle still
+                closes the menu. A tap anywhere on this backdrop closes the
+                menu directly, since nothing behind it is reachable while
+                it's open (document.body.style.overflow is already
+                hidden — see the effect above). */}
+            <div className="mobile-nav-panel-surface" aria-hidden="true" onClick={() => setIsOpen(false)} />
+            <ul className="mobile-nav-panel-links">
+              {links.map((link, index) => (
+                <li key={link.href} style={{ transitionDelay: isOpen ? `${index * 40}ms` : "0ms" }}>
+                  <a
+                    href={link.href}
+                    data-nav-hash={link.href.split("#")[1]}
+                    tabIndex={isOpen ? 0 : -1}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {link.label}
                   </a>
                 </li>
-              </ul>
-            </div>
+              ))}
+              <li style={{ transitionDelay: isOpen ? `${links.length * 40}ms` : "0ms" }}>
+                {/* data-astro-reload — see the desktop locale link's own
+                    comment above. */}
+                <a href={otherLocaleHref} tabIndex={isOpen ? 0 : -1} data-astro-reload>
+                  {otherLocaleLabel}
+                </a>
+              </li>
+            </ul>
           </div>,
           panelTarget,
         )}
@@ -413,13 +347,23 @@ export default function SiteNav({
         .site-nav__desktop a {
           text-decoration: none;
           font-size: var(--text-xs);
-          opacity: 0.7;
-          transition: opacity var(--duration-base) var(--ease-standard);
+          /* --header-fg is set on .site-header (see Header.astro) and
+             switches black/white per section as the page scrolls —
+             mix-blend-mode: difference was the first approach tried here
+             but confirmed NOT to work: it doesn't blend against scrolled
+             page content when the blending element is a descendant of a
+             position: sticky ancestor (a real browser compositing
+             limitation, not something tunable away — see Header.astro's
+             own comment for the full explanation). Dimmed via the color's
+             own alpha (color-mix against transparent) purely to match the
+             rest of the site's hover-dim convention. */
+          color: color-mix(in srgb, var(--header-fg, var(--color-white)) 70%, transparent);
+          transition: color var(--duration-base) var(--ease-standard);
         }
         .site-nav__desktop a:hover,
         .site-nav__desktop a:focus-visible,
         .site-nav__desktop a[data-active="true"] {
-          opacity: 1;
+          color: var(--header-fg, var(--color-white));
         }
         /* Absolutely positioned within the wrap (relative, above), not a
            border/box-shadow on the active link itself — its left/width/top
@@ -431,8 +375,9 @@ export default function SiteNav({
         .site-nav__underline {
           position: absolute;
           height: 1px;
-          background: var(--color-fg);
+          background: var(--header-fg, var(--color-white));
           transition:
+            background-color var(--duration-base) var(--ease-standard),
             left var(--duration-base) var(--ease-standard),
             width var(--duration-base) var(--ease-standard),
             top var(--duration-base) var(--ease-standard);
@@ -513,98 +458,137 @@ export default function SiteNav({
             opacity: 0;
           }
         }
+        /* While the mobile menu is open the header sits over its dark
+           backdrop, whatever section is behind it — so logo and toggle go
+           white regardless of the page's current light/dark theme (see
+           Header.astro's --header-fg). Higher specificity than the theme
+           rule's own attribute selector. */
+        header.site-header:has(.site-nav__toggle[aria-expanded="true"]) {
+          --header-fg: var(--color-white);
+        }
         .site-nav__toggle {
           display: flex;
           background: none;
           border: none;
-          color: var(--color-fg);
+          color: var(--header-fg, var(--color-white));
           cursor: pointer;
           padding: var(--space-2);
+          transition: color var(--duration-base) var(--ease-standard);
         }
-        /* position: absolute (anchored to #mobile-nav-panel-target, see
-           Header.astro), not normal in-flow content — this panel used to
-           grow the header's own box downward, which meant opening it
-           pushed everything below the header down the page instead of
-           overlaying it. Carries its own background/radius/shadow now
-           since it no longer shares a box with .site-header (which has
-           stopped clipping overflow specifically so this can extend past
-           its row without being cut off) — border-radius only on the
-           bottom corners so it reads as one continuous shape with the row
-           still visible above it.
-           Height is a real measured pixel value set inline by the
-           component (see its own useLayoutEffect + scrollHeight), not the
-           grid-template-rows: 0fr -> 1fr trick used before this became
-           position: absolute — a 1fr track needs a *known* available
-           height to resolve against, and an absolutely positioned box with
-           no explicit height/bottom doesn't reliably provide one, so the
-           "open" state could collapse to nothing instead of expanding. A
-           measured pixel target sidesteps that ambiguity entirely; overflow:
-           hidden here is what makes animating toward it read as a height
-           reveal instead of content just appearing abruptly at 0. */
+        /* Full-viewport blurred takeover, not the old compact dropdown
+           anchored under the header row — position: fixed + inset: 0
+           regardless of where it sits in the DOM (it's portalled to
+           document.body, see the component's own panelTarget effect).
+           z-index sits BELOW .site-header's own 50 (see Header.astro) so
+           the header row — logo, nav toggle — stays visibly pinned on
+           top of the blur instead of being blurred itself; that's also
+           what keeps the toggle clickable to close the menu again.
+           opacity/visibility, not height — there's no content-driven
+           height to animate toward anymore, just a full-screen show/hide,
+           so this sidesteps Safari's backdrop-filter/height-transition
+           bug entirely rather than working around it.
+           No visibility toggle here (an earlier version had one) —
+           pointer-events: none and each link's own tabIndex/aria-hidden
+           (see the component's own JSX) already fully cover interaction
+           and a11y while closed, and visibility: hidden let the browser
+           skip painting the panel entirely while invisible. That meant
+           the full-viewport backdrop-filter blur below had never actually
+           been rasterized before the very first frame it needed to be
+           visible, so opening the menu forced that expensive blur
+           computation synchronously right as the fade was supposed to
+           start — a visible stutter, not a smooth ramp, since only
+           opacity was ever actually being animated. Leaving the panel
+           continuously painted (just transparent) keeps that blur warm at
+           all times, so there's nothing left to compute when it opens.
+           No will-change here — a first pass added will-change: opacity,
+           which promotes this element to its own isolated compositing
+           layer, and (same class of bug as mix-blend-mode breaking across
+           a position: sticky boundary — see Header.astro's own comment)
+           that risks cutting the CHILD .mobile-nav-panel-surface's
+           backdrop-filter off from the real page content it needs to
+           sample, particularly in Safari/WebKit, which already has a
+           documented history of exactly this kind of backdrop-filter
+           regression in this codebase. Not worth the risk for a hint that
+           was never confirmed necessary. */
         #mobile-nav-panel {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 1;
-          overflow: hidden;
-          transition: height var(--duration-base) var(--ease-standard);
+          position: fixed;
+          inset: 0;
+          z-index: 40;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
         }
-        /* Shadow only while open, not on the base rule above — collapsed to
-           height: 0 it's still a real (if invisible) box, and a blurred
-           box-shadow paints past even a zero-size box's own edges, which
-           showed up as a faint persistent line under the header even fully
-           closed. */
         #mobile-nav-panel[data-open="true"] {
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+          pointer-events: auto;
         }
-        /* Same translucent-blur treatment as .site-header itself (see
-           Header.astro) — deliberately a SEPARATE element from
-           #mobile-nav-panel above, not that element's own background, so
-           the blur never has to coexist with an animated height on the
-           same box (see this element's own JSX comment for the Safari bug
-           that combination trips). Its own height is just its natural
-           content height, full stop — #mobile-nav-panel's overflow:hidden
-           + animated height is what produces the reveal from outside. */
+        /* Full-bleed backdrop behind the link list — a separate element
+           (not #mobile-nav-panel's own background) purely so a tap on it
+           can close the menu (see the component's own onClick) without
+           also catching taps on the links stacked in front of it. */
         .mobile-nav-panel-surface {
-          background: color-mix(in srgb, var(--color-black) 85%, transparent);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-radius: 0 0 8px 8px;
+          position: absolute;
+          inset: 0;
+          background: color-mix(in srgb, var(--color-black) 0%, transparent);
+          backdrop-filter: blur(0px);
+          -webkit-backdrop-filter: blur(0px);
+          transition:
+            background-color var(--duration-base) var(--ease-standard),
+            backdrop-filter var(--duration-base) var(--ease-standard),
+            -webkit-backdrop-filter var(--duration-base) var(--ease-standard);
         }
-        #mobile-nav-panel ul {
+        /* The blur radius itself is what animates, NOT the panel's
+           opacity: an element with opacity < 1 is a "backdrop root", so
+           a backdrop-filter on a child of one can't see the page behind
+           it — the blur only appeared at the very end, once opacity hit 1,
+           and snapped in. With no opacity on any ancestor the filter
+           samples the real page the whole way. */
+        #mobile-nav-panel[data-open="true"] .mobile-nav-panel-surface {
+          background: color-mix(in srgb, var(--color-black) 88%, transparent);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+        }
+        .mobile-nav-panel-links {
+          position: relative;
           list-style: none;
           margin: 0;
-          padding: var(--space-4) var(--space-4) calc(var(--space-4) * 2);
+          padding: 0;
           display: flex;
           flex-direction: column;
+          align-items: center;
           gap: var(--space-4);
         }
         /* Each link fades/lifts in with a per-index delay set inline (see
            the component's own style={{transitionDelay}}) — staggered on
            the way open, but delay resets to 0 on close so the panel
-           collapses as one quick uniform motion rather than the last item
-           lagging behind the grid-row collapse above it. */
-        #mobile-nav-panel li {
+           closes as one quick uniform motion rather than the last item
+           lagging behind. */
+        .mobile-nav-panel-links li {
           opacity: 0;
-          transform: translateY(-4px);
+          transform: translateY(8px);
           transition:
             opacity var(--duration-base) var(--ease-standard),
             transform var(--duration-base) var(--ease-standard);
         }
-        #mobile-nav-panel[data-open="true"] li {
+        #mobile-nav-panel[data-open="true"] .mobile-nav-panel-links li {
           opacity: 1;
           transform: none;
         }
-        #mobile-nav-panel a {
+        /* Plain white, not --header-fg (the persistent header bar's own
+           switchable color, see Header.astro) — this panel is its own
+           opaque-ish blurred surface rather than a strip floating over
+           arbitrary page content, so a flat readable color is the correct
+           choice here, not a value that tracks whatever's currently
+           behind the header row above it. */
+        .mobile-nav-panel-links a {
           text-decoration: none;
-          font-size: var(--text-xs);
-          color: var(--color-fg);
-          opacity: 0.7;
+          font-size: var(--text-xl);
+          color: var(--color-white);
+          opacity: 0.8;
           transition: opacity var(--duration-base) var(--ease-standard);
         }
-        #mobile-nav-panel a:hover,
-        #mobile-nav-panel a:focus-visible {
+        .mobile-nav-panel-links a:hover,
+        .mobile-nav-panel-links a:focus-visible {
           opacity: 1;
         }
         @media (min-width: 48rem) {

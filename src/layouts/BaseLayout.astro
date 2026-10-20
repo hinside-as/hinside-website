@@ -34,10 +34,10 @@ type Props = {
    * default), but a page whose first section is light needs this so a
    * mismatched dark sliver doesn't show above it. */
   bodyBackground?: string;
-  /** False on slide-based pages (the homepage) that drive the header's
-   * visibility themselves rather than this component's own scroll-
-   * direction-based show/hide. */
-  headerScrollControlsVisibility?: boolean;
+  /** See Header.astro's own `theme` prop — a static override for a page
+   * whose content is uniformly one color throughout (case studies), as
+   * opposed to the homepage's per-section switch. */
+  headerTheme?: "light";
   footerNoBorder?: boolean;
   footerWideMargin?: boolean;
   /** See Footer.astro's own `theme` prop — a page whose content is light
@@ -62,7 +62,7 @@ const {
   description,
   accent,
   bodyBackground,
-  headerScrollControlsVisibility = true,
+  headerTheme,
   footerNoBorder = false,
   footerWideMargin = false,
   footerTheme,
@@ -87,6 +87,7 @@ const navLinks = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="p:domain_verify" content="abc65727dbd0994784eab5b48592a8d5" />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="alternate" hreflang="no" href={new URL(localizedPath("no", Astro.url.pathname), Astro.site)} />
     <link rel="alternate" hreflang="en" href={new URL(localizedPath("en", Astro.url.pathname), Astro.site)} />
@@ -112,7 +113,7 @@ const navLinks = [
       menuLabel={t("nav.menu")}
       closeLabel={t("nav.close")}
       otherLocaleLabel={t("lang.switchTo")}
-      scrollControlsVisibility={headerScrollControlsVisibility}
+      theme={headerTheme}
     />
     <main id="main-content">
       <slot />
@@ -203,6 +204,61 @@ const navLinks = [
   // attributes with the new page's — would otherwise erase it; mutating
   // the pre-swap event.newDocument instead survives that overwrite, since
   // that's exactly what gets copied onto the live document moments later).
+  // Arriving from a hard push past the end of the previous project (see
+  // CaseStudyExperience's "next project" bar, which leaves the
+  // cse-pushed flag): that push is still carrying trackpad/wheel momentum,
+  // which would otherwise start scrolling the new page the instant it
+  // appears. The new page is held still until the momentum has died down —
+  // the wheel going quiet — and then hands control straight back, so the
+  // next scroll input is the visitor's own.
+  // Two layers, because preventDefault alone isn't reliable: browsers send
+  // the events of an already-latched scroll gesture as non-cancelable, so
+  // the momentum tail can't be cancelled event by event. Locking the root's
+  // overflow holds the page still regardless, and preventDefault stays on
+  // as a belt-and-braces for engines that do honour it. A deliberate,
+  // narrowly scoped exception to "never interfere with scrolling": it only
+  // ever covers the tail of a gesture that already ended on the previous
+  // page. Installed on astro:after-swap — before the new page has hydrated.
+  document.addEventListener("astro:after-swap", () => {
+    let pushedAt = 0;
+    try {
+      pushedAt = Number(sessionStorage.getItem("cse-pushed")) || 0;
+      sessionStorage.removeItem("cse-pushed");
+    } catch {
+      return;
+    }
+    if (!pushedAt || Date.now() - pushedAt > 3000) return;
+
+    const root = document.documentElement;
+    const QUIET_MS = 250; // no wheel input for this long = momentum is over
+    const MAX_MS = 4000;
+    const start = performance.now();
+    let lastSeen = start;
+    // Keeps the layout width steady when the scrollbar is hidden (classic
+    // scrollbars); overlay scrollbars don't take space anyway.
+    const previousOverflow = root.style.overflow;
+    const previousGutter = root.style.scrollbarGutter;
+    root.style.scrollbarGutter = "stable";
+    root.style.overflow = "hidden";
+
+    const onWheel = (event: WheelEvent) => {
+      lastSeen = performance.now();
+      event.preventDefault();
+    };
+    window.addEventListener("wheel", onWheel, { capture: true, passive: false });
+
+    const release = () => {
+      window.clearInterval(timer);
+      window.removeEventListener("wheel", onWheel, { capture: true });
+      root.style.overflow = previousOverflow;
+      root.style.scrollbarGutter = previousGutter;
+    };
+    const timer = window.setInterval(() => {
+      const now = performance.now();
+      if (now - lastSeen > QUIET_MS || now - start > MAX_MS) release();
+    }, 50);
+  });
+
   const isCaseStudyPath = (pathname: string) => /\/work\/[^/]+\/?$/.test(pathname);
   const updateCaseStudyLinked = (to: URL, target: HTMLElement) => {
     const linked = document.documentElement.hasAttribute("data-case-study") && isCaseStudyPath(to.pathname);

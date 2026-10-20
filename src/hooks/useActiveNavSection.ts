@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 
 /**
  * Tracks which nav destination the page is currently scrolled to, for the
- * sliding-underline indicator — purely by observation, same principle as
- * useActiveSection (case-study TOC/progress). Reads a plain string off
+ * sliding-underline indicator — purely by observation. Reads a plain string off
  * `data-nav-section` rather than a numeric index: each page section
  * declares which nav link it belongs to directly (several sections can
  * share one nav link, e.g. the hero/identity/work sections all count as

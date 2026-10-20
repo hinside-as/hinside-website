@@ -23,6 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: "Invalid request body" }), { status: 400 });
   }
 
+  const name = typeof body.name === "string" ? body.name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const honeypot = typeof body.company === "string" ? body.company.trim() : "";
@@ -53,6 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
       reply_to: email,
       subject: "[hinside.as] New message",
       html: `
+        ${name ? `<p><strong>Name:</strong> ${escapeHtml(name)}</p>` : ""}
         <p><strong>Email:</strong> ${escapeHtml(email)}</p>
         <p><strong>Message:</strong></p>
         <p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>
